@@ -10,6 +10,7 @@
 #include "Components/ArrowComponent.h" 
 #include "Kismet/KismetSystemLibrary.h"
 #include "EnhancedInputSubsystems.h"
+#include "FireBall/FireBall_ver1.h"
 
 // Sets default values
 AVRDragon_ver2::AVRDragon_ver2()
@@ -149,7 +150,14 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
-		UKismetSystemLibrary::PrintString(GEngine->GetWorld(), "Fire");
+		FRotator look = GetControlRotation();
+		FVector pos = GetActorLocation();
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AFireBall_ver1* FireBall =
+			GetWorld()->SpawnActor<AFireBall_ver1>(AFireBall_ver1::StaticClass(), pos, look); // ÉXÉ|Å[Éìèàóù
 	}
 }
 
