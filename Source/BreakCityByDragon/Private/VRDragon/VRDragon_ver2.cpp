@@ -1,0 +1,179 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "VRDragon/VRDragon_ver2.h"
+#include "InputMappingContext.h"
+#include "Camera/CameraComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "EnhancedInputComponent.h"
+#include "Components/ArrowComponent.h" 
+#include "Kismet/KismetSystemLibrary.h"
+#include "EnhancedInputSubsystems.h"
+
+// Sets default values
+AVRDragon_ver2::AVRDragon_ver2()
+{
+ 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	// StaticMeshComponentを追加し、RootComponentに設定する
+	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
+	RootComponent = Player;
+
+	// SphereComponentを追加し、BoxComponentをRootComponentにAttachする
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	Sphere->SetupAttachment(RootComponent);
+
+	// Sphereのサイズを設定する
+	Sphere->SetSphereRadius(30.f);
+
+	// Sphereの位置を調整する
+	Sphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f), false);
+
+	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
+	Sphere->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
+
+	// Cameraを追加する
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	Camera->SetupAttachment(RootComponent);
+
+	// Input Mapping Context「IMC_VRDragon」を読み込む
+	DefaultMappingContext = LoadObject<UInputMappingContext>(nullptr, TEXT("/Game/VRTemplate/Input/IMC_VRDragon"));
+	
+	// Input Action「IA_DragonMove」を読み込む
+	ControlMove = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonMove"));
+
+	// Input Action「IA_DragonFire」を読み込む
+	ControlFire = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonFire"));
+
+	// Input Action「IA_DragonLook」を読み込む
+	LookAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonLook"));
+	
+	// Arrowの初期化
+	{
+		// Arrowを追加する
+		Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
+		Arrow->SetupAttachment(RootComponent);
+
+		// Sphereの頭上に移動するようにLocationを設定する
+		Arrow->SetRelativeLocation(FVector(400.0f, 0.0f, 130.0f));
+
+		// Arrowを表示されるようにする
+		Arrow->bHiddenInGame = false;
+	}
+}
+
+// Called when the game starts or when spawned
+void AVRDragon_ver2::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	//Add Input Mapping Context
+	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+}
+
+// Called every frame
+void AVRDragon_ver2::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+// Called to bind functionality to input
+void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
+	// Set up action bindings
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+
+		// ControlBallとIA_ControlのTriggeredをBindする
+		EnhancedInputComponent->BindAction(ControlMove, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ControlPlayer);
+
+		// ControlBallとIA_ControlのTriggeredをBindする
+		EnhancedInputComponent->BindAction(ControlFire, ETriggerEvent::Triggered, this, &AVRDragon_ver2::GoFire);
+
+		// LookとIA_LookのTriggeredをBindする
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::Look);
+	}
+}
+
+// 接触処理
+
+// コライダー同士が接触したときに呼び出される
+void AVRDragon_ver2::OnSphereBeginOverlap(
+	UPrimitiveComponent* OverlappedComp, 
+	AActor* OtherActor, 
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult){
+
+
+}
+
+// コライダー同士が離れたときに呼び出される
+void AVRDragon_ver2::OnSphereEndOverlap(
+	UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex) {
+
+}
+
+// 入力イベント
+
+// プレイヤーのコントロール
+void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
+
+	// inputのValueはVector2Dに変換できる
+	const FVector2D V = Value.Get<FVector2D>();
+
+	FVector PreLocation = GetActorLocation();
+	FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector(V.Y, V.X, 0.0f) * MoveSpeedPoint);
+
+	SetActorLocation(NewLocation);
+
+	
+}
+
+// 火球コントロール
+void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
+
+	if (const bool B = Value.Get<bool>()) {
+
+		UKismetSystemLibrary::PrintString(GEngine->GetWorld(), "Fire");
+	}
+}
+
+// カメラコントロール
+void AVRDragon_ver2::Look(const FInputActionValue& Value) {
+
+	// inputのValueはVector2Dに変換できる
+	FVector2D v = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// add yaw and pitch input to controller
+		AddControllerYawInput(v.X);
+		AddControllerPitchInput(v.Y);
+
+		// Pawnが持っているControlの角度を取得する
+		FRotator controlRotate = GetControlRotation();
+
+		// カメラをまわす
+		SetActorRotation(controlRotate);
+
+		// 移動方向を指定する
+		FRotator ArrowRotate = FRotator(0, controlRotate.Yaw, 0);
+		Arrow->SetWorldRotation(ArrowRotate);
+	}
+}
+
