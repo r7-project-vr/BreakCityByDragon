@@ -46,6 +46,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Collider, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> Sphere;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USceneComponent> CameraRoot;
+
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
 
@@ -86,7 +89,14 @@ protected:
 	// カメラコントロール
 	void Look(const FInputActionValue& Value);
 
+	// VRカメラ
+	bool GetHMDPose(FVector& OutPosition, FRotator& OutRotation);
+
 private:
 
 	float MoveSpeedPoint = 10.0f;
+
+	bool CanFire;
+
+	float FireChargeCnt;
 };
