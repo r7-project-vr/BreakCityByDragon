@@ -8,7 +8,18 @@ public class BreakCityByDragon : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "EnhancedInput", "Niagara"});
+		PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"UMG", 
+			"EnhancedInput", 
+			"Niagara", 
+			"HeadMountedDisplay", 
+			"AugmentedReality",
+			"XRBase"
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

@@ -11,9 +11,15 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "EnhancedInputSubsystems.h"
 #include "FireBall/FireBall_ver1.h"
+// VR
+#include "Engine/Engine.h"
+#include "IXRTrackingSystem.h"
+#include "HeadMountedDisplay.h"
 
 // Sets default values
-AVRDragon_ver2::AVRDragon_ver2()
+AVRDragon_ver2::AVRDragon_ver2():
+	FireChargeCnt(0),
+	CanFire(false)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -35,9 +41,13 @@ AVRDragon_ver2::AVRDragon_ver2()
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
 
+	// HMDの原点
+	CameraRoot= CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
+	CameraRoot->SetupAttachment(RootComponent);
+
 	// Cameraを追加する
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-	Camera->SetupAttachment(RootComponent);
+	Camera->SetupAttachment(CameraRoot);
 
 	// Input Mapping Context「IMC_VRDragon」を読み込む
 	DefaultMappingContext = LoadObject<UInputMappingContext>(nullptr, TEXT("/Game/VRTemplate/Input/IMC_VRDragon"));
@@ -78,6 +88,18 @@ void AVRDragon_ver2::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	// VR
+	if (GEngine && GEngine->XRSystem.IsValid())
+	{
+		bool VRAllowed = GEngine->XRSystem->IsHeadTrackingAllowed();
+
+		if (VRAllowed) {
+			
+			// 顔面の高さに合わせる
+			GEngine->XRSystem->SetTrackingOrigin(EHMDTrackingOrigin::Local);
+		}
+	}
 }
 
 // Called every frame
@@ -85,6 +107,31 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (FireChargeCnt < 0) {
+
+		FireChargeCnt = 0;
+	}
+
+	if (FireChargeCnt > 0) {
+
+		FireChargeCnt -= DeltaTime;
+	}
+
+	FString str = FString::SanitizeFloat(FireChargeCnt);
+
+#if true
+	{
+		if (GEngine && GEngine->XRSystem.IsValid())
+		{
+			FQuat Orientation;
+			FVector Position;
+			if (GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, Orientation, Position))
+			{
+				CameraRoot->SetRelativeLocationAndRotation(Position, Orientation);
+			}
+		}
+	}
+#endif
 }
 
 // Called to bind functionality to input
@@ -150,14 +197,23 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
-		FRotator look = GetControlRotation();
-		FVector pos = GetActorLocation();
+		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		if(FireChargeCnt >= 2.f)
+		{
+			FRotator look = GetControlRotation();
+			look = Camera->GetComponentToWorld().GetRotation().Rotator();
+			FVector pos = GetActorLocation();
 
-		AFireBall_ver1* FireBall =
-			GetWorld()->SpawnActor<AFireBall_ver1>(AFireBall_ver1::StaticClass(), pos, look); // スポーン処理
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			AFireBall_ver1* FireBall =
+				GetWorld()->SpawnActor<AFireBall_ver1>(AFireBall_ver1::StaticClass(), pos, look); // スポーン処理 
+
+
+			FireChargeCnt = 0;
+		}
 	}
 }
 
@@ -185,3 +241,26 @@ void AVRDragon_ver2::Look(const FInputActionValue& Value) {
 	}
 }
 
+// VRカメラ
+bool AVRDragon_ver2::GetHMDPose(FVector& OutPosition, FRotator& OutRotation)
+{
+	if (GEngine && GEngine->XRSystem.IsValid())
+    {
+        IXRTrackingSystem* XRSystem = GEngine->XRSystem.Get();
+        if (XRSystem->IsHeadTrackingAllowed())
+        {
+            // フレームに対するHMDの座標（ワールド空間かローカルかはシステムによる）
+            FQuat OrientationQuat;
+            FVector Position;
+
+            // GetCurrentPose はコンポーネント（Head、LeftEye、RightEye）を指定して取得
+            if (XRSystem->GetCurrentPose((int32)EXRTrackedDeviceType::HeadMountedDisplay, OrientationQuat, Position))
+            {
+                //OutPosition = Position;
+                OutRotation = OrientationQuat.Rotator();
+                return true;
+            }
+        }
+    }
+    return false;
+}
