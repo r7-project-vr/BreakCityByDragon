@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "MotionControllerComponent.h"
 #include "InputActionValue.h"
 #include "VRDragon_ver2.generated.h"
 
@@ -51,6 +52,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
+
+	// VRコントローラ
+	UPROPERTY(VisibleAnywhere, Category = MotionController, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMotionControllerComponent> LeftMotionController;
+
+	UPROPERTY(VisibleAnywhere, Category = MotionController, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMotionControllerComponent> RightMotionController;
 
 	// コントローラーのマッピング
 	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -99,4 +107,7 @@ private:
 	bool CanFire;
 
 	float FireChargeCnt;
+
+	UStaticMeshComponent* LMesh;
+	UStaticMeshComponent* RMesh;
 };

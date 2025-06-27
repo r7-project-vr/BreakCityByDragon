@@ -24,9 +24,12 @@ AVRDragon_ver2::AVRDragon_ver2():
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	RootComponent = root;
+
 	// StaticMeshComponentを追加し、RootComponentに設定する
 	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-	RootComponent = Player;
+	Player->SetupAttachment(RootComponent);
 
 	// SphereComponentを追加し、BoxComponentをRootComponentにAttachする
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
@@ -48,6 +51,29 @@ AVRDragon_ver2::AVRDragon_ver2():
 	// Cameraを追加する
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	Camera->SetupAttachment(CameraRoot);
+
+	// VRコントローラ
+	{
+		UStaticMesh* _Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
+
+		// 左手
+		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
+		LeftMotionController->SetupAttachment(RootComponent);
+		LeftMotionController->SetTrackingSource(EControllerHand::Left);
+		LMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftMesh"));
+		LMesh->SetupAttachment(LeftMotionController);
+		LMesh->SetStaticMesh(_Sphere);
+		LMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+
+		// 右手
+		RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
+		RightMotionController->SetupAttachment(RootComponent);
+		RightMotionController->SetTrackingSource(EControllerHand::Right);
+		RMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightMesh"));
+		RMesh->SetupAttachment(RightMotionController);
+		RMesh->SetStaticMesh(_Sphere);
+		RMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	}
 
 	// Input Mapping Context「IMC_VRDragon」を読み込む
 	DefaultMappingContext = LoadObject<UInputMappingContext>(nullptr, TEXT("/Game/VRTemplate/Input/IMC_VRDragon"));
@@ -81,7 +107,7 @@ void AVRDragon_ver2::BeginPlay()
 	Super::BeginPlay();
 	
 	//Add Input Mapping Context
-	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	if (const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
@@ -98,6 +124,8 @@ void AVRDragon_ver2::BeginPlay()
 			
 			// 顔面の高さに合わせる
 			GEngine->XRSystem->SetTrackingOrigin(EHMDTrackingOrigin::Local);
+
+			
 		}
 	}
 }
