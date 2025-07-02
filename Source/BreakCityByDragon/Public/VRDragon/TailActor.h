@@ -24,9 +24,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void SetParentTail(ATailActor* tail);
+
+private:
+
+	void TailMove(FVector* vec);
+
 private:
 
 	TObjectPtr<UStaticMeshComponent> TailMesh;
+
+	ATailActor* TailActorParent;
 
 	/*
 	* このアクターに対して呼び出されたら追従対象を設定する

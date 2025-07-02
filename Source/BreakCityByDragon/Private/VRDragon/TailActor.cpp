@@ -2,6 +2,7 @@
 
 
 #include "VRDragon/TailActor.h"
+#include "Components/SphereComponent.h"
 
 // Sets default values
 ATailActor::ATailActor()
@@ -12,7 +13,11 @@ ATailActor::ATailActor()
 	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("rootComponent"));
 	RootComponent = root;
 
-
+	TailMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TailMesh"));
+	UStaticMesh* Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
+	TailMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	TailMesh->SetStaticMesh(Sphere);
+	TailMesh->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -26,6 +31,20 @@ void ATailActor::BeginPlay()
 void ATailActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+}
+
+void ATailActor::SetParentTail(ATailActor* tail) {
+
+	TailActorParent = tail;
+}
+
+void ATailActor::TailMove(FVector* vec) {
+
+	float r = 1.0f;
+	FVector tailLocation = GetActorLocation();
+	FVector parentLocation = TailActorParent->GetActorLocation();
+
 
 }
 
