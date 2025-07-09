@@ -18,6 +18,20 @@ ATailActor::ATailActor()
 	TailMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	TailMesh->SetStaticMesh(Sphere);
 	TailMesh->SetupAttachment(RootComponent);
+
+	// ArrowÇÃèâä˙âª
+	{
+		// ArrowÇí«â¡Ç∑ÇÈ
+		Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
+		Arrow->SetupAttachment(RootComponent);
+		Arrow->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
+
+		// SphereÇÃì™è„Ç…à⁄ìÆÇ∑ÇÈÇÊÇ§Ç…LocationÇê›íËÇ∑ÇÈ
+		Arrow->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+
+		// ArrowÇï\é¶Ç≥ÇÍÇÈÇÊÇ§Ç…Ç∑ÇÈ
+		Arrow->bHiddenInGame = false;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -31,7 +45,6 @@ void ATailActor::BeginPlay()
 void ATailActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void ATailActor::SetParentTail(ATailActor* tail) {
@@ -39,12 +52,45 @@ void ATailActor::SetParentTail(ATailActor* tail) {
 	TailActorParent = tail;
 }
 
-void ATailActor::TailMove(FVector* vec) {
+void ATailActor::TailMove(float x, float y) {
 
-	float r = 1.0f;
-	FVector tailLocation = GetActorLocation();
-	FVector parentLocation = TailActorParent->GetActorLocation();
+	//FVector AddVec = FVector::Zero();
+	//FVector tailLocation = GetActorLocation();
+	//FVector parentLocation = TailActorParent->GetActorLocation();
 
+	//float lenge = FVector::Distance(tailLocation, parentLocation);
 
+	//// êKîˆÇÃìÆÇ´ÇÃêßå¿
+	//if (lenge >= tailPosLimit) { return; }
+
+	//// èdóÕÇâ¡Ç¶ÇÈ
+	//AddVec += GravityScale;
+
+	//// óÕÇâ¡Ç¶ÇÈ
+	//if (lenge >= tailAddPysr) {
+
+	//	float Diagonal = FVector2D(x,y).Size();
+	//	float z = sqrt(1 - Diagonal * Diagonal);
+
+	//	FVector StandardVec =
+	//		FVector(
+	//			x,//x
+	//			y,//y
+	//			z //z
+	//		);		
+	//}
+
+	float Diagonal = FVector2D(x, y).Size();
+	float z = sqrt(1 - Diagonal * Diagonal);
+
+	FVector StandardVec =
+		FVector(
+			x,//x
+			y,//y
+			z //z
+		);
+
+	FVector actorVec = GetActorLocation();
+	SetActorLocation(actorVec + StandardVec * 10);
 }
 

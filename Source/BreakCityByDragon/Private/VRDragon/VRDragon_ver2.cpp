@@ -77,31 +77,11 @@ AVRDragon_ver2::AVRDragon_ver2():
 
 	// 尻尾
 	{
-		TailRoot = CreateDefaultSubobject<USceneComponent>(TEXT("TailRoot"));
-		TailRoot->SetupAttachment(RootComponent);
-		FVector rootLocation = TailRoot->GetComponentLocation();
-		TailRoot->SetWorldLocation(rootLocation + FVector(0, 0, -50.0f));
+		FRotator look = GetControlRotation();
+		look = Camera->GetComponentToWorld().GetRotation().Rotator();
+		FVector pos = GetActorLocation();
 
-		FString LogMessage = FString::Printf(TEXT("Tail%d"), 0);
-		TailMeshs.Add(CreateDefaultSubobject<UStaticMeshComponent>(*LogMessage));
-		UStaticMesh* _Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
-		TailMeshs[0]->SetupAttachment(TailRoot);
-		TailMeshs[0]->SetStaticMesh(_Sphere);
-		TailMeshs[0]->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
-
-		for (int i = 1; i < tailLength; i++) {
-
-			FString _LogMessage = FString::Printf(TEXT("Tail%d"), i);
-			TailMeshs.Add(CreateDefaultSubobject<UStaticMeshComponent>(*_LogMessage));
-			UStaticMesh* _Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
-			TailMeshs[i]->SetupAttachment(TailMeshs[i - 1]);
-			TailMeshs[i]->SetStaticMesh(_Sphere);
-
-			FVector _ParentLocation = TailMeshs[i]->GetOwner()->GetActorLocation();
-			FVector _LocationLength = FVector(-100.0f, 0, 0);
-
-			TailMeshs[i]->SetWorldLocation(_ParentLocation + _LocationLength);
-		}
+		tail = CreateDefaultSubobject<ATailActor>(TEXT("TailObj"));
 	}
 
 	// エンハンス何とか
@@ -190,8 +170,6 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 				CameraRoot->SetRelativeLocationAndRotation(Position, Orientation);
 			}
 		}
-
-		//TailMove(FVector2D(1, 0));
 	}
 #endif
 }
@@ -212,37 +190,6 @@ void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 		// LookとIA_LookのTriggeredをBindする
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::Look);
-	}
-}
-
-// 尻尾の制御
-bool AVRDragon_ver2::TailPhysicsControl(UStaticMeshComponent* tail) {
-
-	FVector pPos = tail->GetOwner()->GetActorLocation();
-	FVector cPos = tail->GetComponentLocation();
-	float r = 100.f;
-
-	if (r < (pPos - cPos).Size()) {
-
-		return false;
-	}
-
-	return true;
-}
-
-// 尻尾の動き
-void AVRDragon_ver2::TailMove(FVector2D vec) {
-
-	for (int i = 0; i < tailLength; i++) {
-
-		if (TailPhysicsControl(TailMeshs[i])) {
-
-			FVector PrePos = TailMeshs[i]->GetComponentLocation();
-			FVector2D movePos = vec * (i + 1) * 3.f;
-			FVector NewPos = PrePos + FVector(movePos.X, 0, movePos.Y);
-
-			TailMeshs[i]->SetWorldLocation(NewPos);
-		}
 	}
 }
 
@@ -282,7 +229,7 @@ void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 
 	SetActorLocation(NewLocation);
 
-	
+	tail->TailMove(V.X, V.Y);
 }
 
 // 火球コントロール

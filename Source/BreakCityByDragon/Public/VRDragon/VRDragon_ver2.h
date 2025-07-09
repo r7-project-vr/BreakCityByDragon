@@ -8,6 +8,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "MotionControllerComponent.h"
 #include "InputActionValue.h"
+#include "VRDragon/TailActor.h"
 #include "VRDragon_ver2.generated.h"
 
 class UStaticMeshComponent;
@@ -17,6 +18,7 @@ class UArrowComponent;
 class UInputMappingContext;
 class UInputAction;
 class USphereComponent;
+class ATailActor;
 
 UCLASS()
 class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn
@@ -60,13 +62,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = MotionController, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UMotionControllerComponent> RightMotionController;
 
-	// 尻尾
-	UPROPERTY(VisibleAnywhere, Category = Tail, meta = (AllowPrivateAccess = "true"))
-	TArray<TObjectPtr<UStaticMeshComponent>> TailMeshs;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<USceneComponent> TailRoot;
-
 	// コントローラーのマッピング
 	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
@@ -107,12 +102,6 @@ protected:
 	// VRカメラ
 	bool GetHMDPose(FVector& OutPosition, FRotator& OutRotation);
 
-	// 尻尾の制御
-	bool TailPhysicsControl(UStaticMeshComponent* tail);
-
-	// 尻尾の動き
-	void TailMove(FVector2D vec);
-
 private:
 
 	float MoveSpeedPoint = 10.0f;
@@ -121,7 +110,9 @@ private:
 
 	float FireChargeCnt;
 
-	int tailLength = 8;
+	int tailLength = 1;
+
+	ATailActor* tail;
 
 	UStaticMeshComponent* LMesh;
 	UStaticMeshComponent* RMesh;

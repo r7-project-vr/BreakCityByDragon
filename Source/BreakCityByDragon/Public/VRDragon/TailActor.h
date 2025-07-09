@@ -5,7 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/ArrowComponent.h" 
 #include "TailActor.generated.h"
+
+class UArrowComponent;
 
 UCLASS()
 class BREAKCITYBYDRAGON_API ATailActor : public AActor
@@ -26,15 +29,24 @@ public:
 
 	void SetParentTail(ATailActor* tail);
 
-private:
+	void TailMove(float x, float y);
 
-	void TailMove(FVector* vec);
+public :
+
+	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> Arrow;
 
 private:
 
 	TObjectPtr<UStaticMeshComponent> TailMesh;
 
 	ATailActor* TailActorParent;
+
+	FVector moveVec;
+
+	const float tailPosLimit = 0.f;
+	const float tailAddPysr = 0.0f;
+	const FVector GravityScale = FVector(0, 9.8f, 0) / 1;
 
 	/*
 	* このアクターに対して呼び出されたら追従対象を設定する
