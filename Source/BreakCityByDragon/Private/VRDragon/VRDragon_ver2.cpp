@@ -75,15 +75,6 @@ AVRDragon_ver2::AVRDragon_ver2():
 		RMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	}
 
-	// 尻尾
-	{
-		FRotator look = GetControlRotation();
-		look = Camera->GetComponentToWorld().GetRotation().Rotator();
-		FVector pos = GetActorLocation();
-
-		tail = CreateDefaultSubobject<ATailActor>(TEXT("TailObj"));
-	}
-
 	// エンハンス何とか
 	{
 		// Input Mapping Context「IMC_VRDragon」を読み込む
@@ -139,6 +130,16 @@ void AVRDragon_ver2::BeginPlay()
 
 			
 		}
+	}
+
+	// 尻尾の生成
+	{
+		FRotator look = GetControlRotation();
+		look = Camera->GetComponentToWorld().GetRotation().Rotator();
+		FVector pos = GetActorLocation();
+
+		tail = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
+		tail->SetupAttachment(RootComponent);
 	}
 }
 

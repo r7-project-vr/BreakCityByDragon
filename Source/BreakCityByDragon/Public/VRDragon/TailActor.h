@@ -31,6 +31,8 @@ public:
 
 	void TailMove(float x, float y);
 
+	void SetupAttachment(USceneComponent* sc_);
+
 public :
 
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
