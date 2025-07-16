@@ -6,7 +6,9 @@
 #include "GameFramework/Pawn.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "MotionControllerComponent.h"
 #include "InputActionValue.h"
+#include "VRDragon/TailActor.h"
 #include "VRDragon_ver2.generated.h"
 
 class UStaticMeshComponent;
@@ -16,6 +18,7 @@ class UArrowComponent;
 class UInputMappingContext;
 class UInputAction;
 class USphereComponent;
+class ATailActor;
 
 UCLASS()
 class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn
@@ -51,6 +54,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
+
+	// VRコントローラ
+	UPROPERTY(VisibleAnywhere, Category = MotionController, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMotionControllerComponent> LeftMotionController;
+
+	UPROPERTY(VisibleAnywhere, Category = MotionController, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMotionControllerComponent> RightMotionController;
 
 	// コントローラーのマッピング
 	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -99,4 +109,11 @@ private:
 	bool CanFire;
 
 	float FireChargeCnt;
+
+	int tailLength = 1;
+
+	ATailActor* tail;
+
+	UStaticMeshComponent* LMesh;
+	UStaticMeshComponent* RMesh;
 };
