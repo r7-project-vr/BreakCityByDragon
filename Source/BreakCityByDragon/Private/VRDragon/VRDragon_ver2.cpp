@@ -24,9 +24,12 @@ AVRDragon_ver2::AVRDragon_ver2():
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	RootComponent = root;
+
 	// StaticMeshComponentを追加し、RootComponentに設定する
 	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-	RootComponent = Player;
+	Player->SetupAttachment(RootComponent);
 
 	// SphereComponentを追加し、BoxComponentをRootComponentにAttachする
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
@@ -49,17 +52,43 @@ AVRDragon_ver2::AVRDragon_ver2():
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	Camera->SetupAttachment(CameraRoot);
 
-	// Input Mapping Context「IMC_VRDragon」を読み込む
-	DefaultMappingContext = LoadObject<UInputMappingContext>(nullptr, TEXT("/Game/VRTemplate/Input/IMC_VRDragon"));
-	
-	// Input Action「IA_DragonMove」を読み込む
-	ControlMove = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonMove"));
+	// VRコントローラ
+	{
+		UStaticMesh* _Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
 
-	// Input Action「IA_DragonFire」を読み込む
-	ControlFire = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonFire"));
+		// 左手
+		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
+		LeftMotionController->SetupAttachment(RootComponent);
+		LeftMotionController->SetTrackingSource(EControllerHand::Left);
+		LMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftMesh"));
+		LMesh->SetupAttachment(LeftMotionController);
+		LMesh->SetStaticMesh(_Sphere);
+		LMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 
-	// Input Action「IA_DragonLook」を読み込む
-	LookAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonLook"));
+		// 右手
+		RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
+		RightMotionController->SetupAttachment(RootComponent);
+		RightMotionController->SetTrackingSource(EControllerHand::Right);
+		RMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightMesh"));
+		RMesh->SetupAttachment(RightMotionController);
+		RMesh->SetStaticMesh(_Sphere);
+		RMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	}
+
+	// エンハンス何とか
+	{
+		// Input Mapping Context「IMC_VRDragon」を読み込む
+		DefaultMappingContext = LoadObject<UInputMappingContext>(nullptr, TEXT("/Game/VRTemplate/Input/IMC_VRDragon"));
+
+		// Input Action「IA_DragonMove」を読み込む
+		ControlMove = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonMove"));
+
+		// Input Action「IA_DragonFire」を読み込む
+		ControlFire = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonFire"));
+
+		// Input Action「IA_DragonLook」を読み込む
+		LookAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonLook"));
+	}
 	
 	// Arrowの初期化
 	{
@@ -81,7 +110,7 @@ void AVRDragon_ver2::BeginPlay()
 	Super::BeginPlay();
 	
 	//Add Input Mapping Context
-	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	if (const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
@@ -98,7 +127,19 @@ void AVRDragon_ver2::BeginPlay()
 			
 			// 顔面の高さに合わせる
 			GEngine->XRSystem->SetTrackingOrigin(EHMDTrackingOrigin::Local);
+
+			
 		}
+	}
+
+	// 尻尾の生成
+	{
+		FRotator look = GetControlRotation();
+		look = Camera->GetComponentToWorld().GetRotation().Rotator();
+		FVector pos = GetActorLocation();
+
+		tail = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
+		tail->SetupAttachment(RootComponent);
 	}
 }
 
@@ -189,7 +230,7 @@ void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 
 	SetActorLocation(NewLocation);
 
-	
+	tail->TailMove(V.X, V.Y);
 }
 
 // 火球コントロール
