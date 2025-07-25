@@ -53,6 +53,13 @@ void AFireBall_ver1::Tick(float DeltaTime)
 	FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * 10000.f * DeltaTime);
 
 	SetActorLocation(NewLocation);
+
+	timeCnt += DeltaTime;
+
+	if (timeCnt >= MaxTime) {
+
+		this->Destroy();
+	}
 }
 
 void AFireBall_ver1::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
