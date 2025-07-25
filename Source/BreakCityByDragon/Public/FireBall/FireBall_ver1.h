@@ -38,4 +38,8 @@ public:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
 
+private:
+
+	const float MaxTime = 3.0f;
+	float timeCnt = 0;
 };
