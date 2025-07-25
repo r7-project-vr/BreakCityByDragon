@@ -94,7 +94,7 @@ AVRDragon_ver2::AVRDragon_ver2():
 	{
 		// Arrow‚ð’Ç‰Á‚·‚é
 		Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
-		Arrow->SetupAttachment(RootComponent);
+		Arrow->SetupAttachment(CameraRoot);
 
 		// Sphere‚Ì“ªã‚ÉˆÚ“®‚·‚é‚æ‚¤‚ÉLocation‚ðÝ’è‚·‚é
 		Arrow->SetRelativeLocation(FVector(400.0f, 0.0f, 130.0f));
@@ -114,7 +114,7 @@ void AVRDragon_ver2::BeginPlay()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			Subsystem->AddMappingContext(DefaultMappingContext, 5);
 		}
 	}
 
@@ -160,7 +160,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 
 	FString str = FString::SanitizeFloat(FireChargeCnt);
 
-#if true
+#if false
 	{
 		if (GEngine && GEngine->XRSystem.IsValid())
 		{
@@ -179,7 +179,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	
+
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
@@ -225,6 +225,7 @@ void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 	// input‚ÌValue‚ÍVector2D‚É•ÏŠ·‚Å‚«‚é
 	const FVector2D V = Value.Get<FVector2D>();
 
+	UE_LOG(LogTemp, Warning, TEXT("ControlPlayer Input: X=%f Y=%f"), V.X, V.Y);
 	FVector PreLocation = GetActorLocation();
 	FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector(V.Y, V.X, 0.0f) * MoveSpeedPoint);
 
@@ -240,7 +241,7 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		if(FireChargeCnt >= 2.f)
+		if(FireChargeCnt >= 0.f)
 		{
 			FRotator look = GetControlRotation();
 			look = Camera->GetComponentToWorld().GetRotation().Rotator();
