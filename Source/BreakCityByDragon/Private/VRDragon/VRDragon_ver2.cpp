@@ -241,7 +241,7 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		if(FireChargeCnt >= 0.f)
+		if(FireChargeCnt >= 2.f)
 		{
 			FRotator look = GetControlRotation();
 			look = Camera->GetComponentToWorld().GetRotation().Rotator();
