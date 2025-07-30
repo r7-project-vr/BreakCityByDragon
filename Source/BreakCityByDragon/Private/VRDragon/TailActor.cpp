@@ -92,8 +92,3 @@ void ATailActor::TailMove(float x, float y) {
 	SetActorLocation(actorVec + StandardVec * 10);
 }
 
-void ATailActor::SetupAttachment(USceneComponent* sc_) {
-
-	TailMesh->SetupAttachment(sc_);
-}
-

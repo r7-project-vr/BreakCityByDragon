@@ -2,6 +2,9 @@
 
 
 #include "FireBall/FireBall_ver1.h"
+#include "VRDragon/TailActor.h"
+#include "VRDragon/VRDragon_ver2.h"
+#include "GeometryCollection/GeometryCollectionComponent.h"
 #include "Components/SphereComponent.h"
 
 // Sets default values
@@ -20,10 +23,12 @@ AFireBall_ver1::AFireBall_ver1()
 	// StaticMeshをStaticMeshComponentに設定する
 	FireBall->SetStaticMesh(Mesh);
 
+	FireBall->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+
 	//スフィアコリジョン作成
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	SphereComponent->SetCollisionProfileName("BlockAll");
-	SphereComponent->SetupAttachment(RootComponent);
+	SphereComponent->SetCollisionProfileName("OverlapAll");
+	SphereComponent->SetupAttachment(FireBall);
 	SphereComponent->SetSphereRadius(20.0f);
 
 	// MaterialをStaticMeshに設定する
@@ -50,15 +55,20 @@ void AFireBall_ver1::Tick(float DeltaTime)
 
 	
 	//自動で前に進む
-	FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * 10000.f * DeltaTime);
+	FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * 1000.f * DeltaTime);
 
 	SetActorLocation(NewLocation);
 
-	timeCnt += DeltaTime;
+	//timeCnt += DeltaTime;
 
 	if (timeCnt >= MaxTime) {
 
 		this->Destroy();
+	}
+
+	if (hit) {
+
+		timeCnt += DeltaTime;
 	}
 }
 
@@ -66,6 +76,21 @@ void AFireBall_ver1::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult) {
 
-	// pass
+	UE_LOG(LogTemp, Warning, TEXT("ui"));
+	UE_LOG(LogTemp, Warning, TEXT(" %s"), *OtherActor->GetName());
+	UE_LOG(LogTemp, Warning, TEXT(" %s"), *OtherComp->GetName());
+
+	//if (ATailActor* a = Cast<ATailActor>(OtherActor))return;
+
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+
+	if (AFireBall_ver1* a = Cast<AFireBall_ver1>(OtherActor))return;
+	
+
+	if (UGeometryCollectionComponent* GC = Cast<UGeometryCollectionComponent>(OtherComp)) {
+
+		UE_LOG(LogTemp, Warning, TEXT(" %s"), *OtherComp->GetName());
+		this->Destroy();
+	}
 }
 

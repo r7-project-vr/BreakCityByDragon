@@ -18,7 +18,8 @@ public class BreakCityByDragon : ModuleRules
 			"Niagara", 
 			"HeadMountedDisplay", 
 			"AugmentedReality",
-			"XRBase"
+			"XRBase",
+			"GeometryCollectionEngine"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
