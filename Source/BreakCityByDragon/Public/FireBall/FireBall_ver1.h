@@ -40,6 +40,7 @@ public:
 
 private:
 
-	const float MaxTime = 3.0f;
+	const float MaxTime = 0.05f;
 	float timeCnt = 0;
+	bool hit = false;
 };
