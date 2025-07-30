@@ -17,9 +17,11 @@
 #include "HeadMountedDisplay.h"
 
 // Sets default values
-AVRDragon_ver2::AVRDragon_ver2():
+AVRDragon_ver2::AVRDragon_ver2() :
 	FireChargeCnt(0),
-	CanFire(false)
+	CanFire(false),
+	preTailVec(0, 0, 0),
+	newTailVec(0, 0, 0)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -139,7 +141,7 @@ void AVRDragon_ver2::BeginPlay()
 		FVector pos = GetActorLocation();
 
 		tail = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
-		tail->SetupAttachment(RootComponent);
+		tail->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 	}
 }
 
@@ -160,7 +162,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 
 	FString str = FString::SanitizeFloat(FireChargeCnt);
 
-#if false
+	// VRのカメラ
 	{
 		if (GEngine && GEngine->XRSystem.IsValid())
 		{
@@ -172,6 +174,22 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			}
 		}
 	}
+
+	// 尻尾に合わせて動かす
+	{
+		float pow = newTailVec.X - preTailVec.X;
+
+		if (pow < 0)pow *= -1;
+
+		FVector PreLocation = GetActorLocation();
+		FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector::ForwardVector * MoveSpeedPoint * pow);
+
+		SetActorLocation(NewLocation);
+
+		preTailVec = newTailVec;
+	}
+
+#if false
 #endif
 }
 
@@ -225,13 +243,12 @@ void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 	// inputのValueはVector2Dに変換できる
 	const FVector2D V = Value.Get<FVector2D>();
 
-	UE_LOG(LogTemp, Warning, TEXT("ControlPlayer Input: X=%f Y=%f"), V.X, V.Y);
-	FVector PreLocation = GetActorLocation();
+	newTailVec = FVector(V.X, V.Y, 0);
+
+	/*FVector PreLocation = GetActorLocation();
 	FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector(V.Y, V.X, 0.0f) * MoveSpeedPoint);
 
-	SetActorLocation(NewLocation);
-
-	tail->TailMove(V.X, V.Y);
+	SetActorLocation(NewLocation);*/
 }
 
 // 火球コントロール

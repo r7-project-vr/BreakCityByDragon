@@ -112,6 +112,9 @@ private:
 
 	int tailLength = 1;
 
+	FVector newTailVec;
+	FVector preTailVec;
+
 	ATailActor* tail;
 
 	UStaticMeshComponent* LMesh;
