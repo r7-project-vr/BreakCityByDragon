@@ -33,7 +33,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	Player->SetupAttachment(RootComponent);
 
-	// SphereComponent‚ğ’Ç‰Á‚µABoxComponent‚ğRootComponent‚ÉAttach‚·‚é
+	// SphereComponent‚ğ’Ç‰Á‚µ
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	Sphere->SetupAttachment(RootComponent);
 
@@ -45,6 +45,12 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
+
+	// Box_body
+	Body_Base = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	Body_Base->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f), false);
+	Body_Base->SetupAttachment(RootComponent);
+	Body_Base->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
 
 	// HMD‚ÌŒ´“_
 	CameraRoot= CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));

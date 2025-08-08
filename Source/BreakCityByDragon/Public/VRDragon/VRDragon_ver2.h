@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "MotionControllerComponent.h"
 #include "InputActionValue.h"
@@ -19,6 +20,7 @@ class UInputMappingContext;
 class UInputAction;
 class USphereComponent;
 class ATailActor;
+class UBoxComponent;
 
 UCLASS()
 class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn
@@ -48,6 +50,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Collider, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> Sphere;
+
+	UPROPERTY(VisibleAnywhere, Category = Collider, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBoxComponent> Body_Base;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USceneComponent> CameraRoot;
