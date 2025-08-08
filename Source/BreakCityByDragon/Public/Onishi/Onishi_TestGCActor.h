@@ -21,7 +21,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY()
-	UGeometryCollectionComponent* GCComponent;
-
+	//UPROPERTY()
+	//UGeometryCollectionComponent* GCComponent;
 };
