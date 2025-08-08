@@ -90,7 +90,8 @@ void AFireBall_ver1::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	if (UGeometryCollectionComponent* GC = Cast<UGeometryCollectionComponent>(OtherComp)) {
 
 		UE_LOG(LogTemp, Warning, TEXT(" %s"), *OtherComp->GetName());
-		this->Destroy();
+		GCDestroy();
+		//this->Destroy();
 	}
 }
 
