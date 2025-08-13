@@ -10,6 +10,7 @@
 #include "MotionControllerComponent.h"
 #include "InputActionValue.h"
 #include "VRDragon/TailActor.h"
+#include "ITailInformaition.h"
 #include "VRDragon_ver2.generated.h"
 
 class UStaticMeshComponent;
@@ -23,7 +24,7 @@ class ATailActor;
 class UBoxComponent;
 
 UCLASS()
-class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn
+class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn,public IITailInformaition
 {
 	GENERATED_BODY()
 
@@ -41,6 +42,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual FVector GetParentActorLocation() override;
+	virtual FVector* GetParentMoveVector() override;
 
 private:
 
@@ -123,7 +127,9 @@ private:
 	FVector newTailVec;
 	FVector preTailVec;
 
-	ATailActor* tail;
+	FVector tailSpawnLenge = FVector(-20, 0, 0);
+
+	ATailActor* tail[6];
 
 	UStaticMeshComponent* LMesh;
 	UStaticMeshComponent* RMesh;

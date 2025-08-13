@@ -6,12 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h" 
+#include "ITailInformaition.h"
 #include "TailActor.generated.h"
 
 class UArrowComponent;
 
 UCLASS()
-class BREAKCITYBYDRAGON_API ATailActor : public AActor
+class BREAKCITYBYDRAGON_API ATailActor : public AActor,public IITailInformaition
 {
 	GENERATED_BODY()
 	
@@ -27,27 +28,33 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetParentTail(ATailActor* tail);
+	void SetParentTail(AActor* tail);
 
-	void TailMove(FVector* deviceAcceleration, FRotator* deviceRotate);
+	void TailMove(FVector* deviceAcceleration);
 
 public :
 
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> Arrow;
 
+	virtual FVector GetParentActorLocation() override;
+	virtual FVector* GetParentMoveVector() override;
+
 private:
 
 	TObjectPtr<UStaticMeshComponent> TailMesh;
 
-	ATailActor* TailActorParent;
+	IITailInformaition* TailActorParent;
 
-	FVector		tailRig;
-	FRotator	tailRotate;
+	FVector MoveVec;
 
-	const float tailPosLimit = 0.f;
-	const float tailAddPysr = 0.0f;
-	const FVector GravityScale = FVector(0, 9.8f, 0) / 1;
+	// ----------------------------
+	// 定数
+	// ----------------------------
+
+	const float adjustPow = 1.0f;// 調整用の値
+	const float tailLenge = 20.0f;// しっぽの間隔調整用
+	const float addLenge = 0.7f;// しっぽに力を加える距離
 
 	/*
 	* このアクターに対して呼び出されたら追従対象を設定する

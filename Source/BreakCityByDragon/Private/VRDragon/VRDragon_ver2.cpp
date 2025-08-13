@@ -164,10 +164,24 @@ void AVRDragon_ver2::BeginPlay()
 	{
 		FRotator look = GetControlRotation();
 		look = Camera->GetComponentToWorld().GetRotation().Rotator();
-		FVector pos = GetActorLocation();
+		
+		{
+			FVector pos = GetActorLocation()+ tailSpawnLenge;
 
-		tail = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
-		tail->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+			tail[0] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
+			tail[0]->SetParentTail(this);
+			tail[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+		}
+
+		for (int i = 1;i < 6;i++) {
+
+			// しっぽの位置
+			FVector pos = GetActorLocation() + tailSpawnLenge * i;
+			tail[i] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
+			tail[i]->SetParentTail(tail[i - 1]);
+			USceneComponent* ParentRootComponent = tail[i - 1]->GetRootComponent();
+			tail[i]->AttachToComponent(ParentRootComponent, FAttachmentTransformRules::KeepWorldTransform);
+		}
 	}
 }
 
@@ -270,11 +284,6 @@ void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 	const FVector2D V = Value.Get<FVector2D>();
 
 	newTailVec = FVector(V.X, V.Y, 0);
-
-	/*FVector PreLocation = GetActorLocation();
-	FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector(V.Y, V.X, 0.0f) * MoveSpeedPoint);
-
-	SetActorLocation(NewLocation);*/
 }
 
 // 火球コントロール
@@ -348,4 +357,16 @@ bool AVRDragon_ver2::GetHMDPose(FVector& OutPosition, FRotator& OutRotation)
         }
     }
     return false;
+}
+
+// しっぽの付け根を返す
+FVector AVRDragon_ver2::GetParentActorLocation() {
+
+	return GetActorLocation();
+}
+
+// デバイスのオイラー角を送る
+FVector* AVRDragon_ver2::GetParentMoveVector() {
+
+	return &newTailVec;
 }
