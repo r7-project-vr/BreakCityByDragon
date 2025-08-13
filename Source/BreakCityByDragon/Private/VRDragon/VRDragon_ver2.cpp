@@ -33,32 +33,54 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	Player->SetupAttachment(RootComponent);
 
-	// SphereComponentを追加し
-	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	Sphere->SetupAttachment(RootComponent);
+	// Sphere
+	{
+		// SphereComponentを追加し
+		Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+		Sphere->SetupAttachment(RootComponent);
 
-	// Sphereのサイズを設定する
-	Sphere->SetSphereRadius(30.f);
+		// Sphereのサイズを設定する
+		Sphere->SetSphereRadius(30.f);
 
-	// Sphereの位置を調整する
-	Sphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f), false);
+		// Sphereの位置を調整する
+		Sphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f), false);
 
-	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
-	Sphere->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
+		Sphere->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
+		Sphere->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
+	}
 
 	// Box_body
-	Body_Base = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
-	Body_Base->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f), false);
-	Body_Base->SetupAttachment(RootComponent);
-	Body_Base->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
+	{
+		// メッシュの生成
+		UStaticMesh* Box = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+		Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
+		Body->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
+		Body->SetupAttachment(RootComponent);
+		Body->SetStaticMesh(Box);
+		
+		// Material
+		UMaterial* Material = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
+		Body->SetMaterial(0, Material);
 
-	// HMDの原点
-	CameraRoot= CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
-	CameraRoot->SetupAttachment(RootComponent);
+		// 接触判定
+		Body_Base = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+		Body_Base->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f), false);
+		Body_Base->SetupAttachment(Body);
+		Body_Base->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
+		Body_Base->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
+		Body_Base->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
+	}
+	
+	// Camera
+	{
+		// HMDの原点
+		CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
+		CameraRoot->SetupAttachment(RootComponent);
 
-	// Cameraを追加する
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-	Camera->SetupAttachment(CameraRoot);
+		// Cameraを追加する
+		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+		Camera->SetupAttachment(CameraRoot);
+	}
 
 	// VRコントローラ
 	{
@@ -134,9 +156,7 @@ void AVRDragon_ver2::BeginPlay()
 		if (VRAllowed) {
 			
 			// 顔面の高さに合わせる
-			GEngine->XRSystem->SetTrackingOrigin(EHMDTrackingOrigin::Local);
-
-			
+			GEngine->XRSystem->SetTrackingOrigin(EHMDTrackingOrigin::Local);		
 		}
 	}
 

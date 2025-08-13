@@ -51,6 +51,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Collider, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> Sphere;
 
+	UPROPERTY(VisibleAnywhere, Category = Character, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> Body;
+
 	UPROPERTY(VisibleAnywhere, Category = Collider, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBoxComponent> Body_Base;
 
