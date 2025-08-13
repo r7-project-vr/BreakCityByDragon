@@ -38,6 +38,9 @@ public:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION(BlueprintImplementableEvent,Category="MyF")
+	void GCDestroy();
+
 private:
 
 	const float MaxTime = 0.05f;
