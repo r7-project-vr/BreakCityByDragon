@@ -50,45 +50,28 @@ void ATailActor::SetParentTail(ATailActor* tail) {
 	TailActorParent = tail;
 }
 
-void ATailActor::TailMove(float x, float y) {
+void ATailActor::TailMove(FVector* rig, FRotator* rot){
 
-	//FVector AddVec = FVector::Zero();
-	//FVector tailLocation = GetActorLocation();
-	//FVector parentLocation = TailActorParent->GetActorLocation();
+	// 計算した移動距離を保存する変数
+	FVector moveVec = FVector::ZeroVector;// いったんゼロ
 
-	//float lenge = FVector::Distance(tailLocation, parentLocation);
+	// デバイスに加わっている力に合わせた移動距離を計算する
+	{
 
-	//// 尻尾の動きの制限
-	//if (lenge >= tailPosLimit) { return; }
+	}
 
-	//// 重力を加える
-	//AddVec += GravityScale;
+	// アクターの角度をデバイスの角度にそろえる
+	{
+		SetActorRotation(*rot);
+	}
 
-	//// 力を加える
-	//if (lenge >= tailAddPysr) {
+	// 移動距離と尻尾の存在範囲の処理
+	{
+		// 尻尾が繋がっている範囲よりも出た場合飛び出た分を減らす
+	}
 
-	//	float Diagonal = FVector2D(x,y).Size();
-	//	float z = sqrt(1 - Diagonal * Diagonal);
-
-	//	FVector StandardVec =
-	//		FVector(
-	//			x,//x
-	//			y,//y
-	//			z //z
-	//		);		
-	//}
-
-	float Diagonal = FVector2D(x, y).Size();
-	float z = sqrt(1 - Diagonal * Diagonal);
-
-	FVector StandardVec =
-		FVector(
-			x,//x
-			y,//y
-			z //z
-		);
-
+	// アクターの位置の移動
 	FVector actorVec = GetActorLocation();
-	SetActorLocation(actorVec + StandardVec * 10);
+	SetActorLocation(actorVec + moveVec);
 }
 

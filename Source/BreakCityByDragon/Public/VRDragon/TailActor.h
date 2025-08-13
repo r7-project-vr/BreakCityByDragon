@@ -29,7 +29,7 @@ public:
 
 	void SetParentTail(ATailActor* tail);
 
-	void TailMove(float x, float y);
+	void TailMove(FVector* deviceAcceleration, FRotator* deviceRotate);
 
 public :
 
@@ -42,7 +42,8 @@ private:
 
 	ATailActor* TailActorParent;
 
-	FVector moveVec;
+	FVector		tailRig;
+	FRotator	tailRotate;
 
 	const float tailPosLimit = 0.f;
 	const float tailAddPysr = 0.0f;
