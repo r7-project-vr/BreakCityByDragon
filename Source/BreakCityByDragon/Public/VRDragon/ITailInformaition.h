@@ -25,4 +25,5 @@ public:
 
 	virtual FVector GetParentActorLocation() = 0;
 	virtual FVector GetParentMoveVector() = 0;
+	virtual FVector GetDeviceMoveVector() = 0;
 };

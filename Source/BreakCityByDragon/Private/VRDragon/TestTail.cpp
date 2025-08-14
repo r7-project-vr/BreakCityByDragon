@@ -5,7 +5,8 @@
 
 // Sets default values
 ATestTail::ATestTail():
-	Radians(0)
+	Radians(0),
+	cnt(0)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -56,16 +57,7 @@ void ATestTail::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (Radians >= 180) { Radians = 0; }
-
-	moveVec(MoveVec, Radians);
-
-	FVector nowVec = GetActorLocation();
-	FVector newVec = nowVec + MoveVec;
-	SetActorLocation(newVec);
-
-	Radians++;
-
+	moveVec();
 }
 
 // Called to bind functionality to input
@@ -87,12 +79,51 @@ FVector ATestTail::GetParentMoveVector() {
 	return MoveVec;
 }
 
-void ATestTail::moveVec(FVector &v_,float r_) {
+FVector ATestTail::GetDeviceMoveVector() {
 
-	float Radian = FMath::DegreesToRadians(r_);
+	FVector vec = DeviceVec;
+	return vec;
+}
 
-	float X = FMath::Cos(Radian);
-	float Y = FMath::Cos(Radian) * -1;
+void ATestTail::moveVec() {
 
-	v_ = FVector(X, Y, 0.f);
+	FVector addVec = FVector::Zero();
+
+	int index = Radians % 4;
+
+	switch (index)
+	{
+	case 0:
+		addVec = FVector(1.0f, 0, 0);
+		break;
+	case 1:
+		addVec = FVector(0, 1.0f, 0);
+		break;
+	case 2:
+		addVec = FVector(-1.0f,0, 0);
+		break;
+	case 3:
+		addVec = FVector(0, -1.0f, 0);
+		break;
+	default:
+		break;
+	}
+
+	MoveVec = addVec;
+	FVector nowVec = GetActorLocation();
+	FVector newVec = nowVec + addVec;
+	SetActorLocation(newVec);
+
+	cnt++;
+
+	if (cnt >= 10) {
+
+		cnt = 0;
+		DeviceVec = FVector(20, 0, 0);
+		Radians++;
+	}
+	else {
+
+		DeviceVec = FVector(0, 0, 0);
+	}
 }

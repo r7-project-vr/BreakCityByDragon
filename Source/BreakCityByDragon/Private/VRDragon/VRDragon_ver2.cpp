@@ -372,3 +372,9 @@ FVector AVRDragon_ver2::GetParentMoveVector() {
 
 	return newTailVec;
 }
+
+FVector AVRDragon_ver2::GetDeviceMoveVector() {
+
+	FVector vec = FVector::ZeroVector;
+	return vec;
+}

@@ -6,8 +6,8 @@
 
 // Sets default values
 ATailActor::ATailActor() :
-	MoveVec(0.f, 0.f, 0.f),
-	PreParentLocation(-1000000, 0, 0)
+	MoveVec(FVector::ZeroVector),
+	DeviceVec(FVector::ZeroVector)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -69,12 +69,6 @@ void ATailActor::SetParentTail(AActor* tail) {
 
 void ATailActor::TailMove(FVector rig){
 
-	if (PreParentLocation == FVector(-1000000,0,0)) {
-
-		PreParentLocation = TailActorParent->GetParentActorLocation();
-		return;
-	}
-
 	// 現在のアクターの位置を保存する
 	FVector actorVec = GetActorLocation();
 
@@ -85,26 +79,12 @@ void ATailActor::TailMove(FVector rig){
 	// 親のアクターから一定の距離離れたら力を加える
 	{
 		FVector pVec = TailActorParent->GetParentActorLocation();
-		float distance = FVector::DistSquared(actorVec, pVec);
-
-		if (distance > maxTailLenge) {// 親のアクターから一定の距離離れてるとき
-			
-			chaceVec = PreParentLocation - pVec;
-		}
-	}
-	
-	// 親アクターに加わっている力に合わせた移動距離を計算する
-	{
-		MoveVec = {
-			rig.X * adjustPow,
-			rig.Y * adjustPow,
-			rig.Z * adjustPow
-		};
 	}
 
-	FVector addVec = actorVec + chaceVec;
+	DeviceVec = TailActorParent->GetDeviceMoveVector();
+	MoveVec = TailActorParent->GetParentMoveVector();
 
-	
+	FVector addVec = actorVec + MoveVec + DeviceVec;
 
 	// アクターの角度を移動した距離に応じてそろえる
 	{
@@ -113,8 +93,6 @@ void ATailActor::TailMove(FVector rig){
 
 	// アクターの位置の移動
 	SetActorLocation(addVec);
-
-	PreParentLocation = TailActorParent->GetParentActorLocation();
 }
 
 FVector ATailActor::GetParentActorLocation() {
@@ -124,5 +102,11 @@ FVector ATailActor::GetParentActorLocation() {
 
 FVector ATailActor::GetParentMoveVector() {
 
-	return MoveVec * 2;
+	return MoveVec;
+}
+
+FVector ATailActor::GetDeviceMoveVector() {
+
+	FVector vec = DeviceVec * adjustPow;
+	return vec;
 }

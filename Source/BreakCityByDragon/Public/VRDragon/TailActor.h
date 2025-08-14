@@ -39,6 +39,7 @@ public :
 
 	virtual FVector GetParentActorLocation() override;
 	virtual FVector GetParentMoveVector() override;
+	virtual FVector GetDeviceMoveVector() override;
 
 private:
 
@@ -47,13 +48,13 @@ private:
 	IITailInformaition* TailActorParent;
 
 	FVector MoveVec;
-	FVector PreParentLocation;
+	FVector DeviceVec;
 
 	// ----------------------------
 	// 定数
 	// ----------------------------
 
-	const float adjustPow		=	1.0f;	// 調整用の値
+	const float adjustPow		=	2.0f;	// 調整用の値
 	const float maxTailLenge	=	20.0f;	// しっぽの間隔の最大値
 	const float minTailLengh	=	15.f;	// しっぽの間隔の最小値
 

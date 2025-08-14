@@ -37,13 +37,16 @@ public :
 
 	virtual FVector GetParentActorLocation() override;
 	virtual FVector GetParentMoveVector() override;
+	virtual FVector GetDeviceMoveVector() override;
 
 private :
 
 	ATailActor* tail[6];
 	FVector MoveVec;
+	FVector DeviceVec;
 
-	float Radians;
+	int Radians;
+	int cnt;
 
-	void moveVec(FVector& v_, float r_);
+	void moveVec();
 };

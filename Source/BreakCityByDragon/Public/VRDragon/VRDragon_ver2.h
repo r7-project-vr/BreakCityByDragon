@@ -45,6 +45,7 @@ public:
 
 	virtual FVector GetParentActorLocation() override;
 	virtual FVector GetParentMoveVector() override;
+	virtual FVector GetDeviceMoveVector() override;
 
 private:
 
