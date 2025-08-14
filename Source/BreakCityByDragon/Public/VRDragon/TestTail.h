@@ -36,10 +36,14 @@ public :
 public :
 
 	virtual FVector GetParentActorLocation() override;
-	virtual FVector* GetParentMoveVector() override;
+	virtual FVector GetParentMoveVector() override;
 
 private :
 
 	ATailActor* tail[6];
 	FVector MoveVec;
+
+	float Radians;
+
+	void moveVec(FVector& v_, float r_);
 };

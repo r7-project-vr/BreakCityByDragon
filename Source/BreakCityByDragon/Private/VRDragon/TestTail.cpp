@@ -4,7 +4,8 @@
 #include "VRDragon/TestTail.h"
 
 // Sets default values
-ATestTail::ATestTail()
+ATestTail::ATestTail():
+	Radians(0)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -34,7 +35,7 @@ void ATestTail::BeginPlay()
 
 			tail[0] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
 			tail[0]->SetParentTail(this);
-			tail[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+			//tail[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		}
 
 		for (int i = 1;i < 6;i++) {
@@ -43,8 +44,8 @@ void ATestTail::BeginPlay()
 			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * i;
 			tail[i] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
 			tail[i]->SetParentTail(tail[i - 1]);
-			USceneComponent* ParentRootComponent = tail[i - 1]->GetRootComponent();
-			tail[i]->AttachToComponent(ParentRootComponent, FAttachmentTransformRules::KeepWorldTransform);
+			//USceneComponent* ParentRootComponent = tail[i - 1]->GetRootComponent();
+			//tail[i]->AttachToComponent(ParentRootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		}
 	}
 	
@@ -55,7 +56,15 @@ void ATestTail::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	
+	if (Radians >= 180) { Radians = 0; }
+
+	moveVec(MoveVec, Radians);
+
+	FVector nowVec = GetActorLocation();
+	FVector newVec = nowVec + MoveVec;
+	SetActorLocation(newVec);
+
+	Radians++;
 
 }
 
@@ -73,8 +82,17 @@ FVector ATestTail::GetParentActorLocation() {
 }
 
 // デバイスのオイラー角を送る
-FVector* ATestTail::GetParentMoveVector() {
+FVector ATestTail::GetParentMoveVector() {
 
-	return &MoveVec;
+	return MoveVec;
 }
 
+void ATestTail::moveVec(FVector &v_,float r_) {
+
+	float Radian = FMath::DegreesToRadians(r_);
+
+	float X = FMath::Cos(Radian);
+	float Y = FMath::Cos(Radian) * -1;
+
+	v_ = FVector(X, Y, 0.f);
+}

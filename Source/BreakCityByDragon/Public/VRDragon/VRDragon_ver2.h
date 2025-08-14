@@ -44,7 +44,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual FVector GetParentActorLocation() override;
-	virtual FVector* GetParentMoveVector() override;
+	virtual FVector GetParentMoveVector() override;
 
 private:
 

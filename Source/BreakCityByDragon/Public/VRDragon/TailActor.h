@@ -30,7 +30,7 @@ public:
 
 	void SetParentTail(AActor* tail);
 
-	void TailMove(FVector* deviceAcceleration);
+	void TailMove(FVector deviceAcceleration);
 
 public :
 
@@ -38,7 +38,7 @@ public :
 	TObjectPtr<UArrowComponent> Arrow;
 
 	virtual FVector GetParentActorLocation() override;
-	virtual FVector* GetParentMoveVector() override;
+	virtual FVector GetParentMoveVector() override;
 
 private:
 
@@ -47,14 +47,15 @@ private:
 	IITailInformaition* TailActorParent;
 
 	FVector MoveVec;
+	FVector PreParentLocation;
 
 	// ----------------------------
 	// 定数
 	// ----------------------------
 
-	const float adjustPow = 1.0f;// 調整用の値
-	const float tailLenge = 20.0f;// しっぽの間隔調整用
-	const float addLenge = 0.7f;// しっぽに力を加える距離
+	const float adjustPow		=	1.0f;	// 調整用の値
+	const float maxTailLenge	=	20.0f;	// しっぽの間隔の最大値
+	const float minTailLengh	=	15.f;	// しっぽの間隔の最小値
 
 	/*
 	* このアクターに対して呼び出されたら追従対象を設定する

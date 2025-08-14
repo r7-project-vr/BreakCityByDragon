@@ -24,5 +24,5 @@ class BREAKCITYBYDRAGON_API IITailInformaition
 public:
 
 	virtual FVector GetParentActorLocation() = 0;
-	virtual FVector* GetParentMoveVector() = 0;
+	virtual FVector GetParentMoveVector() = 0;
 };

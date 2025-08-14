@@ -6,7 +6,8 @@
 
 // Sets default values
 ATailActor::ATailActor() :
-	MoveVec(0.f,0.f,0.f)
+	MoveVec(0.f, 0.f, 0.f),
+	PreParentLocation(-1000000, 0, 0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -41,7 +42,6 @@ ATailActor::ATailActor() :
 void ATailActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -56,10 +56,10 @@ void ATailActor::Tick(float DeltaTime)
 		}
 	}
 
-	/*{
-		FVector* rig = TailActorParent->GetParentMoveVector();
+	{
+		FVector rig = TailActorParent->GetParentMoveVector();
 		TailMove(rig);
-	}*/
+	}
 }
 
 void ATailActor::SetParentTail(AActor* tail) {
@@ -67,51 +67,44 @@ void ATailActor::SetParentTail(AActor* tail) {
 	TailActorParent = Cast<IITailInformaition>(tail);
 }
 
-void ATailActor::TailMove(FVector* rig){
+void ATailActor::TailMove(FVector rig){
+
+	if (PreParentLocation == FVector(-1000000,0,0)) {
+
+		PreParentLocation = TailActorParent->GetParentActorLocation();
+		return;
+	}
 
 	// 現在のアクターの位置を保存する
 	FVector actorVec = GetActorLocation();
 
 	// 計算した移動距離を保存する変数
 	MoveVec = FVector::ZeroVector;// いったんゼロ
+	FVector chaceVec = FVector::ZeroVector;
 
 	// 親のアクターから一定の距離離れたら力を加える
 	{
 		FVector pVec = TailActorParent->GetParentActorLocation();
 		float distance = FVector::DistSquared(actorVec, pVec);
 
-		if (distance < addLenge) {// 親のアクターから一定の距離離れてないときは処理を飛ばす
-			return;
+		if (distance > maxTailLenge) {// 親のアクターから一定の距離離れてるとき
+			
+			chaceVec = PreParentLocation - pVec;
 		}
 	}
 	
 	// 親アクターに加わっている力に合わせた移動距離を計算する
 	{
 		MoveVec = {
-			rig->X * adjustPow,
-			rig->Y * adjustPow,
-			rig->Z * adjustPow
+			rig.X * adjustPow,
+			rig.Y * adjustPow,
+			rig.Z * adjustPow
 		};
 	}
 
-	FVector addVec = actorVec + MoveVec;
+	FVector addVec = actorVec + chaceVec;
 
-	// 移動距離と尻尾の存在範囲の処理
-	{
-		// 尻尾が繋がっている範囲よりも出た場合飛び出た分を減らす
-		FVector pVec = TailActorParent->GetParentActorLocation();
-		float distance = FVector::DistSquared(addVec, pVec);
-
-		if (tailLenge < distance) {
-
-			// 正規ベクトルを求める
-			FVector NormalizeVec = (addVec);
-			NormalizeVec.Normalize();
-
-			// 幅に合わせる
-			addVec = NormalizeVec * tailLenge;
-		}
-	}
+	
 
 	// アクターの角度を移動した距離に応じてそろえる
 	{
@@ -120,6 +113,8 @@ void ATailActor::TailMove(FVector* rig){
 
 	// アクターの位置の移動
 	SetActorLocation(addVec);
+
+	PreParentLocation = TailActorParent->GetParentActorLocation();
 }
 
 FVector ATailActor::GetParentActorLocation() {
@@ -127,7 +122,7 @@ FVector ATailActor::GetParentActorLocation() {
 	return this->GetActorLocation();
 }
 
-FVector* ATailActor::GetParentMoveVector() {
+FVector ATailActor::GetParentMoveVector() {
 
-	return &MoveVec;
+	return MoveVec * 2;
 }

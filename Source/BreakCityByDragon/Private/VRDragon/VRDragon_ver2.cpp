@@ -160,6 +160,7 @@ void AVRDragon_ver2::BeginPlay()
 		}
 	}
 
+#if 0
 	// 尻尾の生成
 	{
 		FRotator look = GetControlRotation();
@@ -183,6 +184,7 @@ void AVRDragon_ver2::BeginPlay()
 			tail[i]->AttachToComponent(ParentRootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		}
 	}
+#endif
 }
 
 // Called every frame
@@ -366,7 +368,7 @@ FVector AVRDragon_ver2::GetParentActorLocation() {
 }
 
 // デバイスのオイラー角を送る
-FVector* AVRDragon_ver2::GetParentMoveVector() {
+FVector AVRDragon_ver2::GetParentMoveVector() {
 
-	return &newTailVec;
+	return newTailVec;
 }
