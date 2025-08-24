@@ -11,14 +11,42 @@ ATestTail::ATestTail():
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	TestObj= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TestTail"));
+
+	UStaticMesh* Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
+	TestObj->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	TestObj->SetStaticMesh(Sphere);
+
+	UMaterial* Material = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
+	UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(Material, this);
+	if (DynMat)
+	{
+		DynMat->SetVectorParameterValue(FName("Color"), FLinearColor::Red);
+		TestObj->SetMaterial(0, DynMat);
+	}
+	else {
+		TestObj->SetMaterial(0, Material);
+	}
+	
+
 	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = root;
-
-	TestObj= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-	TestObj -> SetupAttachment(RootComponent);
+	TestObj->SetupAttachment(RootComponent);
 
 	for (ATailActor* tails:tail) {
 		tails = nullptr;
+	}
+
+	// Arrowの初期化
+	{
+		// Arrowを追加する
+		Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
+		Arrow->SetupAttachment(RootComponent);
+
+		Arrow->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+
+		// Arrowを表示されるようにする
+		Arrow->bHiddenInGame = false;
 	}
 }
 
@@ -32,21 +60,18 @@ void ATestTail::BeginPlay()
 		FRotator look = GetControlRotation();
 
 		{
-			FVector pos = GetActorLocation();
+			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
 
 			tail[0] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
 			tail[0]->SetParentTail(this);
-			//tail[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		}
 
 		for (int i = 1;i < 6;i++) {
 
 			// しっぽの位置
-			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * i;
+			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * (i + 1);
 			tail[i] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
 			tail[i]->SetParentTail(tail[i - 1]);
-			//USceneComponent* ParentRootComponent = tail[i - 1]->GetRootComponent();
-			//tail[i]->AttachToComponent(ParentRootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		}
 	}
 	
@@ -68,62 +93,74 @@ void ATestTail::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 }
 
 // しっぽの付け根を返す
-FVector ATestTail::GetParentActorLocation() {
+FVector ATestTail::GetTargetActorLocation() {
 
 	return GetActorLocation();
 }
 
-// デバイスのオイラー角を送る
-FVector ATestTail::GetParentMoveVector() {
+// しっぽの角度を返す
+FRotator ATestTail::GetTargetActorRotation() {
 
-	return MoveVec;
+	return GetActorRotation();
 }
 
-FVector ATestTail::GetDeviceMoveVector() {
+// アクターの前方方向のベクトルを返す
+FVector ATestTail::GetTargetActorForwardVector() {
 
-	FVector vec = DeviceVec;
-	return vec;
+	return GetActorForwardVector();
 }
 
 void ATestTail::moveVec() {
 
-	FVector addVec = FVector::Zero();
-
-	int index = Radians % 4;
-
-	switch (index)
+	// 移動処理
 	{
-	case 0:
-		addVec = FVector(1.0f, 0, 0);
-		break;
-	case 1:
-		addVec = FVector(0, 1.0f, 0);
-		break;
-	case 2:
-		addVec = FVector(-1.0f,0, 0);
-		break;
-	case 3:
-		addVec = FVector(0, -1.0f, 0);
-		break;
-	default:
-		break;
+		FVector addVec = FVector::Zero();
+
+		int index = Radians % 4;
+
+		switch (index)
+		{
+		case 0:
+			addVec = FVector(3.0f, 0, 0);
+			break;
+		case 1:
+			addVec = FVector(0, 3.0f, 0);
+			break;
+		case 2:
+			addVec = FVector(-3.0f, 0, 0);
+			break;
+		case 3:
+			addVec = FVector(0, -3.0f, 0);
+			break;
+		default:
+			break;
+		}
+
+		FVector nowVec = GetActorLocation();
+		FVector newVec = nowVec + addVec + DeviceVec + FVector(2.0f, 0, 0);
+		SetActorLocation(newVec);
+
+		cnt++;
+
+		if (cnt >= 10) {
+
+			cnt = 0;
+			if (Radians % 2 == 1) { DeviceVec = FVector(0, 0, 5); }
+			else { DeviceVec = FVector(0, 0, -5); }
+			Radians++;
+		}
 	}
+	
+	// 回転処理
+	{
+		FRotator NewRoTation = GetActorRotation();
+		
+		NewRoTation.Yaw += 90.f / 30;
 
-	MoveVec = addVec;
-	FVector nowVec = GetActorLocation();
-	FVector newVec = nowVec + addVec;
-	SetActorLocation(newVec);
+		SetActorRotation(NewRoTation);
 
-	cnt++;
+		FVector MyVector = GetActorForwardVector();
 
-	if (cnt >= 10) {
-
-		cnt = 0;
-		DeviceVec = FVector(20, 0, 0);
-		Radians++;
-	}
-	else {
-
-		DeviceVec = FVector(0, 0, 0);
+		UE_LOG(LogTemp, Warning, TEXT("MyVector: %s"), *MyVector.ToString());
 	}
 }

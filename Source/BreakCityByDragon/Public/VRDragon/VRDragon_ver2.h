@@ -43,9 +43,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual FVector GetParentActorLocation() override;
-	virtual FVector GetParentMoveVector() override;
-	virtual FVector GetDeviceMoveVector() override;
+	virtual FVector GetTargetActorLocation() override;
+	virtual FRotator GetTargetActorRotation() override;
+	virtual FVector GetTargetActorForwardVector() override;
 
 private:
 
@@ -114,6 +114,9 @@ protected:
 
 	// VRカメラ
 	bool GetHMDPose(FVector& OutPosition, FRotator& OutRotation);
+
+	// デバイスからの値をゲームに反映させる関数
+	void SerialReceiver();
 
 private:
 

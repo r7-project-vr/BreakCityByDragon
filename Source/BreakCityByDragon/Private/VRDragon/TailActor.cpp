@@ -20,6 +20,7 @@ ATailActor::ATailActor() :
 	TailMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	TailMesh->SetStaticMesh(Sphere);
 	TailMesh->SetupAttachment(RootComponent);
+	TailMesh->SetSimulatePhysics(false);
 
 	UMaterial* Material = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
 	TailMesh->SetMaterial(0, Material);
@@ -51,62 +52,83 @@ void ATailActor::Tick(float DeltaTime)
 
 	// 親アクターがnullなら処理なし
 	{
-		if (TailActorParent == nullptr) {
+		if (TargetActor == nullptr) {
 			return;
 		}
 	}
 
 	{
-		FVector rig = TailActorParent->GetParentMoveVector();
-		TailMove(rig);
+		FVector rig = TargetActor->GetTargetActorForwardVector();
+		//TailMove(rig,DeltaTime);
+		TailRotaiton(DeltaTime);
 	}
 }
 
 void ATailActor::SetParentTail(AActor* tail) {
 
-	TailActorParent = Cast<IITailInformaition>(tail);
+	TargetActor = Cast<IITailInformaition>(tail);
 }
 
-void ATailActor::TailMove(FVector rig){
+// しっぽの追従プログラム
+void ATailActor::TailMove(FVector rig, float deltaTime){
 
-	// 現在のアクターの位置を保存する
-	FVector actorVec = GetActorLocation();
-
-	// 計算した移動距離を保存する変数
-	MoveVec = FVector::ZeroVector;// いったんゼロ
-	FVector chaceVec = FVector::ZeroVector;
-
-	// 親のアクターから一定の距離離れたら力を加える
+	// TargetActorに追従する
 	{
-		FVector pVec = TailActorParent->GetParentActorLocation();
+		FVector ToTarget = TargetActor->GetTargetActorLocation() - GetActorLocation();
+		float Distance = ToTarget.Size();
+
+		if (Distance > maxTailLenge) {
+
+			FVector NewLocation = FMath::VInterpTo(
+				GetActorLocation(),
+				TargetActor->GetTargetActorLocation() - ToTarget.GetSafeNormal() * maxTailLenge,
+				deltaTime,
+				FollowSpeed
+			);
+
+			SetActorLocation(NewLocation);
+		}
 	}
-
-	DeviceVec = TailActorParent->GetDeviceMoveVector();
-	MoveVec = TailActorParent->GetParentMoveVector();
-
-	FVector addVec = actorVec + MoveVec + DeviceVec;
-
-	// アクターの角度を移動した距離に応じてそろえる
-	{
-
-	}
-
-	// アクターの位置の移動
-	SetActorLocation(addVec);
 }
 
-FVector ATailActor::GetParentActorLocation() {
+// しっぽの角度調整プログラム
+void ATailActor::TailRotaiton(float deltaTime) {
+
+	// TargetActorの角度になる
+	{
+		SetActorRotation(TargetActor->GetTargetActorRotation());
+	}
+
+	// TargetActorの真後ろに追従する
+	{
+		FVector TargetLocation = TargetActor->GetTargetActorLocation();
+
+		float DesiredOffset = maxTailLenge;// 調整用
+		FVector TargetFollowLocation = TargetLocation - TargetActor->GetTargetActorForwardVector() * DesiredOffset;
+
+		FVector NewLocation = FMath::VInterpTo(
+			GetActorLocation(),
+			TargetFollowLocation,
+			deltaTime,
+			FollowSpeed
+		);
+
+		SetActorLocation(NewLocation);
+	}
+}
+
+FVector ATailActor::GetTargetActorLocation() {
 
 	return this->GetActorLocation();
 }
 
-FVector ATailActor::GetParentMoveVector() {
+// しっぽの角度を返す
+FRotator ATailActor::GetTargetActorRotation() {
 
-	return MoveVec;
+	return GetActorRotation();
 }
 
-FVector ATailActor::GetDeviceMoveVector() {
+FVector ATailActor::GetTargetActorForwardVector() {
 
-	FVector vec = DeviceVec * adjustPow;
-	return vec;
+	return GetActorForwardVector();
 }

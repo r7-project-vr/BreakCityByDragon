@@ -14,7 +14,7 @@ class UITailInformaition : public UInterface
 };
 
 /**
- * 
+ * アクセス用のインターフェース
  */
 class BREAKCITYBYDRAGON_API IITailInformaition
 {
@@ -23,7 +23,7 @@ class BREAKCITYBYDRAGON_API IITailInformaition
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	virtual FVector GetParentActorLocation() = 0;
-	virtual FVector GetParentMoveVector() = 0;
-	virtual FVector GetDeviceMoveVector() = 0;
+	virtual FVector GetTargetActorLocation() = 0;
+	virtual FRotator GetTargetActorRotation() = 0;
+	virtual FVector GetTargetActorForwardVector() = 0;
 };

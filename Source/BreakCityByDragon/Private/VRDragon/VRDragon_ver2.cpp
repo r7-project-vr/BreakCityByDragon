@@ -362,19 +362,19 @@ bool AVRDragon_ver2::GetHMDPose(FVector& OutPosition, FRotator& OutRotation)
 }
 
 // しっぽの付け根を返す
-FVector AVRDragon_ver2::GetParentActorLocation() {
+FVector AVRDragon_ver2::GetTargetActorLocation() {
 
 	return GetActorLocation();
 }
 
-// デバイスのオイラー角を送る
-FVector AVRDragon_ver2::GetParentMoveVector() {
+// しっぽの角度を返す
+FRotator AVRDragon_ver2::GetTargetActorRotation() {
 
-	return newTailVec;
+	return GetActorRotation();
 }
 
-FVector AVRDragon_ver2::GetDeviceMoveVector() {
+// アクターの前方方向のベクトルを返す
+FVector AVRDragon_ver2::GetTargetActorForwardVector() {
 
-	FVector vec = FVector::ZeroVector;
-	return vec;
+	return GetActorForwardVector();
 }

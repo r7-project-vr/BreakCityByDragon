@@ -8,6 +8,8 @@
 #include "ITailInformaition.h"
 #include "TestTail.generated.h"
 
+class UArrowComponent;
+
 UCLASS()
 class BREAKCITYBYDRAGON_API ATestTail : public APawn, public IITailInformaition
 {
@@ -33,16 +35,18 @@ public :
 	UPROPERTY(VisibleAnywhere, Category = Character, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> TestObj;
 
+	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> Arrow;
+
 public :
 
-	virtual FVector GetParentActorLocation() override;
-	virtual FVector GetParentMoveVector() override;
-	virtual FVector GetDeviceMoveVector() override;
+	virtual FVector GetTargetActorLocation() override;
+	virtual FRotator GetTargetActorRotation() override;
+	virtual FVector GetTargetActorForwardVector() override;
 
 private :
 
 	ATailActor* tail[6];
-	FVector MoveVec;
 	FVector DeviceVec;
 
 	int Radians;
