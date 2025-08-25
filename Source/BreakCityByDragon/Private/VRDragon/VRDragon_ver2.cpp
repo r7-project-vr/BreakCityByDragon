@@ -56,11 +56,11 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
 		Body->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
 		Body->SetupAttachment(RootComponent);
-		Body->SetStaticMesh(Box);
+		//Body->SetStaticMesh(Box);
 		
 		// Material
 		UMaterial* Material = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
-		Body->SetMaterial(0, Material);
+		//Body->SetMaterial(0, Material);
 
 		// ê⁄êGîªíË
 		Body_Base = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
@@ -80,6 +80,17 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		// CameraÇí«â¡Ç∑ÇÈ
 		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 		Camera->SetupAttachment(CameraRoot);
+	}
+
+	// ãr
+	{
+		/*UStaticMesh* Box = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+
+		LFootMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LFootMeshComponent"));
+		LFootMesh->SetWorldScale3D(FVector(0.2f, 0.2f, 0.2f));
+		LFootMesh->SetupAttachment(RootComponent);
+		LFootMesh->SetRelativeLocation(FVector(50.0f, 20.0f, -100.0f));
+		LFootMesh->SetStaticMesh(Box);*/
 	}
 
 	// VRÉRÉìÉgÉçÅ[Éâ
@@ -160,31 +171,26 @@ void AVRDragon_ver2::BeginPlay()
 		}
 	}
 
-#if 0
 	// êKîˆÇÃê∂ê¨
 	{
 		FRotator look = GetControlRotation();
 		look = Camera->GetComponentToWorld().GetRotation().Rotator();
 		
 		{
-			FVector pos = GetActorLocation()+ tailSpawnLenge;
+			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
 
 			tail[0] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
 			tail[0]->SetParentTail(this);
-			tail[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		}
 
-		for (int i = 1;i < 6;i++) {
+		for (int i = 1; i < 6; i++) {
 
 			// ÇµÇ¡Ç€ÇÃà íu
-			FVector pos = GetActorLocation() + tailSpawnLenge * i;
+			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * (i + 1);
 			tail[i] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
 			tail[i]->SetParentTail(tail[i - 1]);
-			USceneComponent* ParentRootComponent = tail[i - 1]->GetRootComponent();
-			tail[i]->AttachToComponent(ParentRootComponent, FAttachmentTransformRules::KeepWorldTransform);
 		}
 	}
-#endif
 }
 
 // Called every frame

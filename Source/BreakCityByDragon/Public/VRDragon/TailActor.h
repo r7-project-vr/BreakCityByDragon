@@ -57,7 +57,6 @@ private:
 
 	const float adjustPow		=	2.0f;	// 調整用の値
 	const float maxTailLenge	=	10.0f;	// しっぽの間隔の最大値
-	const float minTailLengh	=	15.f;	// しっぽの間隔の最小値
 	const float FollowSpeed     =   8.0f;	// しっぽの間隔の追従速度
 
 	/*

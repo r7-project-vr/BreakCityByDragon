@@ -138,6 +138,9 @@ void ATestTail::moveVec() {
 
 		FVector nowVec = GetActorLocation();
 		FVector newVec = nowVec + addVec + DeviceVec + FVector(2.0f, 0, 0);
+
+		newVec = GetActorForwardVector() + GetActorLocation();
+
 		SetActorLocation(newVec);
 
 		cnt++;

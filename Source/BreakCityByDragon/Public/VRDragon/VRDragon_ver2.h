@@ -133,8 +133,11 @@ private:
 
 	FVector tailSpawnLenge = FVector(-20, 0, 0);
 
-	ATailActor* tail[6];
+	ATailActor* tail[6]; // êKîˆÇÃÉAÉNÉ^Å[
 
-	UStaticMeshComponent* LMesh;
-	UStaticMeshComponent* RMesh;
+	UStaticMeshComponent* LMesh; // ç∂òr
+	UStaticMeshComponent* RMesh; // âEòr
+
+	UStaticMeshComponent* LFootMesh; // ç∂ãr
+	UStaticMeshComponent* RFootMesh; // âEãr
 };
