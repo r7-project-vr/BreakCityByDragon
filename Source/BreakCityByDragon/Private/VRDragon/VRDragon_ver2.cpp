@@ -11,6 +11,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "EnhancedInputSubsystems.h"
 #include "FireBall/FireBall_ver1.h"
+#include "FireBall/FireBall_ver2.h"
 // VR
 #include "Engine/Engine.h"
 #include "IXRTrackingSystem.h"
@@ -56,11 +57,11 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
 		Body->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
 		Body->SetupAttachment(RootComponent);
-		Body->SetStaticMesh(Box);
+		//Body->SetStaticMesh(Box);
 		
 		// Material
 		UMaterial* Material = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
-		Body->SetMaterial(0, Material);
+		//Body->SetMaterial(0, Material);
 
 		// 接触判定
 		Body_Base = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
@@ -80,6 +81,17 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		// Cameraを追加する
 		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 		Camera->SetupAttachment(CameraRoot);
+	}
+
+	// 脚
+	{
+		/*UStaticMesh* Box = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+
+		LFootMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LFootMeshComponent"));
+		LFootMesh->SetWorldScale3D(FVector(0.2f, 0.2f, 0.2f));
+		LFootMesh->SetupAttachment(RootComponent);
+		LFootMesh->SetRelativeLocation(FVector(50.0f, 20.0f, -100.0f));
+		LFootMesh->SetStaticMesh(Box);*/
 	}
 
 	// VRコントローラ
@@ -132,6 +144,15 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		// Arrowを表示されるようにする
 		Arrow->bHiddenInGame = false;
 	}
+
+	 // FireBall
+	{
+		static ConstructorHelpers::FClassFinder<AActor> BPClass(TEXT("/Game/Level/Han/BP_MyFireBall_ver2")); 
+		if (BPClass.Succeeded())
+		{
+			BlueprintFireBall = BPClass.Class;
+		}
+	}
 }
 
 // Called when the game starts or when spawned
@@ -164,10 +185,21 @@ void AVRDragon_ver2::BeginPlay()
 	{
 		FRotator look = GetControlRotation();
 		look = Camera->GetComponentToWorld().GetRotation().Rotator();
-		FVector pos = GetActorLocation();
+		
+		{
+			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
 
-		tail = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
-		tail->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+			tail[0] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
+			tail[0]->SetParentTail(this);
+		}
+
+		for (int i = 1; i < 6; i++) {
+
+			// しっぽの位置
+			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * (i + 1);
+			tail[i] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
+			tail[i]->SetParentTail(tail[i - 1]);
+		}
 	}
 }
 
@@ -270,11 +302,6 @@ void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 	const FVector2D V = Value.Get<FVector2D>();
 
 	newTailVec = FVector(V.X, V.Y, 0);
-
-	/*FVector PreLocation = GetActorLocation();
-	FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector(V.Y, V.X, 0.0f) * MoveSpeedPoint);
-
-	SetActorLocation(NewLocation);*/
 }
 
 // 火球コントロール
@@ -282,19 +309,20 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
+		FRotator look = GetControlRotation();
+		look = Camera->GetComponentToWorld().GetRotation().Rotator();
+		FVector pos = GetActorLocation() + GetActorForwardVector() * 100;
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
+
+
 		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
 		if(FireChargeCnt >= 2.f)
 		{
-			FRotator look = GetControlRotation();
-			look = Camera->GetComponentToWorld().GetRotation().Rotator();
-			FVector pos = GetActorLocation();
-
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			AFireBall_ver1* FireBall =
-				GetWorld()->SpawnActor<AFireBall_ver1>(AFireBall_ver1::StaticClass(), pos, look); // スポーン処理 
 
 
 			FireChargeCnt = 0;
@@ -348,4 +376,22 @@ bool AVRDragon_ver2::GetHMDPose(FVector& OutPosition, FRotator& OutRotation)
         }
     }
     return false;
+}
+
+// しっぽの付け根を返す
+FVector AVRDragon_ver2::GetTargetActorLocation() {
+
+	return GetActorLocation();
+}
+
+// しっぽの角度を返す
+FRotator AVRDragon_ver2::GetTargetActorRotation() {
+
+	return GetActorRotation();
+}
+
+// アクターの前方方向のベクトルを返す
+FVector AVRDragon_ver2::GetTargetActorForwardVector() {
+
+	return GetActorForwardVector();
 }

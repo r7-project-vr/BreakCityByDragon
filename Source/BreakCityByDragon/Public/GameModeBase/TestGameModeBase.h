@@ -17,4 +17,21 @@ class BREAKCITYBYDRAGON_API ATestGameModeBase : public AGameModeBase
 public:
 
 	ATestGameModeBase();
+
+	virtual void Tick(float DeltaTime) override;
+
+private :
+
+	void ToResultGame();
+
+private:
+
+	float GameTimeCnt;
+	
+	// ----------------------
+	// íËêî
+	// ----------------------
+
+	const float MaxGameTime = 10.f;
+
 };
