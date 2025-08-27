@@ -55,7 +55,7 @@ void AFireBall_ver2::BeginPlay()
 void AFireBall_ver2::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * 6000.f * DeltaTime);
+    FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * 1000.f * DeltaTime);
     SetActorLocation(NewLocation);
 }
 

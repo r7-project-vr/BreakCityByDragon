@@ -91,6 +91,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> Arrow;
 
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<AActor> BlueprintFireBall;
+
 private:
 
 	// 接触判定の処理、コライダー同士が接触したときに呼び出される

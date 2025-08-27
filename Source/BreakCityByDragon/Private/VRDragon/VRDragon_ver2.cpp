@@ -11,6 +11,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "EnhancedInputSubsystems.h"
 #include "FireBall/FireBall_ver1.h"
+#include "FireBall/FireBall_ver2.h"
 // VR
 #include "Engine/Engine.h"
 #include "IXRTrackingSystem.h"
@@ -142,6 +143,15 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 		// Arrowを表示されるようにする
 		Arrow->bHiddenInGame = false;
+	}
+
+	 // FireBall
+	{
+		static ConstructorHelpers::FClassFinder<AActor> BPClass(TEXT("/Game/Level/Han/BP_MyFireBall_ver2")); 
+		if (BPClass.Succeeded())
+		{
+			BlueprintFireBall = BPClass.Class;
+		}
 	}
 }
 
@@ -299,19 +309,20 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
+		FRotator look = GetControlRotation();
+		look = Camera->GetComponentToWorld().GetRotation().Rotator();
+		FVector pos = GetActorLocation() + GetActorForwardVector() * 100;
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
+
+
 		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
 		if(FireChargeCnt >= 2.f)
 		{
-			FRotator look = GetControlRotation();
-			look = Camera->GetComponentToWorld().GetRotation().Rotator();
-			FVector pos = GetActorLocation();
-
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			AFireBall_ver1* FireBall =
-				GetWorld()->SpawnActor<AFireBall_ver1>(AFireBall_ver1::StaticClass(), pos, look); // スポーン処理 
 
 
 			FireChargeCnt = 0;
