@@ -43,6 +43,10 @@
 				"Android",
 				"VisionOS"
 			]
+		},
+		{
+			"Name": "NiagaraFluids",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
