@@ -6,12 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h" 
+#include "ITailInformaition.h"
 #include "TailActor.generated.h"
 
 class UArrowComponent;
 
 UCLASS()
-class BREAKCITYBYDRAGON_API ATailActor : public AActor
+class BREAKCITYBYDRAGON_API ATailActor : public AActor,public IITailInformaition
 {
 	GENERATED_BODY()
 	
@@ -27,27 +28,36 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetParentTail(ATailActor* tail);
+	void SetParentTail(AActor* tail);
 
-	void TailMove(FVector* deviceAcceleration, FRotator* deviceRotate);
+	void TailMove(FVector deviceAcceleration,float deltaTime);
+	void TailRotaiton(float deltaTime);
 
 public :
 
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> Arrow;
 
+	virtual FVector GetTargetActorLocation() override;
+	virtual FRotator GetTargetActorRotation() override;
+	virtual FVector GetTargetActorForwardVector() override;
+
 private:
 
 	TObjectPtr<UStaticMeshComponent> TailMesh;
 
-	ATailActor* TailActorParent;
+	IITailInformaition* TargetActor;
 
-	FVector		tailRig;
-	FRotator	tailRotate;
+	FVector MoveVec;
+	FVector DeviceVec;
 
-	const float tailPosLimit = 0.f;
-	const float tailAddPysr = 0.0f;
-	const FVector GravityScale = FVector(0, 9.8f, 0) / 1;
+	// ----------------------------
+	// 定数
+	// ----------------------------
+
+	const float adjustPow		=	2.0f;	// 調整用の値
+	const float maxTailLenge	=	10.0f;	// しっぽの間隔の最大値
+	const float FollowSpeed     =   8.0f;	// しっぽの間隔の追従速度
 
 	/*
 	* このアクターに対して呼び出されたら追従対象を設定する

@@ -10,6 +10,7 @@
 #include "MotionControllerComponent.h"
 #include "InputActionValue.h"
 #include "VRDragon/TailActor.h"
+#include "ITailInformaition.h"
 #include "VRDragon_ver2.generated.h"
 
 class UStaticMeshComponent;
@@ -23,7 +24,7 @@ class ATailActor;
 class UBoxComponent;
 
 UCLASS()
-class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn
+class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn,public IITailInformaition
 {
 	GENERATED_BODY()
 
@@ -41,6 +42,10 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual FVector GetTargetActorLocation() override;
+	virtual FRotator GetTargetActorRotation() override;
+	virtual FVector GetTargetActorForwardVector() override;
 
 private:
 
@@ -86,6 +91,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> Arrow;
 
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<AActor> BlueprintFireBall;
+
 private:
 
 	// 接触判定の処理、コライダー同士が接触したときに呼び出される
@@ -110,6 +118,9 @@ protected:
 	// VRカメラ
 	bool GetHMDPose(FVector& OutPosition, FRotator& OutRotation);
 
+	// デバイスからの値をゲームに反映させる関数
+	void SerialReceiver();
+
 private:
 
 	float MoveSpeedPoint = 10.0f;
@@ -123,8 +134,13 @@ private:
 	FVector newTailVec;
 	FVector preTailVec;
 
-	ATailActor* tail;
+	FVector tailSpawnLenge = FVector(-20, 0, 0);
 
-	UStaticMeshComponent* LMesh;
-	UStaticMeshComponent* RMesh;
+	ATailActor* tail[6]; // 尻尾のアクター
+
+	UStaticMeshComponent* LMesh; // 左腕
+	UStaticMeshComponent* RMesh; // 右腕
+
+	UStaticMeshComponent* LFootMesh; // 左脚
+	UStaticMeshComponent* RFootMesh; // 右脚
 };

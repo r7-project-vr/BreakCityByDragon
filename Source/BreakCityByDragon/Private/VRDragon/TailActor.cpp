@@ -5,18 +5,25 @@
 #include "Components/SphereComponent.h"
 
 // Sets default values
-ATailActor::ATailActor()
+ATailActor::ATailActor() :
+	MoveVec(FVector::ZeroVector),
+	DeviceVec(FVector::ZeroVector)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("rootComponent"));
-	//RootComponent = root;
+	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	RootComponent = root;
 
 	TailMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TailMesh"));
 	UStaticMesh* Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
 	TailMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	TailMesh->SetStaticMesh(Sphere);
+	TailMesh->SetupAttachment(RootComponent);
+	TailMesh->SetSimulatePhysics(false);
+
+	UMaterial* Material = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
+	TailMesh->SetMaterial(0, Material);
 
 	// Arrowの初期化
 	{
@@ -36,42 +43,92 @@ ATailActor::ATailActor()
 void ATailActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void ATailActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
 
-void ATailActor::SetParentTail(ATailActor* tail) {
-
-	TailActorParent = tail;
-}
-
-void ATailActor::TailMove(FVector* rig, FRotator* rot){
-
-	// 計算した移動距離を保存する変数
-	FVector moveVec = FVector::ZeroVector;// いったんゼロ
-
-	// デバイスに加わっている力に合わせた移動距離を計算する
+	// 親アクターがnullなら処理なし
 	{
-
+		if (TargetActor == nullptr) {
+			return;
+		}
 	}
 
-	// アクターの角度をデバイスの角度にそろえる
 	{
-		SetActorRotation(*rot);
+		FVector rig = TargetActor->GetTargetActorForwardVector();
+		//TailMove(rig,DeltaTime);
+		TailRotaiton(DeltaTime);
 	}
-
-	// 移動距離と尻尾の存在範囲の処理
-	{
-		// 尻尾が繋がっている範囲よりも出た場合飛び出た分を減らす
-	}
-
-	// アクターの位置の移動
-	FVector actorVec = GetActorLocation();
-	SetActorLocation(actorVec + moveVec);
 }
 
+void ATailActor::SetParentTail(AActor* tail) {
+
+	TargetActor = Cast<IITailInformaition>(tail);
+}
+
+// しっぽの追従プログラム
+void ATailActor::TailMove(FVector rig, float deltaTime){
+
+	// TargetActorに追従する
+	{
+		FVector ToTarget = TargetActor->GetTargetActorLocation() - GetActorLocation();
+		float Distance = ToTarget.Size();
+
+		if (Distance > maxTailLenge) {
+
+			FVector NewLocation = FMath::VInterpTo(
+				GetActorLocation(),
+				TargetActor->GetTargetActorLocation() - ToTarget.GetSafeNormal() * maxTailLenge,
+				deltaTime,
+				FollowSpeed
+			);
+
+			SetActorLocation(NewLocation);
+		}
+	}
+}
+
+// しっぽの角度調整プログラム
+void ATailActor::TailRotaiton(float deltaTime) {
+
+	// TargetActorの角度になる
+	{
+		SetActorRotation(TargetActor->GetTargetActorRotation());
+	}
+
+	// TargetActorの真後ろに追従する
+	{
+		FVector TargetLocation = TargetActor->GetTargetActorLocation();
+
+		float DesiredOffset = maxTailLenge;// 調整用
+		FVector TargetFollowLocation = TargetLocation - TargetActor->GetTargetActorForwardVector() * DesiredOffset;
+
+		FVector NewLocation = FMath::VInterpTo(
+			GetActorLocation(),
+			TargetFollowLocation,
+			deltaTime,
+			FollowSpeed
+		);
+
+		SetActorLocation(NewLocation);
+	}
+}
+
+FVector ATailActor::GetTargetActorLocation() {
+
+	return this->GetActorLocation();
+}
+
+// しっぽの角度を返す
+FRotator ATailActor::GetTargetActorRotation() {
+
+	return GetActorRotation();
+}
+
+FVector ATailActor::GetTargetActorForwardVector() {
+
+	return GetActorForwardVector();
+}
