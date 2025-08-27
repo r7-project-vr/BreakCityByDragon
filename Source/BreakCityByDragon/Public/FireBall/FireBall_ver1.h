@@ -11,8 +11,8 @@ UCLASS()
 class BREAKCITYBYDRAGON_API AFireBall_ver1 : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AFireBall_ver1();
 
@@ -20,7 +20,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -38,7 +38,7 @@ public:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION(BlueprintImplementableEvent,Category="MyF")
+	UFUNCTION(BlueprintImplementableEvent, Category = "MyF")
 	void GCDestroy();
 
 private:

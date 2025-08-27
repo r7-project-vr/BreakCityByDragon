@@ -12,11 +12,11 @@
 class UArrowComponent;
 
 UCLASS()
-class BREAKCITYBYDRAGON_API ATailActor : public AActor,public IITailInformaition
+class BREAKCITYBYDRAGON_API ATailActor : public AActor, public IITailInformaition
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ATailActor();
 
@@ -24,16 +24,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	void SetParentTail(AActor* tail);
 
-	void TailMove(FVector deviceAcceleration,float deltaTime);
+	void TailMove(FVector deviceAcceleration, float deltaTime);
 	void TailRotaiton(float deltaTime);
 
-public :
+public:
 
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> Arrow;
@@ -55,9 +55,9 @@ private:
 	// 定数
 	// ----------------------------
 
-	const float adjustPow		=	2.0f;	// 調整用の値
-	const float maxTailLenge	=	10.0f;	// しっぽの間隔の最大値
-	const float FollowSpeed     =   8.0f;	// しっぽの間隔の追従速度
+	const float adjustPow = 2.0f;	// 調整用の値
+	const float maxTailLenge = 10.0f;	// しっぽの間隔の最大値
+	const float FollowSpeed = 8.0f;	// しっぽの間隔の追従速度
 
 	/*
 	* このアクターに対して呼び出されたら追従対象を設定する

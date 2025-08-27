@@ -7,7 +7,7 @@
 #include "DamegeTextUI.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class BREAKCITYBYDRAGON_API UDamegeTextUI : public UWidget
@@ -17,7 +17,7 @@ class BREAKCITYBYDRAGON_API UDamegeTextUI : public UWidget
 protected:
 
 	bool Initialize();
-	
+
 private:
 
 	UPROPERTY(meta = (BindWidget))
