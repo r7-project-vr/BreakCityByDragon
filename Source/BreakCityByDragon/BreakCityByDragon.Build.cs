@@ -19,7 +19,8 @@ public class BreakCityByDragon : ModuleRules
 			"HeadMountedDisplay", 
 			"AugmentedReality",
 			"XRBase",
-			"GeometryCollectionEngine"
+			"GeometryCollectionEngine",
+			"Chaos"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
