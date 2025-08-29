@@ -20,7 +20,9 @@ public class BreakCityByDragon : ModuleRules
             "AugmentedReality",
             "XRBase",
             "GeometryCollectionEngine",
-            "Chaos"
+            "Chaos",
+            "Slate",
+            "SlateCore"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {

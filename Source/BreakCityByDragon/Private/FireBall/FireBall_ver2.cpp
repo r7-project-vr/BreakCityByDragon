@@ -6,7 +6,9 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-AFireBall_ver2::AFireBall_ver2()
+AFireBall_ver2::AFireBall_ver2():
+    DestroyFlag(false),
+    timeCnt(0)
 {
     PrimaryActorTick.bCanEverTick = true;
 
@@ -18,7 +20,7 @@ AFireBall_ver2::AFireBall_ver2()
     SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
     SphereComponent->SetupAttachment(RootComponent);
     SphereComponent->SetCollisionProfileName(TEXT("OverlapAll"));
-    SphereComponent->SetSphereRadius(30.0f);
+    SphereComponent->SetSphereRadius(100.0f);
 
     // 3. ??Þ??—áiÝ BeginPlay ??ŒšC?•Û BaseMaterialAsset ›ß??j
 
@@ -56,8 +58,18 @@ void AFireBall_ver2::BeginPlay()
 void AFireBall_ver2::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * 1000.f * DeltaTime);
+    FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * FollowSpeed * DeltaTime);
     SetActorLocation(NewLocation);
+
+    if (DestroyFlag) {
+
+        timeCnt += DeltaTime;
+
+        if (timeCnt >= MaxDestroyCnt) {
+
+            this->Destroy();
+        }
+    }
 }
 
 void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -67,16 +79,17 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     if (OtherActor == this) return;
     //if (!OtherActor || OtherActor == this) return;
 
-    /*if (TrailComponent)
-    {
-        TrailComponent->Deactivate();
-    }
-    FireBall->SetVisibility(false);
-    SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    PrimaryActorTick.bCanEverTick = false;
-    SetLifeSpan(2.0f);
-    // TODO: “Y‰Á?ŠQ˜a‰¹Á??*/
+    //if (TrailComponent)
+    //{
+    //    TrailComponent->Deactivate();
+    //}
+    //FireBall->SetVisibility(false);
+    //SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    //PrimaryActorTick.bCanEverTick = false;
+    //SetLifeSpan(2.0f);
+    //// TODO: “Y‰Á?ŠQ˜a‰¹Á??
 
-    UKismetSystemLibrary::PrintString(GEngine->GetWorld(), OtherActor->GetName());
-    this->Destroy();
+    DestroyFlag = true;
+    UE_LOG(LogTemp, Warning, TEXT("Hit"));
+    /*this->Destroy();*/
 }

@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -25,7 +25,7 @@ protected:
 public:
     virtual void Tick(float DeltaTime) override;
 
-    // --- ç»„ä»¶åŒº ---
+    // --- ?Œ‹æ ---
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UStaticMeshComponent> FireBall;
 
@@ -35,18 +35,28 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UNiagaraComponent> TrailComponent;
 
-    // --- å±æ€§åŒº ---
-    // è¿è¡Œæ—¶å¯è¢«ç¼–è¾‘çš„æè´¨åŸºåº•ï¼Œç”¨äºåˆ›å»ºåŠ¨æ€å®ä¾‹ï¼Œé¿å…å¼•ç”¨ EditorOnlyData
+    // --- ‘®«‹æ ---
+    // ?s?‰Â”í??“IŞ?Šî’êC—p˜°?Œš???—áC”ğ–Æˆø—p EditorOnlyData
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FireBall|Effects")
     TObjectPtr<UMaterialInterface> BaseMaterialAsset;
 
-    // ç¼–è¾‘å™¨ä¸­æŒ‡å®šçš„æ‹–å°¾ç‰¹æ•ˆèµ„äº§
+    // ??Ší’†w’è“I?”ö“ÁÁ??
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FireBall|Effects")
     TObjectPtr<UNiagaraSystem> TrailEffectAsset;
 
-    // --- å‡½æ•°åŒº ---
+    // --- ”Ÿ”‹æ ---
     UFUNCTION()
     void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
         bool bFromSweep, const FHitResult& SweepResult);
+
+private :
+
+    bool DestroyFlag;
+    float timeCnt;
+
+    // ’è”
+
+    const float FollowSpeed     = 3000.0f;
+    const float MaxDestroyCnt   = 0.1f;
 };
