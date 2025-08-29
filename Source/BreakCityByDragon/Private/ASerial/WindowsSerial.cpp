@@ -4,11 +4,11 @@
 WindowsSerial::WindowsSerial(int baudrate) { m_baudrate = baudrate; }
 
 int WindowsSerial::OpenPort(int com_num,
-                            int receive_buffer,
-                            int transmit_buffer,
-                            int read_interval_timeout,
-                            int read_timeout,
-                            int write_timeout)
+    int receive_buffer,
+    int transmit_buffer,
+    int read_interval_timeout,
+    int read_timeout,
+    int write_timeout)
 {
     if (GetState() == true) {
         ClosePort();
@@ -257,7 +257,7 @@ int WindowsSerial::ComSetting(int baudrate)
         return -1;
     }
 
-    
+
 
     return 0;
 }

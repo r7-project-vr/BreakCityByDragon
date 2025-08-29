@@ -23,14 +23,14 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-public :
+public:
 
 	UPROPERTY(VisibleAnywhere, Category = Character, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> TestObj;
@@ -38,13 +38,13 @@ public :
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> Arrow;
 
-public :
+public:
 
 	virtual FVector GetTargetActorLocation() override;
 	virtual FRotator GetTargetActorRotation() override;
 	virtual FVector GetTargetActorForwardVector() override;
 
-private :
+private:
 
 	ATailActor* tail[6];
 	FVector DeviceVec;

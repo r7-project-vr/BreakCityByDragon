@@ -45,8 +45,8 @@ int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
     while (1) {
         st = ReadDataProcess(&data_buf);
 
-        if (st != 0 || clock() - read_time >= 50) {       
-            break; 
+        if (st != 0 || clock() - read_time >= 50) {
+            break;
         }
     }
 
@@ -68,16 +68,16 @@ int ASerial_lib_Controller_Win::AutoConnectDevice(void) {
 
     int ret = 0;
 
-    for(int i = 1; i <= 255; ++i) {
+    for (int i = 1; i <= 255; ++i) {
         int st = ConnectDevice(i);
 
-        if(st == 0) {
+        if (st == 0) {
             ret = i;
             break;
         }
     }
 
-    if(ret == 0) {
+    if (ret == 0) {
         return -1;
     }
 
@@ -85,14 +85,14 @@ int ASerial_lib_Controller_Win::AutoConnectDevice(void) {
 }
 
 int ASerial_lib_Controller_Win::DisConnectDevice(void) {
-    if(m_inteface->GetState() == false) {
+    if (m_inteface->GetState() == false) {
         return -1;
     }
 
     int st = m_inteface->ClosePort();
 
     SetConnectionState(false);
-    
+
     return st;
 }
 
@@ -107,7 +107,7 @@ int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* 
     int st = 0;
     if (m_inteface->available() > 0) {
         int read_c = m_inteface->read();
-        if(read_c != -1){
+        if (read_c != -1) {
             st = ReadPacketData(read_c, read_data_buf);
         }
     }
@@ -119,38 +119,38 @@ int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* 
     return st;
 }
 
-int ASerial_lib_Controller_Win::ReadData(ASerialDataStruct::ASerialData *read_data_buf) {
+int ASerial_lib_Controller_Win::ReadData(ASerialDataStruct::ASerialData* read_data_buf) {
     if (m_inteface->GetState() == false) {
         return -1;
     }
 
     constexpr clock_t time_out = 50;
-    
+
     bool time_out_flag = false;
     bool error_flag = false;
 
     clock_t time_buf = clock();
-    while(1) {
+    while (1) {
         int st = ReadDataProcess(read_data_buf);
 
-        if(st == 1) {
+        if (st == 1) {
             break;
         }
-        else if(st == -1) {
+        else if (st == -1) {
             error_flag = true;
             break;
         }
 
-        if(clock() - time_buf >= time_out) {
+        if (clock() - time_buf >= time_out) {
             time_out_flag = true;
             break;
         }
     }
 
-    if(error_flag == true) {    //読み取りエラー
+    if (error_flag == true) {    //読み取りエラー
         return -1;
     }
-    else if(time_out_flag == true) { //タイムアウトエラー
+    else if (time_out_flag == true) { //タイムアウトエラー
         return -2;
     }
 
@@ -185,7 +185,7 @@ int ASerial_lib_Controller_Win::WriteData(uint8_t command)
 {
     const int BUF_SIZE = 6;
 
-    uint8_t packet_buf[BUF_SIZE] = {0};
+    uint8_t packet_buf[BUF_SIZE] = { 0 };
 
     int st = MakePacketData(command, packet_buf);
 

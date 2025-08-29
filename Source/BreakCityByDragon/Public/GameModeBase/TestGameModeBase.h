@@ -7,27 +7,27 @@
 #include "TestGameModeBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class BREAKCITYBYDRAGON_API ATestGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 public:
 
 	ATestGameModeBase();
 
 	virtual void Tick(float DeltaTime) override;
 
-private :
+private:
 
 	void ToResultGame();
 
 private:
 
 	float GameTimeCnt;
-	
+
 	// ----------------------
 	// íËêî
 	// ----------------------

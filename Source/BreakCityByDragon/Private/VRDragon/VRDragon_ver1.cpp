@@ -6,7 +6,7 @@
 // Sets default values
 AVRDragon_ver1::AVRDragon_ver1()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -15,7 +15,7 @@ AVRDragon_ver1::AVRDragon_ver1()
 void AVRDragon_ver1::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame

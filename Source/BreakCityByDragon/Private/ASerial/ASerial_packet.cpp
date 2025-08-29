@@ -69,7 +69,7 @@ bool ASerialPacket::GetConnectionState(void)
 
 uint16_t ASerialPacket::GetLastErrorCode(void) { return m_lase_error_code; }
 
-size_t ASerialPacket::GetNeedPacketBufSize(uint8_t *data_array, int data_num)
+size_t ASerialPacket::GetNeedPacketBufSize(uint8_t* data_array, int data_num)
 {
     size_t size = 0;
 
@@ -98,13 +98,13 @@ void ASerialPacket::SetConnectionState(bool state) { m_connection_state = state;
 
 //===protected===
 
-int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialData *data_buf_pt)
+int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialData* data_buf_pt)
 {
     int ret_st = 0;                          // リターンステート
     static uint8_t step = 0;                 // パケット読み取り位置管理
     static uint8_t data_read_count = 0;      // データ読み取り数カウント
     static uint16_t check_data_sum = 0;      // チェック用データ加算変数
-    static uint8_t check_data_buf[2] = {0};  // 2データ分のデータを読むためのバッファ
+    static uint8_t check_data_buf[2] = { 0 };  // 2データ分のデータを読むためのバッファ
 
     if (_indata == DO_FLAG) {         // スタートフラグ
         if (m_read_packet == true) {  // パケットの読み飛ばし発生警告
@@ -148,142 +148,142 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
 
         if (GetMode() == MODE_DEVICE) {  // デバイスモード
             switch (step) {
-                case 0:  // ターゲットデバイスID読み取り
-                    m_from_controller_data_buf.target_device_id = _indata;
+            case 0:  // ターゲットデバイスID読み取り
+                m_from_controller_data_buf.target_device_id = _indata;
 
-                    step = 1;
-                    break;
+                step = 1;
+                break;
 
-                case 1:  // 送信データ数
-                    m_from_controller_data_buf.data_num = _indata;
-                    if (m_from_controller_data_buf.data_num > DATA_NUM_MAX) {
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
-                        m_error_flag = true;
-                        ret_st = -1;
-                    }
-                    else {
-                        ret_st = 0;
-                    }
-                    step = 2;
-                    break;
-
-                case 2:  // コマンド
-                    m_from_controller_data_buf.command = _indata;
-                    // ここでデバイス情報リクエストなのかの判定を行い、デバイスIDとターゲットデバイスIDが不一致かつデバイス情報リクエスまたはリセットコマンドではなかった場合パケットを破棄する
-                    if ((m_from_controller_data_buf.command != RESERVED_COMMAND_RESET) &&
-                        (m_from_controller_data_buf.command != RESERVED_COMMAND_GET_INFO) &&
-                        (m_from_controller_data_buf.target_device_id != m_device_id)) {
-                        m_error_flag = true;
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DEVICE_ID_MISMATCH);
-                        ret_st = -1;
-                    }
-                    else {
-                        ret_st = 0;
-                    }
-
-                    if (m_from_controller_data_buf.data_num <= 0) {  // データが0個ならチェックデータ読み取りへ
-                        step = 4;
-                    }
-                    else {
-                        step = 3;
-                    }
-
-                    break;
-
-                case 3:  // データ読み取り
-                    m_from_controller_data_buf.data[data_read_count] = _indata;
-                    check_data_sum += _indata;
-
-                    if (data_read_count >= (m_from_controller_data_buf.data_num - 1)) {
-                        step = 4;
-                    }
-
-                    ++data_read_count;
+            case 1:  // 送信データ数
+                m_from_controller_data_buf.data_num = _indata;
+                if (m_from_controller_data_buf.data_num > DATA_NUM_MAX) {
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
+                    m_error_flag = true;
+                    ret_st = -1;
+                }
+                else {
                     ret_st = 0;
-                    break;
+                }
+                step = 2;
+                break;
 
-                case 4:  // チェックデータ1
-                    check_data_buf[0] = _indata;
-
-                    step = 5;
-
+            case 2:  // コマンド
+                m_from_controller_data_buf.command = _indata;
+                // ここでデバイス情報リクエストなのかの判定を行い、デバイスIDとターゲットデバイスIDが不一致かつデバイス情報リクエスまたはリセットコマンドではなかった場合パケットを破棄する
+                if ((m_from_controller_data_buf.command != RESERVED_COMMAND_RESET) &&
+                    (m_from_controller_data_buf.command != RESERVED_COMMAND_GET_INFO) &&
+                    (m_from_controller_data_buf.target_device_id != m_device_id)) {
+                    m_error_flag = true;
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DEVICE_ID_MISMATCH);
+                    ret_st = -1;
+                }
+                else {
                     ret_st = 0;
-                    break;
+                }
 
-                case 5:  // チェックデータ2
-                    check_data_buf[1] = _indata;
-                    uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
-                    if (check_data_sum != check_data) {
-                        ret_st = -1;
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
-                    }
-                    else {
-                        ret_st = 1;
-                        m_read_packet = false;
+                if (m_from_controller_data_buf.data_num <= 0) {  // データが0個ならチェックデータ読み取りへ
+                    step = 4;
+                }
+                else {
+                    step = 3;
+                }
 
-                        // 読み取ったデータを戻り用データ構造体に格納
-                        data_buf_pt->command = m_from_controller_data_buf.command;
-                        data_buf_pt->data_num = m_from_controller_data_buf.data_num;
-                        for (int i = 0; i < DATA_NUM_MAX; ++i) {
-                            data_buf_pt->data[i] = m_from_controller_data_buf.data[i];
-                        }
+                break;
+
+            case 3:  // データ読み取り
+                m_from_controller_data_buf.data[data_read_count] = _indata;
+                check_data_sum += _indata;
+
+                if (data_read_count >= (m_from_controller_data_buf.data_num - 1)) {
+                    step = 4;
+                }
+
+                ++data_read_count;
+                ret_st = 0;
+                break;
+
+            case 4:  // チェックデータ1
+                check_data_buf[0] = _indata;
+
+                step = 5;
+
+                ret_st = 0;
+                break;
+
+            case 5:  // チェックデータ2
+                check_data_buf[1] = _indata;
+                uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
+                if (check_data_sum != check_data) {
+                    ret_st = -1;
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
+                }
+                else {
+                    ret_st = 1;
+                    m_read_packet = false;
+
+                    // 読み取ったデータを戻り用データ構造体に格納
+                    data_buf_pt->command = m_from_controller_data_buf.command;
+                    data_buf_pt->data_num = m_from_controller_data_buf.data_num;
+                    for (int i = 0; i < DATA_NUM_MAX; ++i) {
+                        data_buf_pt->data[i] = m_from_controller_data_buf.data[i];
                     }
-                    break;
+                }
+                break;
             }
         }
         else {  // コントローラモード
             switch (step) {
-                case 0:  // 送信データ数の読み取り
-                    m_from_device_data_buf.data_num = _indata;
-                    if (m_from_device_data_buf.data_num > DATA_NUM_MAX) {
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
-                        m_error_flag = true;
-                        ret_st = -1;
-                    }
-                    else {
-                        ret_st = 0;
-                    }
-                    step = 1;
-                    break;
-                case 1:  // データ読み取り
-                    m_from_device_data_buf.data[data_read_count] = _indata;
-                    check_data_sum += _indata;
-
-                    if (data_read_count >= (m_from_device_data_buf.data_num - 1)) {
-                        step = 2;
-                    }
-
-                    ++data_read_count;
+            case 0:  // 送信データ数の読み取り
+                m_from_device_data_buf.data_num = _indata;
+                if (m_from_device_data_buf.data_num > DATA_NUM_MAX) {
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
+                    m_error_flag = true;
+                    ret_st = -1;
+                }
+                else {
                     ret_st = 0;
-                    break;
+                }
+                step = 1;
+                break;
+            case 1:  // データ読み取り
+                m_from_device_data_buf.data[data_read_count] = _indata;
+                check_data_sum += _indata;
 
-                case 2:  // チェックデータ1
-                    check_data_buf[0] = _indata;
+                if (data_read_count >= (m_from_device_data_buf.data_num - 1)) {
+                    step = 2;
+                }
 
-                    step = 3;
+                ++data_read_count;
+                ret_st = 0;
+                break;
 
-                    ret_st = 0;
-                    break;
+            case 2:  // チェックデータ1
+                check_data_buf[0] = _indata;
 
-                case 3:  // チェックデータ2
-                    check_data_buf[1] = _indata;
-                    uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
-                    if (check_data_sum != check_data) {
-                        ret_st = -1;
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
+                step = 3;
+
+                ret_st = 0;
+                break;
+
+            case 3:  // チェックデータ2
+                check_data_buf[1] = _indata;
+                uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
+                if (check_data_sum != check_data) {
+                    ret_st = -1;
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
+                }
+                else {
+                    ret_st = 1;
+                    m_read_packet = false;
+
+                    // 読み取ったデータを戻り用データ構造体に格納
+                    data_buf_pt->command = 0x00;
+                    data_buf_pt->data_num = m_from_device_data_buf.data_num;
+                    for (int i = 0; i < DATA_NUM_MAX; ++i) {
+                        data_buf_pt->data[i] = m_from_device_data_buf.data[i];
                     }
-                    else {
-                        ret_st = 1;
-                        m_read_packet = false;
-
-                        // 読み取ったデータを戻り用データ構造体に格納
-                        data_buf_pt->command = 0x00;
-                        data_buf_pt->data_num = m_from_device_data_buf.data_num;
-                        for (int i = 0; i < DATA_NUM_MAX; ++i) {
-                            data_buf_pt->data[i] = m_from_device_data_buf.data[i];
-                        }
-                    }
-                    break;
+                }
+                break;
             }
         }
     }
@@ -294,7 +294,7 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
     return ret_st;
 }
 
-int ASerialPacket::MakePacketData(uint8_t *to_device_data, int data_num, uint8_t command, uint8_t *data_packet_out)
+int ASerialPacket::MakePacketData(uint8_t* to_device_data, int data_num, uint8_t command, uint8_t* data_packet_out)
 {
     if (GetMode() != MODE_CONTROLLER) {  // デバイスモード時にコントローラのパケットを作成を制限
         return -1;
@@ -302,7 +302,7 @@ int ASerialPacket::MakePacketData(uint8_t *to_device_data, int data_num, uint8_t
 
     if (GetConnectionState() == false && command != RESERVED_COMMAND_GET_INFO &&
         command !=
-            RESERVED_COMMAND_RESET) {  // 接続状態がfalseかつコマンドがリセットやデバイス情報リクエストでない場合はエラー
+        RESERVED_COMMAND_RESET) {  // 接続状態がfalseかつコマンドがリセットやデバイス情報リクエストでない場合はエラー
         return -1;
     }
 
@@ -329,7 +329,7 @@ int ASerialPacket::MakePacketData(uint8_t *to_device_data, int data_num, uint8_t
         ++index;
     }
 
-    int8_t check_data[2] = {0};  // チェックデータ分割用([1]上位バイト [2]下位バイト)
+    int8_t check_data[2] = { 0 };  // チェックデータ分割用([1]上位バイト [2]下位バイト)
 
     check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // 上位バイト抽出
     check_data[1] = (uint8_t)(check_sum & 0x00FF);         // 下位バイト抽出
@@ -341,7 +341,7 @@ int ASerialPacket::MakePacketData(uint8_t *to_device_data, int data_num, uint8_t
     return 0;
 }
 
-int ASerialPacket::MakePacketData(uint8_t command, uint8_t *data_packet_out)
+int ASerialPacket::MakePacketData(uint8_t command, uint8_t* data_packet_out)
 {
     if (GetMode() != MODE_CONTROLLER) {  // デバイスモード時にコントローラのパケットを作成を制限
         return -1;
@@ -349,7 +349,7 @@ int ASerialPacket::MakePacketData(uint8_t command, uint8_t *data_packet_out)
 
     if (GetConnectionState() == false && command != RESERVED_COMMAND_GET_INFO &&
         command !=
-            RESERVED_COMMAND_RESET) {  // 接続状態がfalseかつコマンドがリセットやデバイス情報リクエストでない場合はエラー
+        RESERVED_COMMAND_RESET) {  // 接続状態がfalseかつコマンドがリセットやデバイス情報リクエストでない場合はエラー
         return -1;
     }
 
@@ -374,7 +374,7 @@ int ASerialPacket::MakePacketData(uint8_t command, uint8_t *data_packet_out)
     return 0;
 }
 
-int ASerialPacket::MakePacketData(uint8_t *to_controller_data, int data_num, uint8_t *data_packet_out)
+int ASerialPacket::MakePacketData(uint8_t* to_controller_data, int data_num, uint8_t* data_packet_out)
 {
     if (GetMode() != MODE_DEVICE) {  // コントローラモード時にデバイスのパケットを作成を制限
         return -1;
@@ -400,7 +400,7 @@ int ASerialPacket::MakePacketData(uint8_t *to_controller_data, int data_num, uin
         // Serial.println(st);
     }
 
-    int8_t check_data[2] = {0};  // チェックデータ分割用([1]上位バイト [2]下位バイト)
+    int8_t check_data[2] = { 0 };  // チェックデータ分割用([1]上位バイト [2]下位バイト)
 
     check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // 上位バイト抽出
     check_data[1] = (uint8_t)(check_sum & 0x00FF);         // 下位バイト抽出
@@ -423,7 +423,7 @@ void ASerialPacket::ResetFlags(void)
 
 void ASerialPacket::ResetDataArray(void)
 {
-    uint8_t *array = nullptr;
+    uint8_t* array = nullptr;
 
     if (GetMode() == MODE_DEVICE) {
         array = m_from_device_data_buf.data;
@@ -440,7 +440,7 @@ void ASerialPacket::ResetDataArray(void)
     return;
 }
 
-int ASerialPacket::CheckDataNeedAddFlag(uint8_t data, uint8_t *data_array, int *_index)
+int ASerialPacket::CheckDataNeedAddFlag(uint8_t data, uint8_t* data_array, int* _index)
 {
     if (data_array == nullptr) {
         return -1;
