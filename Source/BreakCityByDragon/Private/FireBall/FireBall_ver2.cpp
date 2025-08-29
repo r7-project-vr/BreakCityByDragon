@@ -4,6 +4,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AFireBall_ver2::AFireBall_ver2()
 {
@@ -16,7 +17,7 @@ AFireBall_ver2::AFireBall_ver2()
     // 2. 碰撞组件
     SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
     SphereComponent->SetupAttachment(RootComponent);
-    SphereComponent->SetCollisionProfileName(TEXT("BlockAll"));
+    SphereComponent->SetCollisionProfileName(TEXT("OverlapAll"));
     SphereComponent->SetSphereRadius(30.0f);
 
     // 3. 动态材质实例（在 BeginPlay 时创建，确保 BaseMaterialAsset 已赋值）
@@ -63,9 +64,10 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
     bool bFromSweep, const FHitResult& SweepResult)
 {
-    if (!OtherActor || OtherActor == this) return;
+    if (OtherActor == this) return;
+    //if (!OtherActor || OtherActor == this) return;
 
-    if (TrailComponent)
+    /*if (TrailComponent)
     {
         TrailComponent->Deactivate();
     }
@@ -73,5 +75,8 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     PrimaryActorTick.bCanEverTick = false;
     SetLifeSpan(2.0f);
-    // TODO: 添加伤害和音效逻辑
+    // TODO: 添加伤害和音效逻辑*/
+
+    UKismetSystemLibrary::PrintString(GEngine->GetWorld(), OtherActor->GetName());
+    this-> Destroy();
 }
