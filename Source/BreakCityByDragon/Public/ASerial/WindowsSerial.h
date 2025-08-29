@@ -8,7 +8,7 @@
 #define WINDOWS_SERIAL_H
 
 class WindowsSerial {
- public:
+public:
     /// @brief WindowsSerialコンストラクタ
     /// @param baudrate 通信速度(ボーレート) *省略可
     /// @note デフォルトは115200bps
@@ -27,27 +27,27 @@ class WindowsSerial {
     /// @return -3:受信バッファ設定失敗
     /// @return -4:タイムアウト設定失敗
     int OpenPort(int com_num,
-                        int receive_buffer = ASERIAL_RECEIVEBUFFER_NORMAL,
-                        int transmit_buffer = ASERIAL_TRANSMITBUFFER_NOMAL,
-                        int read_interval_timeout = ASERIAL_READ_INTERVAL_TIMEOUT_NORMAL,
-                        int read_timeout = ASERIAL_READTIMEOUT_NORMAL,
-                        int write_timeout = ASERIAL_WRITETIMEOUT_NORMAL);
+        int receive_buffer = ASERIAL_RECEIVEBUFFER_NORMAL,
+        int transmit_buffer = ASERIAL_TRANSMITBUFFER_NOMAL,
+        int read_interval_timeout = ASERIAL_READ_INTERVAL_TIMEOUT_NORMAL,
+        int read_timeout = ASERIAL_READTIMEOUT_NORMAL,
+        int write_timeout = ASERIAL_WRITETIMEOUT_NORMAL);
 
     //  @brief  シリアルポートをクローズする
     //  @return 0:成功 -1:失敗
     int ClosePort(void);
 
-	/// @brief ポートの接続状態を取得
-	/// @return true:接続中 false:未接続
-	bool GetState(void);
-	
-	/// @brief 接続しているCOM番号を取得 
-	/// @return 0:未接続 0以外:ポート番号
-	int GetConnectCOM(void);
+    /// @brief ポートの接続状態を取得
+    /// @return true:接続中 false:未接続
+    bool GetState(void);
 
-	/// @brief 受信バッファに溜まっているデータ数を取得
-	/// @return -1:未接続 0:データなし 1以上:データ数
-	int available(void);
+    /// @brief 接続しているCOM番号を取得 
+    /// @return 0:未接続 0以外:ポート番号
+    int GetConnectCOM(void);
+
+    /// @brief 受信バッファに溜まっているデータ数を取得
+    /// @return -1:未接続 0:データなし 1以上:データ数
+    int available(void);
 
     /// @brief データを読み取る
     /// @return -1:未接続 -1以外:読み取ったデータ
@@ -67,13 +67,13 @@ class WindowsSerial {
     /// @param buf 書き込むデータのポインタ
     /// @param len 書き込むデータの長さ
     /// @return -1:未接続 -1以外:書き込んだバイト数
-    int write(uint8_t *buf, int len);
-    
+    int write(uint8_t* buf, int len);
+
     /// @brief バッファをクリアする
     /// @return 0:成功 -1:失敗
     int clear(void);
 
- private:
+private:
     //===定数定義(private)===
     static const int ASERIAL_BAUDRATE_NORMAL = 115200;           // デフォルトのボーレート
     static const int ASERIAL_RECEIVEBUFFER_NORMAL = 1024;        // デフォルト受信バッファメモリサイズ[byte]
@@ -84,7 +84,7 @@ class WindowsSerial {
 
     HANDLE m_serial_handle = nullptr;  // シリアル通信ハンドル
     int m_connect_comnum = 0;          // 接続しているポート番号
-	bool m_connect_state = false;  // 接続ステータス
+    bool m_connect_state = false;  // 接続ステータス
     int m_baudrate = 0;                // 通信速度(ボーレート)
 
     // @brief   通信の設定を行う(内部完結)

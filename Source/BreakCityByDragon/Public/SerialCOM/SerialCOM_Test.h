@@ -10,9 +10,9 @@
 class BREAKCITYBYDRAGON_API SerialCOM_Test
 {
 public:
-    SerialCOM_Test();
-	
+	SerialCOM_Test();
+
 	~SerialCOM_Test();
 
-    
+
 };

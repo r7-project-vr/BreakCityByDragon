@@ -7,13 +7,13 @@
 #include "Onishi_TestGCActor.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class BREAKCITYBYDRAGON_API AOnishi_TestGCActor : public AGeometryCollectionActor
 {
 	GENERATED_BODY()
-	
+
 public:
 	AOnishi_TestGCActor();
 

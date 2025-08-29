@@ -10,7 +10,7 @@
 // Sets default values
 AFireBall_ver1::AFireBall_ver1()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// StaticMeshComponentÇí«â¡ÇµÅARootComponentÇ…ê›íËÇ∑ÇÈ
@@ -45,7 +45,7 @@ AFireBall_ver1::AFireBall_ver1()
 void AFireBall_ver1::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -53,7 +53,7 @@ void AFireBall_ver1::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	
+
 	//é©ìÆÇ≈ëOÇ…êiÇﬁ
 	FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * 1000.f * DeltaTime);
 
@@ -85,7 +85,7 @@ void AFireBall_ver1::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 
 	if (AFireBall_ver1* a = Cast<AFireBall_ver1>(OtherActor))return;
-	
+
 
 	if (UGeometryCollectionComponent* GC = Cast<UGeometryCollectionComponent>(OtherComp)) {
 

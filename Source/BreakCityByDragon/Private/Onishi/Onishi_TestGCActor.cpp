@@ -8,11 +8,11 @@
 
 AOnishi_TestGCActor::AOnishi_TestGCActor() {
 
-    
+
 }
 
 void AOnishi_TestGCActor::BeginPlay() {
-    
+
     UWorld* World = GetWorld();
     if (!World) return;
 
@@ -52,5 +52,5 @@ void AOnishi_TestGCActor::BeginPlay() {
 
         UE_LOG(LogTemp, Log, TEXT("ジオメトリコレクションアクターをスポーンしました"));
     }
-    
+
 }

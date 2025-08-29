@@ -24,7 +24,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	preTailVec(0, 0, 0),
 	newTailVec(0, 0, 0)
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
@@ -58,7 +58,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Body->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
 		Body->SetupAttachment(RootComponent);
 		//Body->SetStaticMesh(Box);
-		
+
 		// Material
 		UMaterial* Material = LoadObject<UMaterial>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
 		//Body->SetMaterial(0, Material);
@@ -71,7 +71,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Body_Base->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
 		Body_Base->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
 	}
-	
+
 	// Camera
 	{
 		// HMDの原点
@@ -131,7 +131,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		// Input Action「IA_DragonLook」を読み込む
 		LookAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonLook"));
 	}
-	
+
 	// Arrowの初期化
 	{
 		// Arrowを追加する
@@ -145,9 +145,9 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Arrow->bHiddenInGame = false;
 	}
 
-	 // FireBall
+	// FireBall
 	{
-		static ConstructorHelpers::FClassFinder<AActor> BPClass(TEXT("/Game/Level/Han/BP_MyFireBall_ver2")); 
+		static ConstructorHelpers::FClassFinder<AActor> BPClass(TEXT("/Game/Level/Han/BP_MyFireBall_ver2"));
 		if (BPClass.Succeeded())
 		{
 			BlueprintFireBall = BPClass.Class;
@@ -159,7 +159,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 void AVRDragon_ver2::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	//Add Input Mapping Context
 	if (const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
@@ -175,9 +175,9 @@ void AVRDragon_ver2::BeginPlay()
 		bool VRAllowed = GEngine->XRSystem->IsHeadTrackingAllowed();
 
 		if (VRAllowed) {
-			
+
 			// 顔面の高さに合わせる
-			GEngine->XRSystem->SetTrackingOrigin(EHMDTrackingOrigin::Local);		
+			GEngine->XRSystem->SetTrackingOrigin(EHMDTrackingOrigin::Local);
 		}
 	}
 
@@ -185,7 +185,7 @@ void AVRDragon_ver2::BeginPlay()
 	{
 		FRotator look = GetControlRotation();
 		look = Camera->GetComponentToWorld().GetRotation().Rotator();
-		
+
 		{
 			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
 
@@ -274,12 +274,12 @@ void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 // コライダー同士が接触したときに呼び出される
 void AVRDragon_ver2::OnSphereBeginOverlap(
-	UPrimitiveComponent* OverlappedComp, 
-	AActor* OtherActor, 
+	UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
 	UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex,
 	bool bFromSweep,
-	const FHitResult& SweepResult){
+	const FHitResult& SweepResult) {
 
 
 }
@@ -311,7 +311,7 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		if(FireChargeCnt >= 2.f)
+		if (FireChargeCnt >= 2.f)
 		{
 			FRotator look = GetControlRotation();
 			look = Camera->GetComponentToWorld().GetRotation().Rotator();
@@ -355,24 +355,24 @@ void AVRDragon_ver2::Look(const FInputActionValue& Value) {
 bool AVRDragon_ver2::GetHMDPose(FVector& OutPosition, FRotator& OutRotation)
 {
 	if (GEngine && GEngine->XRSystem.IsValid())
-    {
-        IXRTrackingSystem* XRSystem = GEngine->XRSystem.Get();
-        if (XRSystem->IsHeadTrackingAllowed())
-        {
-            // フレームに対するHMDの座標（ワールド空間かローカルかはシステムによる）
-            FQuat OrientationQuat;
-            FVector Position;
+	{
+		IXRTrackingSystem* XRSystem = GEngine->XRSystem.Get();
+		if (XRSystem->IsHeadTrackingAllowed())
+		{
+			// フレームに対するHMDの座標（ワールド空間かローカルかはシステムによる）
+			FQuat OrientationQuat;
+			FVector Position;
 
-            // GetCurrentPose はコンポーネント（Head、LeftEye、RightEye）を指定して取得
-            if (XRSystem->GetCurrentPose((int32)EXRTrackedDeviceType::HeadMountedDisplay, OrientationQuat, Position))
-            {
-                //OutPosition = Position;
-                OutRotation = OrientationQuat.Rotator();
-                return true;
-            }
-        }
-    }
-    return false;
+			// GetCurrentPose はコンポーネント（Head、LeftEye、RightEye）を指定して取得
+			if (XRSystem->GetCurrentPose((int32)EXRTrackedDeviceType::HeadMountedDisplay, OrientationQuat, Position))
+			{
+				//OutPosition = Position;
+				OutRotation = OrientationQuat.Rotator();
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 // しっぽの付け根を返す

@@ -7,11 +7,11 @@
 #include "ResultGameModeBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class BREAKCITYBYDRAGON_API AResultGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 };

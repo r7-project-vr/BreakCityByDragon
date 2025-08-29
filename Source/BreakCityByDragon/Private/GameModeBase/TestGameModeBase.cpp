@@ -5,8 +5,8 @@
 #include "VRDragon/VRDragon_ver2.h"
 
 
-ATestGameModeBase::ATestGameModeBase():
-GameTimeCnt(0){
+ATestGameModeBase::ATestGameModeBase() :
+	GameTimeCnt(0) {
 
 	PrimaryActorTick.bCanEverTick = true;
 

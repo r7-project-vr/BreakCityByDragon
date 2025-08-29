@@ -5,7 +5,7 @@
 #include "ASerial/ASerial_packet.h"
 
 #include "ASerial/ASerial_ErrorCodeList.h"
-#ifdef ARDUINO  // ArduinoIDEç’°å¢ƒ
+#ifdef ARDUINO  // ArduinoIDEŠÂ‹«
 #include <Arduino.h>
 
 #endif  // ARDUINO
@@ -69,27 +69,27 @@ bool ASerialPacket::GetConnectionState(void)
 
 uint16_t ASerialPacket::GetLastErrorCode(void) { return m_lase_error_code; }
 
-size_t ASerialPacket::GetNeedPacketBufSize(uint8_t *data_array, int data_num)
+size_t ASerialPacket::GetNeedPacketBufSize(uint8_t* data_array, int data_num)
 {
     size_t size = 0;
 
     if (GetMode() == MODE_DEVICE) {
-        size += 2;  // ã‚¹ã‚¿ãƒ¼ãƒˆãƒ•ãƒ©ã‚°(1) + ãƒ‡ãƒ¼ã‚¿æ•°(1)
+        size += 2;  // ƒXƒ^[ƒgƒtƒ‰ƒO(1) + ƒf[ƒ^”(1)
     }
     else {
-        size += 4;  // ã‚¹ã‚¿ãƒ¼ãƒˆãƒ•ãƒ©ã‚°(1) + ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ‡ãƒã‚¤ã‚¹ID(1) + ãƒ‡ãƒ¼ã‚¿æ•°(1) + ã‚³ãƒãƒ³ãƒ‰(1)
+        size += 4;  // ƒXƒ^[ƒgƒtƒ‰ƒO(1) + ƒ^[ƒQƒbƒgƒfƒoƒCƒXID(1) + ƒf[ƒ^”(1) + ƒRƒ}ƒ“ƒh(1)
     }
 
     for (int i = 0; i < data_num; ++i) {
         if (data_array[i] == AD_FLAG || data_array[i] == DO_FLAG) {
-            size += 2;  // åŠ ç®—ãƒ•ãƒ©ã‚°(1) + ãƒ‡ãƒ¼ã‚¿(1)
+            size += 2;  // ‰ÁZƒtƒ‰ƒO(1) + ƒf[ƒ^(1)
         }
         else {
-            size += 1;  // ãƒ‡ãƒ¼ã‚¿(1)
+            size += 1;  // ƒf[ƒ^(1)
         }
     }
 
-    size += 2;  // ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿
+    size += 2;  // ƒ`ƒFƒbƒNƒf[ƒ^
 
     return size;
 }
@@ -98,20 +98,20 @@ void ASerialPacket::SetConnectionState(bool state) { m_connection_state = state;
 
 //===protected===
 
-int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialData *data_buf_pt)
+int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialData* data_buf_pt)
 {
-    int ret_st = 0;                          // ãƒªã‚¿ãƒ¼ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆ
-    static uint8_t step = 0;                 // ãƒ‘ã‚±ãƒƒãƒˆèª­ã¿å–ã‚Šä½ç½®ç®¡ç†
-    static uint8_t data_read_count = 0;      // ãƒ‡ãƒ¼ã‚¿èª­ã¿å–ã‚Šæ•°ã‚«ã‚¦ãƒ³ãƒˆ
-    static uint16_t check_data_sum = 0;      // ãƒã‚§ãƒƒã‚¯ç”¨ãƒ‡ãƒ¼ã‚¿åŠ ç®—å¤‰æ•°
-    static uint8_t check_data_buf[2] = {0};  // 2ãƒ‡ãƒ¼ã‚¿åˆ†ã®ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã‚€ãŸã‚ã®ãƒãƒƒãƒ•ã‚¡
+    int ret_st = 0;                          // ƒŠƒ^[ƒ“ƒXƒe[ƒg
+    static uint8_t step = 0;                 // ƒpƒPƒbƒg“Ç‚İæ‚èˆÊ’uŠÇ—
+    static uint8_t data_read_count = 0;      // ƒf[ƒ^“Ç‚İæ‚è”ƒJƒEƒ“ƒg
+    static uint16_t check_data_sum = 0;      // ƒ`ƒFƒbƒN—pƒf[ƒ^‰ÁZ•Ï”
+    static uint8_t check_data_buf[2] = { 0 };  // 2ƒf[ƒ^•ª‚Ìƒf[ƒ^‚ğ“Ç‚Ş‚½‚ß‚Ìƒoƒbƒtƒ@
 
-    if (_indata == DO_FLAG) {         // ã‚¹ã‚¿ãƒ¼ãƒˆãƒ•ãƒ©ã‚°
-        if (m_read_packet == true) {  // ãƒ‘ã‚±ãƒƒãƒˆã®èª­ã¿é£›ã°ã—ç™ºç”Ÿè­¦å‘Š
+    if (_indata == DO_FLAG) {         // ƒXƒ^[ƒgƒtƒ‰ƒO
+        if (m_read_packet == true) {  // ƒpƒPƒbƒg‚Ì“Ç‚İ”ò‚Î‚µ”­¶Œx
             m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::WARNING_READ_SKIP);
         }
 
-        //===å„ãƒ•ãƒ©ã‚°ã‚„ãƒãƒƒãƒ•ã‚¡ã®åˆæœŸåŒ–===
+        //===Šeƒtƒ‰ƒO‚âƒoƒbƒtƒ@‚Ì‰Šú‰»===
         ResetFlags();
         ResetDataArray();
         if (m_mode == MODE_DEVICE) {
@@ -124,11 +124,11 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
 
         ret_st = 0;
     }
-    else if (m_error_flag == true) {  // ã‚¨ãƒ©ãƒ¼ãŒã‚ã£ãŸãƒ‘ã‚±ãƒƒãƒˆã‚’èª­ã¿é£›ã°ã™
+    else if (m_error_flag == true) {  // ƒGƒ‰[‚ª‚ ‚Á‚½ƒpƒPƒbƒg‚ğ“Ç‚İ”ò‚Î‚·
         m_read_packet = false;
         ret_st = -1;
     }
-    else if (_indata == AD_FLAG) {  // åŠ ç®—ãƒ•ãƒ©ã‚°
+    else if (_indata == AD_FLAG) {  // ‰ÁZƒtƒ‰ƒO
         if (m_add_flag == true) {
             ret_st = -1;
             m_error_flag = true;
@@ -141,149 +141,149 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
         }
     }
     else if (m_read_packet == true) {
-        if (m_add_flag == true) {  // åŠ ç®—å‡¦ç†
+        if (m_add_flag == true) {  // ‰ÁZˆ—
             _indata += 1;
             m_add_flag = false;
         }
 
-        if (GetMode() == MODE_DEVICE) {  // ãƒ‡ãƒã‚¤ã‚¹ãƒ¢ãƒ¼ãƒ‰
+        if (GetMode() == MODE_DEVICE) {  // ƒfƒoƒCƒXƒ‚[ƒh
             switch (step) {
-                case 0:  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ‡ãƒã‚¤ã‚¹IDèª­ã¿å–ã‚Š
-                    m_from_controller_data_buf.target_device_id = _indata;
+            case 0:  // ƒ^[ƒQƒbƒgƒfƒoƒCƒXID“Ç‚İæ‚è
+                m_from_controller_data_buf.target_device_id = _indata;
 
-                    step = 1;
-                    break;
+                step = 1;
+                break;
 
-                case 1:  // é€ä¿¡ãƒ‡ãƒ¼ã‚¿æ•°
-                    m_from_controller_data_buf.data_num = _indata;
-                    if (m_from_controller_data_buf.data_num > DATA_NUM_MAX) {
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
-                        m_error_flag = true;
-                        ret_st = -1;
-                    }
-                    else {
-                        ret_st = 0;
-                    }
-                    step = 2;
-                    break;
-
-                case 2:  // ã‚³ãƒãƒ³ãƒ‰
-                    m_from_controller_data_buf.command = _indata;
-                    // ã“ã“ã§ãƒ‡ãƒã‚¤ã‚¹æƒ…å ±ãƒªã‚¯ã‚¨ã‚¹ãƒˆãªã®ã‹ã®åˆ¤å®šã‚’è¡Œã„ã€ãƒ‡ãƒã‚¤ã‚¹IDã¨ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ‡ãƒã‚¤ã‚¹IDãŒä¸ä¸€è‡´ã‹ã¤ãƒ‡ãƒã‚¤ã‚¹æƒ…å ±ãƒªã‚¯ã‚¨ã‚¹ã¾ãŸã¯ãƒªã‚»ãƒƒãƒˆã‚³ãƒãƒ³ãƒ‰ã§ã¯ãªã‹ã£ãŸå ´åˆãƒ‘ã‚±ãƒƒãƒˆã‚’ç ´æ£„ã™ã‚‹
-                    if ((m_from_controller_data_buf.command != RESERVED_COMMAND_RESET) &&
-                        (m_from_controller_data_buf.command != RESERVED_COMMAND_GET_INFO) &&
-                        (m_from_controller_data_buf.target_device_id != m_device_id)) {
-                        m_error_flag = true;
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DEVICE_ID_MISMATCH);
-                        ret_st = -1;
-                    }
-                    else {
-                        ret_st = 0;
-                    }
-
-                    if (m_from_controller_data_buf.data_num <= 0) {  // ãƒ‡ãƒ¼ã‚¿ãŒ0å€‹ãªã‚‰ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿èª­ã¿å–ã‚Šã¸
-                        step = 4;
-                    }
-                    else {
-                        step = 3;
-                    }
-
-                    break;
-
-                case 3:  // ãƒ‡ãƒ¼ã‚¿èª­ã¿å–ã‚Š
-                    m_from_controller_data_buf.data[data_read_count] = _indata;
-                    check_data_sum += _indata;
-
-                    if (data_read_count >= (m_from_controller_data_buf.data_num - 1)) {
-                        step = 4;
-                    }
-
-                    ++data_read_count;
+            case 1:  // ‘—Mƒf[ƒ^”
+                m_from_controller_data_buf.data_num = _indata;
+                if (m_from_controller_data_buf.data_num > DATA_NUM_MAX) {
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
+                    m_error_flag = true;
+                    ret_st = -1;
+                }
+                else {
                     ret_st = 0;
-                    break;
+                }
+                step = 2;
+                break;
 
-                case 4:  // ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿1
-                    check_data_buf[0] = _indata;
-
-                    step = 5;
-
+            case 2:  // ƒRƒ}ƒ“ƒh
+                m_from_controller_data_buf.command = _indata;
+                // ‚±‚±‚ÅƒfƒoƒCƒXî•ñƒŠƒNƒGƒXƒg‚È‚Ì‚©‚Ì”»’è‚ğs‚¢AƒfƒoƒCƒXID‚Æƒ^[ƒQƒbƒgƒfƒoƒCƒXID‚ª•sˆê’v‚©‚ÂƒfƒoƒCƒXî•ñƒŠƒNƒGƒX‚Ü‚½‚ÍƒŠƒZƒbƒgƒRƒ}ƒ“ƒh‚Å‚Í‚È‚©‚Á‚½ê‡ƒpƒPƒbƒg‚ğ”jŠü‚·‚é
+                if ((m_from_controller_data_buf.command != RESERVED_COMMAND_RESET) &&
+                    (m_from_controller_data_buf.command != RESERVED_COMMAND_GET_INFO) &&
+                    (m_from_controller_data_buf.target_device_id != m_device_id)) {
+                    m_error_flag = true;
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DEVICE_ID_MISMATCH);
+                    ret_st = -1;
+                }
+                else {
                     ret_st = 0;
-                    break;
+                }
 
-                case 5:  // ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿2
-                    check_data_buf[1] = _indata;
-                    uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
-                    if (check_data_sum != check_data) {
-                        ret_st = -1;
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
-                    }
-                    else {
-                        ret_st = 1;
-                        m_read_packet = false;
+                if (m_from_controller_data_buf.data_num <= 0) {  // ƒf[ƒ^‚ª0ŒÂ‚È‚çƒ`ƒFƒbƒNƒf[ƒ^“Ç‚İæ‚è‚Ö
+                    step = 4;
+                }
+                else {
+                    step = 3;
+                }
 
-                        // èª­ã¿å–ã£ãŸãƒ‡ãƒ¼ã‚¿ã‚’æˆ»ã‚Šç”¨ãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“ã«æ ¼ç´
-                        data_buf_pt->command = m_from_controller_data_buf.command;
-                        data_buf_pt->data_num = m_from_controller_data_buf.data_num;
-                        for (int i = 0; i < DATA_NUM_MAX; ++i) {
-                            data_buf_pt->data[i] = m_from_controller_data_buf.data[i];
-                        }
+                break;
+
+            case 3:  // ƒf[ƒ^“Ç‚İæ‚è
+                m_from_controller_data_buf.data[data_read_count] = _indata;
+                check_data_sum += _indata;
+
+                if (data_read_count >= (m_from_controller_data_buf.data_num - 1)) {
+                    step = 4;
+                }
+
+                ++data_read_count;
+                ret_st = 0;
+                break;
+
+            case 4:  // ƒ`ƒFƒbƒNƒf[ƒ^1
+                check_data_buf[0] = _indata;
+
+                step = 5;
+
+                ret_st = 0;
+                break;
+
+            case 5:  // ƒ`ƒFƒbƒNƒf[ƒ^2
+                check_data_buf[1] = _indata;
+                uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
+                if (check_data_sum != check_data) {
+                    ret_st = -1;
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
+                }
+                else {
+                    ret_st = 1;
+                    m_read_packet = false;
+
+                    // “Ç‚İæ‚Á‚½ƒf[ƒ^‚ğ–ß‚è—pƒf[ƒ^\‘¢‘Ì‚ÉŠi”[
+                    data_buf_pt->command = m_from_controller_data_buf.command;
+                    data_buf_pt->data_num = m_from_controller_data_buf.data_num;
+                    for (int i = 0; i < DATA_NUM_MAX; ++i) {
+                        data_buf_pt->data[i] = m_from_controller_data_buf.data[i];
                     }
-                    break;
+                }
+                break;
             }
         }
-        else {  // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¢ãƒ¼ãƒ‰
+        else {  // ƒRƒ“ƒgƒ[ƒ‰ƒ‚[ƒh
             switch (step) {
-                case 0:  // é€ä¿¡ãƒ‡ãƒ¼ã‚¿æ•°ã®èª­ã¿å–ã‚Š
-                    m_from_device_data_buf.data_num = _indata;
-                    if (m_from_device_data_buf.data_num > DATA_NUM_MAX) {
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
-                        m_error_flag = true;
-                        ret_st = -1;
-                    }
-                    else {
-                        ret_st = 0;
-                    }
-                    step = 1;
-                    break;
-                case 1:  // ãƒ‡ãƒ¼ã‚¿èª­ã¿å–ã‚Š
-                    m_from_device_data_buf.data[data_read_count] = _indata;
-                    check_data_sum += _indata;
-
-                    if (data_read_count >= (m_from_device_data_buf.data_num - 1)) {
-                        step = 2;
-                    }
-
-                    ++data_read_count;
+            case 0:  // ‘—Mƒf[ƒ^”‚Ì“Ç‚İæ‚è
+                m_from_device_data_buf.data_num = _indata;
+                if (m_from_device_data_buf.data_num > DATA_NUM_MAX) {
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_DATA_COUNT_INFO_OVER);
+                    m_error_flag = true;
+                    ret_st = -1;
+                }
+                else {
                     ret_st = 0;
-                    break;
+                }
+                step = 1;
+                break;
+            case 1:  // ƒf[ƒ^“Ç‚İæ‚è
+                m_from_device_data_buf.data[data_read_count] = _indata;
+                check_data_sum += _indata;
 
-                case 2:  // ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿1
-                    check_data_buf[0] = _indata;
+                if (data_read_count >= (m_from_device_data_buf.data_num - 1)) {
+                    step = 2;
+                }
 
-                    step = 3;
+                ++data_read_count;
+                ret_st = 0;
+                break;
 
-                    ret_st = 0;
-                    break;
+            case 2:  // ƒ`ƒFƒbƒNƒf[ƒ^1
+                check_data_buf[0] = _indata;
 
-                case 3:  // ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿2
-                    check_data_buf[1] = _indata;
-                    uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
-                    if (check_data_sum != check_data) {
-                        ret_st = -1;
-                        m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
+                step = 3;
+
+                ret_st = 0;
+                break;
+
+            case 3:  // ƒ`ƒFƒbƒNƒf[ƒ^2
+                check_data_buf[1] = _indata;
+                uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
+                if (check_data_sum != check_data) {
+                    ret_st = -1;
+                    m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
+                }
+                else {
+                    ret_st = 1;
+                    m_read_packet = false;
+
+                    // “Ç‚İæ‚Á‚½ƒf[ƒ^‚ğ–ß‚è—pƒf[ƒ^\‘¢‘Ì‚ÉŠi”[
+                    data_buf_pt->command = 0x00;
+                    data_buf_pt->data_num = m_from_device_data_buf.data_num;
+                    for (int i = 0; i < DATA_NUM_MAX; ++i) {
+                        data_buf_pt->data[i] = m_from_device_data_buf.data[i];
                     }
-                    else {
-                        ret_st = 1;
-                        m_read_packet = false;
-
-                        // èª­ã¿å–ã£ãŸãƒ‡ãƒ¼ã‚¿ã‚’æˆ»ã‚Šç”¨ãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“ã«æ ¼ç´
-                        data_buf_pt->command = 0x00;
-                        data_buf_pt->data_num = m_from_device_data_buf.data_num;
-                        for (int i = 0; i < DATA_NUM_MAX; ++i) {
-                            data_buf_pt->data[i] = m_from_device_data_buf.data[i];
-                        }
-                    }
-                    break;
+                }
+                break;
             }
         }
     }
@@ -294,31 +294,31 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
     return ret_st;
 }
 
-int ASerialPacket::MakePacketData(uint8_t *to_device_data, int data_num, uint8_t command, uint8_t *data_packet_out)
+int ASerialPacket::MakePacketData(uint8_t* to_device_data, int data_num, uint8_t command, uint8_t* data_packet_out)
 {
-    if (GetMode() != MODE_CONTROLLER) {  // ãƒ‡ãƒã‚¤ã‚¹ãƒ¢ãƒ¼ãƒ‰æ™‚ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ã®ãƒ‘ã‚±ãƒƒãƒˆã‚’ä½œæˆã‚’åˆ¶é™
+    if (GetMode() != MODE_CONTROLLER) {  // ƒfƒoƒCƒXƒ‚[ƒh‚ÉƒRƒ“ƒgƒ[ƒ‰‚ÌƒpƒPƒbƒg‚ğì¬‚ğ§ŒÀ
         return -1;
     }
 
     if (GetConnectionState() == false && command != RESERVED_COMMAND_GET_INFO &&
         command !=
-            RESERVED_COMMAND_RESET) {  // æ¥ç¶šçŠ¶æ…‹ãŒfalseã‹ã¤ã‚³ãƒãƒ³ãƒ‰ãŒãƒªã‚»ãƒƒãƒˆã‚„ãƒ‡ãƒã‚¤ã‚¹æƒ…å ±ãƒªã‚¯ã‚¨ã‚¹ãƒˆã§ãªã„å ´åˆã¯ã‚¨ãƒ©ãƒ¼
+        RESERVED_COMMAND_RESET) {  // Ú‘±ó‘Ô‚ªfalse‚©‚ÂƒRƒ}ƒ“ƒh‚ªƒŠƒZƒbƒg‚âƒfƒoƒCƒXî•ñƒŠƒNƒGƒXƒg‚Å‚È‚¢ê‡‚ÍƒGƒ‰[
         return -1;
     }
 
-    if (data_packet_out == nullptr) {  // ãƒãƒƒãƒ•ã‚¡ãŒnullptrã ã£ãŸã‚‰ã‚¨ãƒ©ãƒ¼
+    if (data_packet_out == nullptr) {  // ƒoƒbƒtƒ@‚ªnullptr‚¾‚Á‚½‚çƒGƒ‰[
         return -1;
     }
 
     int index = 0;
 
-    data_packet_out[index] = DO_FLAG;  // ã‚¹ã‚¿ãƒ¼ãƒˆãƒ•ãƒ©ã‚°
+    data_packet_out[index] = DO_FLAG;  // ƒXƒ^[ƒgƒtƒ‰ƒO
     ++index;
-    CheckDataNeedAddFlag(m_target_device_id, data_packet_out, &index);  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ‡ãƒã‚¤ã‚¹ID
+    CheckDataNeedAddFlag(m_target_device_id, data_packet_out, &index);  // ƒ^[ƒQƒbƒgƒfƒoƒCƒXID
     ++index;
-    CheckDataNeedAddFlag((uint8_t)data_num, data_packet_out, &index);  // ãƒ‡ãƒ¼ã‚¿æ•°
+    CheckDataNeedAddFlag((uint8_t)data_num, data_packet_out, &index);  // ƒf[ƒ^”
     ++index;
-    CheckDataNeedAddFlag(command, data_packet_out, &index);  // ã‚³ãƒãƒ³ãƒ‰
+    CheckDataNeedAddFlag(command, data_packet_out, &index);  // ƒRƒ}ƒ“ƒh
     ++index;
 
     uint16_t check_sum = 0;
@@ -329,10 +329,10 @@ int ASerialPacket::MakePacketData(uint8_t *to_device_data, int data_num, uint8_t
         ++index;
     }
 
-    int8_t check_data[2] = {0};  // ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿åˆ†å‰²ç”¨([1]ä¸Šä½ãƒã‚¤ãƒˆ [2]ä¸‹ä½ãƒã‚¤ãƒˆ)
+    int8_t check_data[2] = { 0 };  // ƒ`ƒFƒbƒNƒf[ƒ^•ªŠ„—p([1]ãˆÊƒoƒCƒg [2]‰ºˆÊƒoƒCƒg)
 
-    check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // ä¸Šä½ãƒã‚¤ãƒˆæŠ½å‡º
-    check_data[1] = (uint8_t)(check_sum & 0x00FF);         // ä¸‹ä½ãƒã‚¤ãƒˆæŠ½å‡º
+    check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // ãˆÊƒoƒCƒg’Šo
+    check_data[1] = (uint8_t)(check_sum & 0x00FF);         // ‰ºˆÊƒoƒCƒg’Šo
 
     CheckDataNeedAddFlag(check_data[1], data_packet_out, &index);
     ++index;
@@ -341,31 +341,31 @@ int ASerialPacket::MakePacketData(uint8_t *to_device_data, int data_num, uint8_t
     return 0;
 }
 
-int ASerialPacket::MakePacketData(uint8_t command, uint8_t *data_packet_out)
+int ASerialPacket::MakePacketData(uint8_t command, uint8_t* data_packet_out)
 {
-    if (GetMode() != MODE_CONTROLLER) {  // ãƒ‡ãƒã‚¤ã‚¹ãƒ¢ãƒ¼ãƒ‰æ™‚ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ã®ãƒ‘ã‚±ãƒƒãƒˆã‚’ä½œæˆã‚’åˆ¶é™
+    if (GetMode() != MODE_CONTROLLER) {  // ƒfƒoƒCƒXƒ‚[ƒh‚ÉƒRƒ“ƒgƒ[ƒ‰‚ÌƒpƒPƒbƒg‚ğì¬‚ğ§ŒÀ
         return -1;
     }
 
     if (GetConnectionState() == false && command != RESERVED_COMMAND_GET_INFO &&
         command !=
-            RESERVED_COMMAND_RESET) {  // æ¥ç¶šçŠ¶æ…‹ãŒfalseã‹ã¤ã‚³ãƒãƒ³ãƒ‰ãŒãƒªã‚»ãƒƒãƒˆã‚„ãƒ‡ãƒã‚¤ã‚¹æƒ…å ±ãƒªã‚¯ã‚¨ã‚¹ãƒˆã§ãªã„å ´åˆã¯ã‚¨ãƒ©ãƒ¼
+        RESERVED_COMMAND_RESET) {  // Ú‘±ó‘Ô‚ªfalse‚©‚ÂƒRƒ}ƒ“ƒh‚ªƒŠƒZƒbƒg‚âƒfƒoƒCƒXî•ñƒŠƒNƒGƒXƒg‚Å‚È‚¢ê‡‚ÍƒGƒ‰[
         return -1;
     }
 
-    if (data_packet_out == nullptr) {  // ãƒãƒƒãƒ•ã‚¡ãŒnullptrã ã£ãŸã‚‰ã‚¨ãƒ©ãƒ¼
+    if (data_packet_out == nullptr) {  // ƒoƒbƒtƒ@‚ªnullptr‚¾‚Á‚½‚çƒGƒ‰[
         return -1;
     }
 
     int index = 0;
 
-    data_packet_out[index] = DO_FLAG;  // ã‚¹ã‚¿ãƒ¼ãƒˆãƒ•ãƒ©ã‚°
+    data_packet_out[index] = DO_FLAG;  // ƒXƒ^[ƒgƒtƒ‰ƒO
     ++index;
-    CheckDataNeedAddFlag(m_target_device_id, data_packet_out, &index);  // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ‡ãƒã‚¤ã‚¹ID
+    CheckDataNeedAddFlag(m_target_device_id, data_packet_out, &index);  // ƒ^[ƒQƒbƒgƒfƒoƒCƒXID
     ++index;
-    data_packet_out[index] = 0x00;  // ãƒ‡ãƒ¼ã‚¿æ•°
+    data_packet_out[index] = 0x00;  // ƒf[ƒ^”
     ++index;
-    CheckDataNeedAddFlag(command, data_packet_out, &index);  // ã‚³ãƒãƒ³ãƒ‰
+    CheckDataNeedAddFlag(command, data_packet_out, &index);  // ƒRƒ}ƒ“ƒh
     ++index;
     data_packet_out[index] = 0x00;
     ++index;
@@ -374,21 +374,21 @@ int ASerialPacket::MakePacketData(uint8_t command, uint8_t *data_packet_out)
     return 0;
 }
 
-int ASerialPacket::MakePacketData(uint8_t *to_controller_data, int data_num, uint8_t *data_packet_out)
+int ASerialPacket::MakePacketData(uint8_t* to_controller_data, int data_num, uint8_t* data_packet_out)
 {
-    if (GetMode() != MODE_DEVICE) {  // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¢ãƒ¼ãƒ‰æ™‚ã«ãƒ‡ãƒã‚¤ã‚¹ã®ãƒ‘ã‚±ãƒƒãƒˆã‚’ä½œæˆã‚’åˆ¶é™
+    if (GetMode() != MODE_DEVICE) {  // ƒRƒ“ƒgƒ[ƒ‰ƒ‚[ƒh‚ÉƒfƒoƒCƒX‚ÌƒpƒPƒbƒg‚ğì¬‚ğ§ŒÀ
         return -1;
     }
 
-    if (data_packet_out == nullptr) {  // ãƒãƒƒãƒ•ã‚¡ãŒnullptrã ã£ãŸã‚‰ã‚¨ãƒ©ãƒ¼
+    if (data_packet_out == nullptr) {  // ƒoƒbƒtƒ@‚ªnullptr‚¾‚Á‚½‚çƒGƒ‰[
         return -1;
     }
 
     int index = 0;
 
-    data_packet_out[index] = DO_FLAG;  // ã‚¹ã‚¿ãƒ¼ãƒˆãƒ•ãƒ©ã‚°
+    data_packet_out[index] = DO_FLAG;  // ƒXƒ^[ƒgƒtƒ‰ƒO
     ++index;
-    CheckDataNeedAddFlag(data_num, data_packet_out, &index);  // ãƒ‡ãƒ¼ã‚¿æ•°
+    CheckDataNeedAddFlag(data_num, data_packet_out, &index);  // ƒf[ƒ^”
     ++index;
 
     uint16_t check_sum = 0;
@@ -400,10 +400,10 @@ int ASerialPacket::MakePacketData(uint8_t *to_controller_data, int data_num, uin
         // Serial.println(st);
     }
 
-    int8_t check_data[2] = {0};  // ãƒã‚§ãƒƒã‚¯ãƒ‡ãƒ¼ã‚¿åˆ†å‰²ç”¨([1]ä¸Šä½ãƒã‚¤ãƒˆ [2]ä¸‹ä½ãƒã‚¤ãƒˆ)
+    int8_t check_data[2] = { 0 };  // ƒ`ƒFƒbƒNƒf[ƒ^•ªŠ„—p([1]ãˆÊƒoƒCƒg [2]‰ºˆÊƒoƒCƒg)
 
-    check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // ä¸Šä½ãƒã‚¤ãƒˆæŠ½å‡º
-    check_data[1] = (uint8_t)(check_sum & 0x00FF);         // ä¸‹ä½ãƒã‚¤ãƒˆæŠ½å‡º
+    check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // ãˆÊƒoƒCƒg’Šo
+    check_data[1] = (uint8_t)(check_sum & 0x00FF);         // ‰ºˆÊƒoƒCƒg’Šo
 
     CheckDataNeedAddFlag(check_data[1], data_packet_out, &index);
     ++index;
@@ -423,7 +423,7 @@ void ASerialPacket::ResetFlags(void)
 
 void ASerialPacket::ResetDataArray(void)
 {
-    uint8_t *array = nullptr;
+    uint8_t* array = nullptr;
 
     if (GetMode() == MODE_DEVICE) {
         array = m_from_device_data_buf.data;
@@ -440,7 +440,7 @@ void ASerialPacket::ResetDataArray(void)
     return;
 }
 
-int ASerialPacket::CheckDataNeedAddFlag(uint8_t data, uint8_t *data_array, int *_index)
+int ASerialPacket::CheckDataNeedAddFlag(uint8_t data, uint8_t* data_array, int* _index)
 {
     if (data_array == nullptr) {
         return -1;

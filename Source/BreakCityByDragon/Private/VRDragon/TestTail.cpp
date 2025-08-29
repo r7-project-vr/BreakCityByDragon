@@ -4,14 +4,14 @@
 #include "VRDragon/TestTail.h"
 
 // Sets default values
-ATestTail::ATestTail():
+ATestTail::ATestTail() :
 	Radians(0),
 	cnt(0)
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	TestObj= CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TestTail"));
+	TestObj = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TestTail"));
 
 	UStaticMesh* Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
 	TestObj->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
@@ -27,13 +27,13 @@ ATestTail::ATestTail():
 	else {
 		TestObj->SetMaterial(0, Material);
 	}
-	
+
 
 	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = root;
 	TestObj->SetupAttachment(RootComponent);
 
-	for (ATailActor* tails:tail) {
+	for (ATailActor* tails : tail) {
 		tails = nullptr;
 	}
 
@@ -66,7 +66,7 @@ void ATestTail::BeginPlay()
 			tail[0]->SetParentTail(this);
 		}
 
-		for (int i = 1;i < 6;i++) {
+		for (int i = 1; i < 6; i++) {
 
 			// ÇµÇ¡Ç€ÇÃà íu
 			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * (i + 1);
@@ -74,7 +74,7 @@ void ATestTail::BeginPlay()
 			tail[i]->SetParentTail(tail[i - 1]);
 		}
 	}
-	
+
 }
 
 // Called every frame
@@ -153,11 +153,11 @@ void ATestTail::moveVec() {
 			Radians++;
 		}
 	}
-	
+
 	// âÒì]èàóù
 	{
 		FRotator NewRoTation = GetActorRotation();
-		
+
 		NewRoTation.Yaw += 90.f / 30;
 
 		SetActorRotation(NewRoTation);
