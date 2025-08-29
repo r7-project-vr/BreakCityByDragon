@@ -21,7 +21,7 @@ void ATestGameModeBase::Tick(float DeltaTime) {
 
 	if (GameTimeCnt >= MaxGameTime) {
 
-		UE_LOG(LogTemp, Display, TEXT("GameTimeCnt‚ª‹K’è’l‚É‚È‚è‚Ü‚µ‚½"));
+		//UE_LOG(LogTemp, Display, TEXT("GameTimeCnt‚ª‹K’è’l‚É‚È‚è‚Ü‚µ‚½"));
 
 		ToResultGame();
 	}

@@ -2,6 +2,7 @@
 
 
 #include "UI/DamageText.h"
+#include "Widgets/SWidget.h"
 
 int32 UDamageText::NativePaint(
 	const FPaintArgs& Args,
@@ -12,66 +13,36 @@ int32 UDamageText::NativePaint(
 	const FWidgetStyle& InWidgetStyle,
 	bool bParentEnabled) const
 {
-	UE_LOG(LogTemp, Warning, TEXT("Widget Size: %s"), *AllottedGeometry.GetLocalSize().ToString());
+		const ESlateDrawEffect DrawEffects = bParentEnabled
+		? ESlateDrawEffect::None
+		: ESlateDrawEffect::DisabledEffect;
 
-	// 矩形描画
-	//{
-	//	LayerId++;
-	//	FVector2D Position = AllottedGeometry.GetLocalSize() * 0.5f;
-	//	FVector2D Offset = FVector2D(0.0f, -50.0f * (1.0f - CurrentAlpha));
-	//	FVector2D DrawPos = Position + Offset;
-	//	FVector2D Size = Brush.GetImageSize() * 10;
-	//	FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(DrawPos, Size), &Brush);
+	// 描画ジオメトリ（位置 + サイズ）
+	const FPaintGeometry PaintGeometry = AllottedGeometry.ToPaintGeometry();
 
-	//	return FMath::Max(LayerId, LayerId);
-	//}
+	// 表示するテキスト
+	const FString TextString = FString::Printf(TEXT("%d"), DamageValue);
+	const FText DamageText = FText::FromString(TextString);
 
-	UE_LOG(LogTemp, Warning, TEXT("Painting Test Text"));
+	// フォント情報の設定（ここでは CoreStyle のデフォルトフォントを使う）
+	const FSlateFontInfo _FontInfo = FCoreStyle::Get().GetFontStyle("Regular");
 
+	// テキスト色
+	const FLinearColor TextColor = FLinearColor::White;
+
+	// テキスト描画命令を追加
 	FSlateDrawElement::MakeText(
 		OutDrawElements,
-		LayerId,
-		AllottedGeometry.ToPaintGeometry(FVector2D(0, 0), FVector2D::ZeroVector),
-		FText::FromString(TEXT("HELLO")),
-		FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Regular.ttf"), 32),
-		ESlateDrawEffect::None,
-		FLinearColor::Yellow
+		LayerId,                   // 現在のレイヤー
+		PaintGeometry,
+		DamageText,
+		_FontInfo,
+		DrawEffects,
+		TextColor
 	);
 
-	UE_LOG(LogTemp, Warning, TEXT("Size: %s"), *AllottedGeometry.GetLocalSize().ToString());
-	UE_LOG(LogTemp, Warning, TEXT("NativePaint called!"));
+	// 他の描画処理を行う場合は LayerId をインクリメントして返す
 	return LayerId + 1;
-
-	//// 文字の処理
-	//{
-	//	const ESlateDrawEffect DrawEffects = bParentEnabled
-	//		? ESlateDrawEffect::None
-	//		: ESlateDrawEffect::DisabledEffect;
-
-	//	// 描画位置の調整（中央に表示）
-	//	FVector2D WidgetSize = AllottedGeometry.GetLocalSize();
-	//	FVector2D TextPosition = FVector2D(0.0f, 0.0f); // デバッグ用
-
-	//	// 色と透明度の調整
-	//	FLinearColor Tint = InWidgetStyle.GetColorAndOpacityTint();
-	//	Tint.A *= CurrentAlpha;
-
-	//	FString TextString = FString::Printf(TEXT("%d"), DamageValue);
-	//	FText DamageText = FText::FromString(TextString);
-
-	//	// 実際のテキスト描画
-	//	FSlateDrawElement::MakeText(
-	//		OutDrawElements,
-	//		LayerId,
-	//		AllottedGeometry.ToPaintGeometry(TextPosition, FVector2D::ZeroVector),
-	//		DamageText,
-	//		FontInfo,
-	//		DrawEffects,
-	//		Tint
-	//	);
-
-	//	return LayerId + 1;
-	//}
 }
 
 void UDamageText::NativeTick(const FGeometry& MyGeometry, float InDeltaTime) {
@@ -79,7 +50,7 @@ void UDamageText::NativeTick(const FGeometry& MyGeometry, float InDeltaTime) {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
 	// 透明度を減らす（1秒で消える）
-	//CurrentAlpha -= InDeltaTime;
+	CurrentAlpha -= InDeltaTime;
 	CurrentAlpha = FMath::Clamp(CurrentAlpha, 0.0f, 1.0f);
 
 	UE_LOG(LogTemp, Warning, TEXT("GoText"));
@@ -87,5 +58,6 @@ void UDamageText::NativeTick(const FGeometry& MyGeometry, float InDeltaTime) {
 	if (CurrentAlpha <= 0.0f)
 	{
 		RemoveFromParent();
+		UE_LOG(LogTemp, Warning, TEXT("Delete Text"));
 	}
 }

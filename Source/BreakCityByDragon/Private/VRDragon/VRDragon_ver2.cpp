@@ -338,10 +338,12 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 		{
 			FRotator look = GetControlRotation();
 			look = Camera->GetComponentToWorld().GetRotation().Rotator();
-			FVector pos = GetActorLocation() + GetActorForwardVector() * 100;
+			FVector pos = GetActorLocation() + GetActorForwardVector() * 160;
 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			//AFireBall_ver2* s = GetWorld()->SpawnActor<AFireBall_ver2>(AFireBall_ver2::StaticClass(), pos, look); // スポーン処理 
 
 			GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
 
