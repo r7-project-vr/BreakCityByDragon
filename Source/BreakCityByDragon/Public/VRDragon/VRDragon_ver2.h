@@ -11,6 +11,7 @@
 #include "InputActionValue.h"
 #include "VRDragon/TailActor.h"
 #include "ITailInformaition.h"
+#include "UI/DamageText.h"
 #include "VRDragon_ver2.generated.h"
 
 class UStaticMeshComponent;
@@ -143,4 +144,10 @@ private:
 
 	UStaticMeshComponent* LFootMesh; // ç∂ãr
 	UStaticMeshComponent* RFootMesh; // âEãr
+
+public :
+
+		// UI
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+		TSubclassOf<class UDamageText> DamageTextClass;
 };
