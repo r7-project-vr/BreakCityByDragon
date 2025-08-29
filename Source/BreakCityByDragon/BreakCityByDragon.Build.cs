@@ -4,6 +4,10 @@ using UnrealBuildTool;
 
 public class BreakCityByDragon : ModuleRules
 {
+    public BreakCityByDragon(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
             "CoreUObject",
@@ -15,7 +19,8 @@ public class BreakCityByDragon : ModuleRules
             "HeadMountedDisplay",
             "AugmentedReality",
             "XRBase",
-            "GeometryCollectionEngine"
+            "GeometryCollectionEngine",
+            "Chaos"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {

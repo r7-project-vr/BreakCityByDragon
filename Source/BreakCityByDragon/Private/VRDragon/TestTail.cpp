@@ -66,7 +66,7 @@ void ATestTail::BeginPlay()
 			tail[0]->SetParentTail(this);
 		}
 
-		for (int i = 1;i < 6;i++) {
+		for (int i = 1; i < 6; i++) {
 
 			// ‚µ‚Á‚Û‚ÌˆÊ’u
 			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * (i + 1);
