@@ -34,7 +34,7 @@ int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
         return -1;
     }
 
-    m_inteface->clear(); //謗･邯壹＠縺溘→縺阪↓繝舌ャ繝輔ぃ繧偵け繝ｪ繧｢
+    m_inteface->clear(); //接続したときにバッファをクリア
 
     st = WriteData(RESERVED_COMMAND_GET_INFO);
 
@@ -147,10 +147,10 @@ int ASerial_lib_Controller_Win::ReadData(ASerialDataStruct::ASerialData* read_da
         }
     }
 
-    if (error_flag == true) {    //隱ｭ縺ｿ蜿悶ｊ繧ｨ繝ｩ繝ｼ
+    if (error_flag == true) {    //読み取りエラー
         return -1;
     }
-    else if (time_out_flag == true) { //繧ｿ繧､繝繧｢繧ｦ繝医お繝ｩ繝ｼ
+    else if (time_out_flag == true) { //タイムアウトエラー
         return -2;
     }
 

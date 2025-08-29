@@ -1,4 +1,4 @@
-ï»¿#include "FireBall/FireBall_ver2.h"
+#include "FireBall/FireBall_ver2.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -10,23 +10,23 @@ AFireBall_ver2::AFireBall_ver2()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // 1. ç«çƒæ¨¡å‹ç»„ä»¶
+    // 1. ‰Î‹…–ÍŒ^?Œ
     FireBall = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
     RootComponent = FireBall;
 
-    // 2. ç¢°æ’ç»„ä»¶
+    // 2. ?“³?Œ
     SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
     SphereComponent->SetupAttachment(RootComponent);
     SphereComponent->SetCollisionProfileName(TEXT("OverlapAll"));
     SphereComponent->SetSphereRadius(30.0f);
 
-    // 3. åŠ¨æ€æè´¨å®ä¾‹ï¼ˆåœ¨ BeginPlay æ—¶åˆ›å»ºï¼Œç¡®ä¿ BaseMaterialAsset å·²èµ‹å€¼ï¼‰
+    // 3. ??Ş??—áiİ BeginPlay ??ŒšC?•Û BaseMaterialAsset ›ß??j
 
-    // 4. æ‹–å°¾ç»„ä»¶
+    // 4. ?”ö?Œ
     TrailComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailComponent"));
     TrailComponent->SetupAttachment(RootComponent);
 
-    // 5. ç»‘å®šç¢°æ’äº‹ä»¶
+    // 5. ?’è?“³–Œ
     SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireBall_ver2::OnHit);
 }
 
@@ -34,7 +34,7 @@ void AFireBall_ver2::BeginPlay()
 {
     Super::BeginPlay();
 
-    // åˆ›å»ºå¹¶åº”ç”¨åŠ¨æ€æè´¨å®ä¾‹
+    // ?Œš›ó?—p??Ş??—á
     if (BaseMaterialAsset && FireBall)
     {
         UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMaterialAsset, this);
@@ -45,7 +45,7 @@ void AFireBall_ver2::BeginPlay()
         }
     }
 
-    // æ¿€æ´»æ‹–å°¾ç‰¹æ•ˆ
+    // ŒƒŠˆ?”ö“ÁÁ
     if (TrailEffectAsset && TrailComponent)
     {
         TrailComponent->SetAsset(TrailEffectAsset);
@@ -75,8 +75,8 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     PrimaryActorTick.bCanEverTick = false;
     SetLifeSpan(2.0f);
-    // TODO: æ·»åŠ ä¼¤å®³å’ŒéŸ³æ•ˆé€»è¾‘*/
+    // TODO: “Y‰Á?ŠQ˜a‰¹Á??*/
 
     UKismetSystemLibrary::PrintString(GEngine->GetWorld(), OtherActor->GetName());
-    this-> Destroy();
+    this->Destroy();
 }
