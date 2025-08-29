@@ -153,6 +153,15 @@ AVRDragon_ver2::AVRDragon_ver2() :
 			BlueprintFireBall = BPClass.Class;
 		}
 	}
+
+	// UI
+	{
+		static ConstructorHelpers::FClassFinder<UDamageText> WidgetClass(TEXT("/Game/WBP_TEstDamageTExt"));
+		if (WidgetClass.Succeeded())
+		{
+			DamageTextClass = WidgetClass.Class;
+		}
+	}
 }
 
 // Called when the game starts or when spawned
@@ -311,14 +320,30 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
+		if (DamageTextClass)
+		{
+			UDamageText* DamageText = CreateWidget<UDamageText>(GetWorld(), DamageTextClass);
+			if (DamageText)
+			{
+				DamageText->AddToViewport();
+				DamageText->SetDesiredSizeInViewport(FVector2D(200.f, 100.f));
+
+				/*FVector2D ScreenPosition = FVector2D(960.0f, 540.0f);
+				DamageText->SetPositionInViewport(ScreenPosition, true);*/
+			}
+		}
+
+
 		if (FireChargeCnt >= 2.f)
 		{
 			FRotator look = GetControlRotation();
 			look = Camera->GetComponentToWorld().GetRotation().Rotator();
-			FVector pos = GetActorLocation() + GetActorForwardVector() * 100;
+			FVector pos = GetActorLocation() + GetActorForwardVector() * 160;
 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			//AFireBall_ver2* s = GetWorld()->SpawnActor<AFireBall_ver2>(AFireBall_ver2::StaticClass(), pos, look); // スポーン処理 
 
 			GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
 
