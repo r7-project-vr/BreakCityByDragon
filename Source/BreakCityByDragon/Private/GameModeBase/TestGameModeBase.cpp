@@ -29,5 +29,5 @@ void ATestGameModeBase::Tick(float DeltaTime) {
 
 void ATestGameModeBase::ToResultGame() {
 
-
+	//UGameplayStatics::OpenLevel(GetWorld(), FName("LevelName"));
 }

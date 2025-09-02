@@ -1,6 +1,8 @@
-#include "ASerial/WindowsSerial.h"
+// Fill out your copyright notice in the Description page of Project Settings.
 
-// public
+
+#include "WindowsSerial/WindowsSerial.h"
+
 WindowsSerial::WindowsSerial(int baudrate) { m_baudrate = baudrate; }
 
 int WindowsSerial::OpenPort(int com_num,
