@@ -1,37 +1,51 @@
-#include "ASerial/ASerial_lib_Controller_Win.h"
-#include "ASerial/WindowsSerial.h"
-#include "ASerial/ASerial_ErrorCodeList.h"
-
-#include <stdio.h>
-#include <stdint.h>
-#include <time.h>
-#include <string>
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
+#include "ASerialLibControllerWin.h"
 
-ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int device_ver)
-    : ASerialPacket(target_device_id)
+UASerialLibControllerWin::UASerialLibControllerWin()
 {
+}
+
+// 2025.08.06 ウー start
+//UASerialLibControllerWin::UASerialLibControllerWin(int target_device_id, int device_ver)
+//    : UASerialPacket(target_device_id)
+//{
+//    m_device_ver_max = device_ver;
+//    m_device_ver_min = device_ver;
+//}
+//
+//UASerialLibControllerWin::UASerialLibControllerWin(int target_device_id, int device_ver_min, int device_ver_max)
+//    : UASerialPacket(target_device_id)
+//{
+//    m_device_ver_max = device_ver_max;
+//    m_device_ver_min = device_ver_min;
+//}
+// 2025.08.06 end
+
+void UASerialLibControllerWin::Initialize(int target_device_id, int device_ver)
+{
+    Super::Initialize(target_device_id);
     m_device_ver_max = device_ver;
     m_device_ver_min = device_ver;
 }
 
-ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int device_ver_min, int device_ver_max)
-    : ASerialPacket(target_device_id)
+void UASerialLibControllerWin::Initialize(int target_device_id, int device_ver_min, int device_ver_max)
 {
+    Super::Initialize(target_device_id);
     m_device_ver_max = device_ver_max;
     m_device_ver_min = device_ver_min;
 }
 
-int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
+ConnectResult UASerialLibControllerWin::ConnectDevice(int COM_num)
 {
     if (GetConnectionState() == true) {
-        return -1;
+        return ConnectResult::Fail;
     }
 
     int st = m_inteface->OpenPort(COM_num);
     if (st != 0) {
-        return -1;
+        return ConnectResult::Fail;
     }
 
     m_inteface->clear(); //接続したときにバッファをクリア
@@ -53,52 +67,58 @@ int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
     if (clock() - read_time >= 50 || st == -1 || data_buf.data[0] != GetID() ||
         (data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)) {
         m_inteface->ClosePort();
-        return -1;
+
+        return ConnectResult::Fail;
     }
 
     SetConnectionState(true);
+    m_com = COM_num;
 
-    return 0;
+    return ConnectResult::Succ;
 }
 
-int ASerial_lib_Controller_Win::AutoConnectDevice(void) {
+ConnectResult UASerialLibControllerWin::AutoConnectDevice() {
+
     if (GetConnectionState() == true) {
-        return -1;
+        return ConnectResult::Fail;
     }
 
-    int ret = 0;
+    ConnectResult ret = ConnectResult::Fail;
 
     for (int i = 1; i <= 255; ++i) {
         int st = ConnectDevice(i);
-
         if (st == 0) {
-            ret = i;
+
+            m_com = i;
+            ret = ConnectResult::Succ;
             break;
         }
-    }
-
-    if (ret == 0) {
-        return -1;
     }
 
     return ret;
 }
 
-int ASerial_lib_Controller_Win::DisConnectDevice(void) {
+ConnectResult UASerialLibControllerWin::DisConnectDevice() {
     if (m_inteface->GetState() == false) {
-        return -1;
+        return ConnectResult::Fail;
     }
 
     int st = m_inteface->ClosePort();
 
     SetConnectionState(false);
 
-    return st;
+    // 2025.08.06 ウー start
+    //return st;
+    if (st == 0)
+        return ConnectResult::Succ;
+    else
+        return ConnectResult::Fail;
+    // 2025.08.06 end
 }
 
-void ASerial_lib_Controller_Win::SetInterfacePt(WindowsSerial* interface_pt) { m_inteface = interface_pt; }
+void UASerialLibControllerWin::SetInterfacePt(WindowsSerial* interface_pt) { m_inteface = interface_pt; }
 
-int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* read_data_buf)
+int UASerialLibControllerWin::ReadDataProcess(ASerialDataStruct::ASerialData* read_data_buf)
 {
     if (m_inteface->GetState() == false) {
         return -1;
@@ -106,10 +126,8 @@ int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* 
 
     int st = 0;
     if (m_inteface->available() > 0) {
-        int read_c = m_inteface->read();
-        if (read_c != -1) {
-            st = ReadPacketData(read_c, read_data_buf);
-        }
+        uint8_t read_c = (uint8_t)m_inteface->read();
+        st = this->ReadPacketData(read_c, read_data_buf);
     }
 
     if (st == -1) {
@@ -119,7 +137,7 @@ int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* 
     return st;
 }
 
-int ASerial_lib_Controller_Win::ReadData(ASerialDataStruct::ASerialData* read_data_buf) {
+int UASerialLibControllerWin::ReadData(ASerialDataStruct::ASerialData* read_data_buf) {
     if (m_inteface->GetState() == false) {
         return -1;
     }
@@ -157,9 +175,9 @@ int ASerial_lib_Controller_Win::ReadData(ASerialDataStruct::ASerialData* read_da
     return 0;
 }
 
-int ASerial_lib_Controller_Win::WriteData(uint8_t command, uint8_t* data, uint8_t data_num)
+int UASerialLibControllerWin::WriteData(uint8_t command, uint8_t* data, uint8_t data_num)
 {
-    int BUF_SIZE = GetNeedPacketBufSize(data, data_num);
+    int BUF_SIZE = this->GetNeedPacketBufSize(command, data, data_num);
 
     uint8_t* packet_buf = new uint8_t[BUF_SIZE];
 
@@ -181,11 +199,11 @@ int ASerial_lib_Controller_Win::WriteData(uint8_t command, uint8_t* data, uint8_
     return 0;
 }
 
-int ASerial_lib_Controller_Win::WriteData(uint8_t command)
+int UASerialLibControllerWin::WriteData(uint8_t command)
 {
-    const int BUF_SIZE = 6;
+    const int BUF_SIZE = this->GetNeedPacketBufSize(command);
 
-    uint8_t packet_buf[BUF_SIZE] = { 0 };
+    uint8_t* packet_buf = new uint8_t[BUF_SIZE];
 
     int st = MakePacketData(command, packet_buf);
 
@@ -194,6 +212,8 @@ int ASerial_lib_Controller_Win::WriteData(uint8_t command)
     }
 
     int write_size = m_inteface->write(packet_buf, BUF_SIZE);
+
+    delete[] packet_buf;
 
     if (write_size != BUF_SIZE) {
         return -1;
