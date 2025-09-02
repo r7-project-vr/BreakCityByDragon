@@ -1,35 +1,41 @@
-// MIT License
-// Copyright(c) 2025 NextAmusement
-// See LICENSE file in the root directory.
+// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ASerial/ASerial_packet.h"
 
-#include "ASerial/ASerial_ErrorCodeList.h"
-#ifdef ARDUINO  // ArduinoIDE環境
-#include <Arduino.h>
+#include "ASerialCore/ASerialPacket.h"
 
-#endif  // ARDUINO
+UASerialPacket::UASerialPacket()
+{
+}
 
-#include <stdint.h>
+//UASerialPacket::UASerialPacket(uint8_t _device_id, uint8_t _device_ver)
+//{
+//    m_device_id = _device_id;
+//    m_device_ver = _device_ver;
+//    m_mode = MODE_DEVICE;
+//}
+//
+//UASerialPacket::UASerialPacket(uint8_t _target_device_id)
+//{
+//    m_target_device_id = _target_device_id;
+//    m_mode = MODE_CONTROLLER;
+//}
 
-//===public===
-
-ASerialPacket::ASerialPacket(uint8_t _device_id, uint8_t _device_ver)
+void UASerialPacket::Initialize(uint8_t _device_id, uint8_t _device_ver)
 {
     m_device_id = _device_id;
     m_device_ver = _device_ver;
     m_mode = MODE_DEVICE;
 }
 
-ASerialPacket::ASerialPacket(uint8_t _target_device_id)
+void UASerialPacket::Initialize(uint8_t _target_device_id)
 {
     m_target_device_id = _target_device_id;
     m_mode = MODE_CONTROLLER;
 }
 
-int ASerialPacket::GetMode(void) { return m_mode; }
+int UASerialPacket::GetMode(void) { return m_mode; }
 
-uint8_t ASerialPacket::GetID(void)
+uint8_t UASerialPacket::GetID(void)
 {
     uint8_t ret = 0;
     if (GetMode() == MODE_DEVICE) {
@@ -42,7 +48,7 @@ uint8_t ASerialPacket::GetID(void)
     return ret;
 }
 
-uint8_t ASerialPacket::GetVer(void)
+uint8_t UASerialPacket::GetVer(void)
 {
     uint8_t ret = 0;
     if (GetMode() == MODE_DEVICE) {
@@ -55,7 +61,7 @@ uint8_t ASerialPacket::GetVer(void)
     return ret;
 }
 
-bool ASerialPacket::GetConnectionState(void)
+bool UASerialPacket::GetConnectionState(void)
 {
     bool state = false;
     if (GetMode() == MODE_CONTROLLER) {
@@ -67,20 +73,26 @@ bool ASerialPacket::GetConnectionState(void)
     return state;
 }
 
-uint16_t ASerialPacket::GetLastErrorCode(void) { return m_lase_error_code; }
+uint16 UASerialPacket::GetLastErrorCode(void) { return m_lase_error_code; }
 
-size_t ASerialPacket::GetNeedPacketBufSize(uint8_t* data_array, int data_num)
+size_t UASerialPacket::GetNeedPacketBufSize(uint8_t* data_array, int data_num)
 {
     size_t size = 0;
 
     if (GetMode() == MODE_DEVICE) {
         size += 2;  // スタートフラグ(1) + データ数(1)
+        if (data_num == AD_FLAG || data_num == DO_FLAG) {
+            size += 1;
+        }
     }
     else {
-        size += 4;  // スタートフラグ(1) + ターゲットデバイスID(1) + データ数(1) + コマンド(1)
+        return -1;  // コントローラモード時はコマンドが必要なのでエラーを返す
     }
 
+    uint16_t check_sum = 0;
+
     for (int i = 0; i < data_num; ++i) {
+        check_sum += data_array[i];
         if (data_array[i] == AD_FLAG || data_array[i] == DO_FLAG) {
             size += 2;  // 加算フラグ(1) + データ(1)
         }
@@ -89,16 +101,105 @@ size_t ASerialPacket::GetNeedPacketBufSize(uint8_t* data_array, int data_num)
         }
     }
 
+    uint8_t check_data[2] = { 0 };  // チェックデータ分割用([0]上位バイト [1]下位バイト)
+
+    check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // 上位バイト抽出
+    check_data[1] = (uint8_t)(check_sum & 0x00FF);         // 下位バイト抽出
+
+    size += 2;  // チェックデータ
+
+    // チェックデータの加算フラグ分
+    if (check_data[0] == AD_FLAG || check_data[0] == DO_FLAG) {
+        size += 1;
+    }
+
+    if (check_data[1] == AD_FLAG || check_data[1] == DO_FLAG) {
+        size += 1;
+    }
+
+    return size;
+}
+
+size_t UASerialPacket::GetNeedPacketBufSize(uint8_t command, uint8_t* data_array, int data_num)
+{
+    size_t size = 0;
+
+    if (GetMode() == MODE_CONTROLLER) {
+        size += 4;  // スタートフラグ(1) + ターゲットデバイスID(1) + データ数(1) + コマンド(1)
+        if (m_target_device_id == AD_FLAG || m_target_device_id == DO_FLAG) {
+            size += 1;
+        }
+
+        if (data_num == AD_FLAG || data_num == DO_FLAG) {
+            size += 1;
+        }
+
+        if (command == AD_FLAG || command == DO_FLAG) {
+            size += 1;
+        }
+    }
+    else {
+        return -1;  // デバイスモード時はコマンドが必要無いのでエラーを返す
+    }
+    uint16_t check_sum = 0;
+
+
+    for (int i = 0; i < data_num; ++i) {
+        check_sum += data_array[i];
+        if (data_array[i] == AD_FLAG || data_array[i] == DO_FLAG) {
+            size += 2;  // 加算フラグ(1) + データ(1)
+        }
+        else {
+            size += 1;  // データ(1)
+        }
+    }
+    uint8_t check_data[2] = { 0 };  // チェックデータ分割用([0]上位バイト [1]下位バイト)
+
+    check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // 上位バイト抽出
+    check_data[1] = (uint8_t)(check_sum & 0x00FF);         // 下位バイト抽出
+
+    size += 2;  // チェックデータ
+
+    // チェックデータの加算フラグ分
+    if (check_data[0] == AD_FLAG || check_data[0] == DO_FLAG) {
+        size += 1;
+    }
+
+    if (check_data[1] == AD_FLAG || check_data[1] == DO_FLAG) {
+        size += 1;
+    }
+
+    return size;
+}
+
+size_t UASerialPacket::GetNeedPacketBufSize(uint8_t command) {
+    size_t size = 0;
+
+    if (GetMode() == MODE_CONTROLLER) {
+        size += 4;  // スタートフラグ(1) + ターゲットデバイスID(1) + データ数(1) + コマンド(1)
+
+        if (m_target_device_id == AD_FLAG || m_target_device_id == DO_FLAG) {
+            size += 1;
+        }
+
+        if (command == AD_FLAG || command == DO_FLAG) {
+            size += 1;
+        }
+    }
+    else {
+        return -1;  // デバイスモード時はコマンドが必要無いのでエラーを返す
+    }
+
     size += 2;  // チェックデータ
 
     return size;
 }
 
-void ASerialPacket::SetConnectionState(bool state) { m_connection_state = state; }
+void UASerialPacket::SetConnectionState(bool state) { m_connection_state = state; }
 
 //===protected===
 
-int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialData* data_buf_pt)
+int UASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialData* data_buf_pt)
 {
     int ret_st = 0;                          // リターンステート
     static uint8_t step = 0;                 // パケット読み取り位置管理
@@ -126,7 +227,7 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
     }
     else if (m_error_flag == true) {  // エラーがあったパケットを読み飛ばす
         m_read_packet = false;
-        ret_st = -1;
+        ret_st = 0;
     }
     else if (_indata == AD_FLAG) {  // 加算フラグ
         if (m_add_flag == true) {
@@ -215,6 +316,7 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
                 uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
                 if (check_data_sum != check_data) {
                     ret_st = -1;
+                    m_error_flag = true;
                     m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
                 }
                 else {
@@ -270,6 +372,7 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
                 uint16_t check_data = (((uint16_t)check_data_buf[0] << 8) | check_data_buf[1]);
                 if (check_data_sum != check_data) {
                     ret_st = -1;
+                    m_error_flag = true;
                     m_lase_error_code = static_cast<uint16_t>(ASerial::ErrorCodeList::ERR_CHECK_DATA_MISMATCH);
                 }
                 else {
@@ -294,7 +397,7 @@ int ASerialPacket::ReadPacketData(uint8_t _indata, ASerialDataStruct::ASerialDat
     return ret_st;
 }
 
-int ASerialPacket::MakePacketData(uint8_t* to_device_data, int data_num, uint8_t command, uint8_t* data_packet_out)
+int UASerialPacket::MakePacketData(uint8_t* to_device_data, int data_num, uint8_t command, uint8_t* data_packet_out)
 {
     if (GetMode() != MODE_CONTROLLER) {  // デバイスモード時にコントローラのパケットを作成を制限
         return -1;
@@ -329,19 +432,19 @@ int ASerialPacket::MakePacketData(uint8_t* to_device_data, int data_num, uint8_t
         ++index;
     }
 
-    int8_t check_data[2] = { 0 };  // チェックデータ分割用([1]上位バイト [2]下位バイト)
+    uint8_t check_data[2] = { 0 };  // チェックデータ分割用([1]上位バイト [2]下位バイト)
 
     check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // 上位バイト抽出
     check_data[1] = (uint8_t)(check_sum & 0x00FF);         // 下位バイト抽出
 
-    CheckDataNeedAddFlag(check_data[1], data_packet_out, &index);
+    CheckDataNeedAddFlag(check_data[0], data_packet_out, &index);
     ++index;
-    CheckDataNeedAddFlag(check_data[2], data_packet_out, &index);
+    CheckDataNeedAddFlag(check_data[1], data_packet_out, &index);
 
     return 0;
 }
 
-int ASerialPacket::MakePacketData(uint8_t command, uint8_t* data_packet_out)
+int UASerialPacket::MakePacketData(uint8_t command, uint8_t* data_packet_out)
 {
     if (GetMode() != MODE_CONTROLLER) {  // デバイスモード時にコントローラのパケットを作成を制限
         return -1;
@@ -374,7 +477,7 @@ int ASerialPacket::MakePacketData(uint8_t command, uint8_t* data_packet_out)
     return 0;
 }
 
-int ASerialPacket::MakePacketData(uint8_t* to_controller_data, int data_num, uint8_t* data_packet_out)
+int UASerialPacket::MakePacketData(uint8_t* to_controller_data, int data_num, uint8_t* data_packet_out)
 {
     if (GetMode() != MODE_DEVICE) {  // コントローラモード時にデバイスのパケットを作成を制限
         return -1;
@@ -400,28 +503,28 @@ int ASerialPacket::MakePacketData(uint8_t* to_controller_data, int data_num, uin
         // Serial.println(st);
     }
 
-    int8_t check_data[2] = { 0 };  // チェックデータ分割用([1]上位バイト [2]下位バイト)
+    uint8_t check_data[2] = { 0 };  // チェックデータ分割用([1]上位バイト [2]下位バイト)
 
     check_data[0] = (uint8_t)((check_sum & 0xFF00) >> 8);  // 上位バイト抽出
     check_data[1] = (uint8_t)(check_sum & 0x00FF);         // 下位バイト抽出
 
-    CheckDataNeedAddFlag(check_data[1], data_packet_out, &index);
+    CheckDataNeedAddFlag(check_data[0], data_packet_out, &index);
     ++index;
-    CheckDataNeedAddFlag(check_data[2], data_packet_out, &index);
+    CheckDataNeedAddFlag(check_data[1], data_packet_out, &index);
 
     return 0;
 }
 
 //===private===
 
-void ASerialPacket::ResetFlags(void)
+void UASerialPacket::ResetFlags(void)
 {
     m_add_flag = false;
     m_read_packet = false;
     m_error_flag = false;
 }
 
-void ASerialPacket::ResetDataArray(void)
+void UASerialPacket::ResetDataArray(void)
 {
     uint8_t* array = nullptr;
 
@@ -440,7 +543,7 @@ void ASerialPacket::ResetDataArray(void)
     return;
 }
 
-int ASerialPacket::CheckDataNeedAddFlag(uint8_t data, uint8_t* data_array, int* _index)
+int UASerialPacket::CheckDataNeedAddFlag(uint8_t data, uint8_t* data_array, int* _index)
 {
     if (data_array == nullptr) {
         return -1;
