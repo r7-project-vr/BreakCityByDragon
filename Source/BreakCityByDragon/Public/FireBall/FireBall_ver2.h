@@ -11,6 +11,9 @@ class UNiagaraComponent;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
 
+class USoundBase;
+class USoundAttenuation;
+
 UCLASS()
 class BREAKCITYBYDRAGON_API AFireBall_ver2 : public AActor
 {
@@ -44,6 +47,13 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FireBall|Effects")
     TObjectPtr<UNiagaraSystem> TrailEffectAsset;
 
+    //Œø‰Ê‰¹iattack)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FireBall|Audio")
+    TObjectPtr<USoundBase> HitSFX = nullptr;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FireBall|Audio")
+    TObjectPtr<USoundAttenuation> HitAttenuation;
+
     // --- ”Ÿ”‹æ ---
     UFUNCTION()
     void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -54,6 +64,9 @@ private :
 
     bool DestroyFlag;
     float timeCnt;
+
+    //Œø‰Ê‰¹ˆê‰ñ‚¾‚¯ƒvƒŒƒC
+    bool bHitSFXPlayed = false;
 
     // ’è”
 
