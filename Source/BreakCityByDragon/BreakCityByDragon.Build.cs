@@ -22,7 +22,8 @@ public class BreakCityByDragon : ModuleRules
             "GeometryCollectionEngine",
             "Chaos",
             "Slate",
-            "SlateCore"
+            "SlateCore",
+            "ASerialCom"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {
