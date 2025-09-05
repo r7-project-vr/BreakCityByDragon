@@ -110,10 +110,18 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	if (!bIsDeviceConnected) return;
 
 	// スレッドから受信したデータを処理
-	FSerialData Data;
+
+	TArray<uint8> data;
+	data.Add(0xD0);
+
+	FSerialData Data = {
+
+		0x21,
+		data
+	};
 	while (DataQueue.Dequeue(Data))
 	{
-		ProcessReceivedData(Data);
+		ProcessReceivedData(Data);	
 	}
 }
 
