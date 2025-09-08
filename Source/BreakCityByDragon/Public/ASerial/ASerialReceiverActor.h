@@ -53,6 +53,6 @@ private:
 	bool IsCalibration = true;
 	float DeviceCnt = 0;
 
-	const float MaxDeviceCnt = 1.0f / 30.f;
+	const float MaxDeviceCnt = 1.0f / 60.f;
 	const float MaxCalibrationTime = 2.0f;
 };

@@ -276,8 +276,6 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			addpow += pow[n];
 		}
 
-		UE_LOG(LogTemp, Log, TEXT("AddPow: %f"), addpow);
-
 		if (addpow < 0.0003f) { addpow = 0; }
 
 		FVector PreLocation = GetActorLocation();

@@ -125,7 +125,7 @@ protected:
 
 private:
 
-	float MoveSpeedPoint = 300.0f;
+	float MoveSpeedPoint = 30.0f;
 
 	bool CanFire;
 

@@ -103,11 +103,6 @@ public:
 
 		int Result = Device->ReadData(&ReceiveData);
 
-		// ƒƒO
-		uint16_t Error2 = Device->GetLastErrorCode();
-		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error2);
-		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
-
 		rotation = I_uintToint(ReceiveData.data);
 
 		return rotation;
@@ -184,6 +179,7 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 			DeviceRotation[n - 1] = DCT->GetSeneserRotation(n);
 		}
 		
+		//DeviceRotation[2] = DCT->GetSeneserRotation(2);
 	}
 }
 
