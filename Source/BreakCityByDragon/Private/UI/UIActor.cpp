@@ -47,7 +47,6 @@ void AUIActor::Destroyed() {
 			UScoreGameInstance* MyGI = Cast<UScoreGameInstance>(GI);
 
 			if (MyGI){
-
 				MyGI->SaveScoreInformaiton(Score);
 			}
 		}
@@ -86,3 +85,6 @@ void AUIActor::Tick(float DeltaTime)
 	}
 }
 
+void AUIActor::SetScore(int score_) {
+	Score = score_;
+}
