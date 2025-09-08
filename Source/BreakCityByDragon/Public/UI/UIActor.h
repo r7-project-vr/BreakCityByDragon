@@ -29,6 +29,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//score‚Ì’l‚ğBP‚©‚çŒˆ’è‚·‚éŠÖ”
+	UFUNCTION(BlueprintCallable)
+	void SetScore(int score_);
 
 private :
 

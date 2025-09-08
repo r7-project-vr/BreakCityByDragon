@@ -20,13 +20,13 @@ public :
 	ScoreInformation* scoreInfo;
 
 	// スコアクラスのインスタンス化
-	void CreateScoreInformaito();
+	void CreateScoreInformation();
 
 	// 保存用メソッド
 	void SaveScoreInformaiton(int score);
 
 	// 参照メソッド
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	int GetScoreInformaiton();
 
 	UFUNCTION()

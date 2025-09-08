@@ -3,6 +3,7 @@
 
 #include "GameModeBase/TestGameModeBase.h"
 #include "VRDragon/VRDragon_ver2.h"
+#include "Score/ScoreGameInstance.h"
 
 
 ATestGameModeBase::ATestGameModeBase() :
@@ -11,6 +12,19 @@ ATestGameModeBase::ATestGameModeBase() :
 	PrimaryActorTick.bCanEverTick = true;
 
 	DefaultPawnClass = AVRDragon_ver2::StaticClass();
+}
+
+void ATestGameModeBase::BeginPlay() {
+	if (UGameInstance* GI = GetGameInstance()) {
+
+		if (GI) {
+			UScoreGameInstance* MyGI = Cast<UScoreGameInstance>(GI);
+
+			if (MyGI) {
+				MyGI->CreateScoreInformation();
+			}
+		}
+	}
 }
 
 void ATestGameModeBase::Tick(float DeltaTime) {
@@ -29,5 +43,6 @@ void ATestGameModeBase::Tick(float DeltaTime) {
 
 void ATestGameModeBase::ToResultGame() {
 
-	//UGameplayStatics::OpenLevel(GetWorld(), FName("LevelName"));
+	UGameplayStatics::OpenLevel(GetWorld(), FName("Onishi_Result"));
+	
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "TestGameModeBase.generated.h"
 
 /**
@@ -17,6 +18,8 @@ class BREAKCITYBYDRAGON_API ATestGameModeBase : public AGameModeBase
 public:
 
 	ATestGameModeBase();
+
+	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
 
