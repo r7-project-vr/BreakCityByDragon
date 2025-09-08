@@ -33,6 +33,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	FRotator GetRotation(int SencerNum);
+
 public :
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Device Data")
@@ -45,11 +47,12 @@ private:
 
 	WindowsSerial* SerialInterface;
 	class FDeviceComandTask* DCT;
+	FRotator DeviceRotation[3];
 	bool IsDeviceConnected;
 
 	bool IsCalibration = true;
 	float DeviceCnt = 0;
 
 	const float MaxDeviceCnt = 1.0f / 30.f;
-	const float MaxCalibrationTime = 5.0f;
+	const float MaxCalibrationTime = 2.0f;
 };
