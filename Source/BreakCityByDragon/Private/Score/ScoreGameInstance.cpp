@@ -3,7 +3,7 @@
 
 #include "Score/ScoreGameInstance.h"
 
-void UScoreGameInstance::CreateScoreInformaito() {
+void UScoreGameInstance::CreateScoreInformation() {
 
 	if (!scoreInfo) {
 
