@@ -11,12 +11,8 @@
 class UASerialLibControllerWin;
 class FRunnableThread;
 class WindowsSerial;
+class FDeviceComandTask;
 
-struct FSerialData
-{
-	uint8 command;
-	TArray<uint8> data;
-};
 
 UCLASS()
 class BREAKCITYBYDRAGON_API AASerialReceiverActor : public AActor
@@ -43,14 +39,17 @@ public :
 	FVector DeviceEulerAngles;
 
 private:
-	void ProcessReceivedData(const FSerialData& Data);
 
 	UPROPERTY()
 	TObjectPtr<UASerialLibControllerWin> SerialController;
 
 	WindowsSerial* SerialInterface;
+	class FDeviceComandTask* DCT;
 	bool IsDeviceConnected;
 
+	bool IsCalibration = true;
 	float DeviceCnt = 0;
-	const float MaxDeviceCnt = 1.0f / 1.f;
+
+	const float MaxDeviceCnt = 1.0f / 30.f;
+	const float MaxCalibrationTime = 5.0f;
 };

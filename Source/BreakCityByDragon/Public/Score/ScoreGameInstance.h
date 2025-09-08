@@ -19,9 +19,16 @@ public :
 
 	ScoreInformation* scoreInfo;
 
+	// スコアクラスのインスタンス化
+	void CreateScoreInformaito();
+
 	// 保存用メソッド
 	void SaveScoreInformaiton(int score);
 
 	// 参照メソッド
-	int GetScore();
+	UFUNCTION()
+	int GetScoreInformaiton();
+
+	UFUNCTION()
+	void DeleteScoreInformaiton();
 };

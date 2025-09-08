@@ -3,17 +3,20 @@
 
 #include "Score/ScoreGameInstance.h"
 
-void UScoreGameInstance::SaveScoreInformaiton(int s_) {
+void UScoreGameInstance::CreateScoreInformaito() {
 
 	if (!scoreInfo) {
 
 		scoreInfo = new ScoreInformation();
 	}
+}
+
+void UScoreGameInstance::SaveScoreInformaiton(int s_) {
 
 	scoreInfo->AddScore(s_);
 }
 
-int UScoreGameInstance::GetScore() {
+int UScoreGameInstance::GetScoreInformaiton() {
 
 	int score = 0;
 
@@ -24,3 +27,9 @@ int UScoreGameInstance::GetScore() {
 
 	return score;
 }
+
+void UScoreGameInstance::DeleteScoreInformaiton(){
+
+	if(scoreInfo)
+	delete scoreInfo;
+};
