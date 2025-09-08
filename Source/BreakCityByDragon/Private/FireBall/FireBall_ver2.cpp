@@ -1,4 +1,4 @@
-#include "FireBall/FireBall_ver2.h"
+ï»¿#include "FireBall/FireBall_ver2.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
+#include "NiagaraFunctionLibrary.h"
 
 AFireBall_ver2::AFireBall_ver2():
     DestroyFlag(false),
@@ -17,23 +18,23 @@ AFireBall_ver2::AFireBall_ver2():
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // 1. ƒtƒ@ƒCƒ„[ƒ{[ƒ‹ƒ‚ƒfƒ‹ƒRƒ“ƒ|ƒlƒ“ƒg
+    // 1. ãƒ•ã‚¡ã‚¤ãƒ¤ãƒ¼ãƒœãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚³ãƒ³ãƒãƒãƒ³ãƒˆ
     FireBall = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
     RootComponent = FireBall;
 
-    // 2. collisionƒRƒ“ƒ|ƒlƒ“ƒg
+    // 2. collisionã‚³ãƒ³ãƒãƒãƒ³ãƒˆ
     SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
     SphereComponent->SetupAttachment(RootComponent);
     SphereComponent->SetCollisionProfileName(TEXT("OverlapAll"));
     SphereComponent->SetSphereRadius(100.0f);
 
-    // 3. ??Ş??—áiİ BeginPlay ??ŒšC?•Û BaseMaterialAsset ›ß??j
+    // 3. ??æ??ä¾‹ï¼ˆåœ¨ BeginPlay ??å»ºï¼Œ?ä¿ BaseMaterialAsset å·²??ï¼‰
 
-    // 4. ƒgƒŒ[ƒ“ƒRƒ“ƒ|ƒlƒ“ƒg
+    // 4. ãƒˆãƒ¬ãƒ¼ãƒ³ã‚³ãƒ³ãƒãƒãƒ³ãƒˆ
     TrailComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailComponent"));
     TrailComponent->SetupAttachment(RootComponent);
 
-    // 5. ?’è?“³–Œ
+    // 5. ?å®š?æ’äº‹ä»¶
     SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireBall_ver2::OnHit);
 }
 
@@ -41,8 +42,13 @@ void AFireBall_ver2::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (HitSFX) { UGameplayStatics::PlaySound2D(this, HitSFX); }//test‰¹‚ªo‚ê‚é‚©”Û‚©
-    // ?Œš›ó?—p??Ş??—á
+    //ç™ºå°„ã®åŠ¹æœéŸ³
+    if (LaunchSFX)
+    {
+        UGameplayStatics::PlaySoundAtLocation(this, LaunchSFX, GetActorLocation());
+    }
+
+    // ?å»ºå¹¶?ç”¨??æ??ä¾‹
     if (BaseMaterialAsset && FireBall)
     {
         UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMaterialAsset, this);
@@ -53,7 +59,7 @@ void AFireBall_ver2::BeginPlay()
         }
     }
 
-    // ŒƒŠˆ?”ö“ÁÁ
+    // æ¿€æ´»?å°¾ç‰¹æ•ˆ
     if (TrailEffectAsset && TrailComponent)
     {
         TrailComponent->SetAsset(TrailEffectAsset);
@@ -82,8 +88,7 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
     bool bFromSweep, const FHitResult& SweepResult)
 {
-    UKismetSystemLibrary::PrintString(GetWorld(),
-        TEXT("OnHit fired!"), true, true, FLinearColor::Green, 1.5f);//test
+    
     if (OtherActor == this) return;
     //if (!OtherActor || OtherActor == this) return;
 
@@ -95,10 +100,12 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     //SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     //PrimaryActorTick.bCanEverTick = false;
     //SetLifeSpan(2.0f);
-    //// TODO: “Y‰Á?ŠQ˜a‰¹Á??
+    //// TODO: æ·»åŠ ?å®³å’ŒéŸ³æ•ˆ??
 
-    //Attack‚Ì‚ÉŒø‰Ê‰¹ˆê‰ñƒvƒŒƒC
+    //Attackã®æ™‚ã«åŠ¹æœéŸ³ä¸€å›ãƒ—ãƒ¬ã‚¤
     if (!bHitSFXPlayed && HitSFX) {
+        UKismetSystemLibrary::PrintString(GetWorld(),
+            TEXT("OnHit fired!"), true, true, FLinearColor::Green, 1.5f);//test
         UGameplayStatics::PlaySoundAtLocation(
             this,                       // WorldContext
             HitSFX,                     // AudioFile
@@ -110,17 +117,34 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
         );
         bHitSFXPlayed = true;
     }
-    /*if (HitSFX)
+
+    // --- ã€æ–°å¢ã€‘åœ¨æ’å‡»ç‚¹æ’­æ”¾ä¸€ä¸ªéšæœºçš„Niagaraç‰¹æ•ˆ ---
+    // 1. æ£€æŸ¥ç‰¹æ•ˆæ•°ç»„æ˜¯å¦ä¸ºç©º
+    if (HitNiagaraEffects.Num() > 0)
     {
-        UGameplayStatics::PlaySound2D(this, HitSFX, 1.0f, 1.0f, 0.0f);
-        UKismetSystemLibrary::PrintString(GetWorld(),
-            TEXT("HitSFX PlaySound2D called"), true, true, FLinearColor::Yellow, 1.5f);
+        // 2. ä»0åˆ°æ•°ç»„æœ«å°¾ä¹‹é—´ï¼Œç”Ÿæˆä¸€ä¸ªéšæœºçš„ç´¢å¼•
+        const int32 RandomIndex = FMath::RandRange(0, HitNiagaraEffects.Num() - 1);
+
+        // 3. ä½¿ç”¨éšæœºç´¢å¼•ä»æ•°ç»„ä¸­è·å–ä¸€ä¸ªNiagaraç³»ç»Ÿ
+        UNiagaraSystem* SelectedEffect = HitNiagaraEffects[RandomIndex];
+
+        // 4. ç¡®ä¿é€‰ä¸­çš„ç‰¹æ•ˆæ˜¯æœ‰æ•ˆçš„ï¼ˆä¸æ˜¯ç©ºæŒ‡é’ˆï¼‰
+        if (SelectedEffect)
+        {
+            // ä»ç¢°æ’ç»“æœ(SweepResult)ä¸­è·å–ç²¾ç¡®çš„æ’å‡»ç‚¹ä½ç½®å’Œæ³•çº¿æ–¹å‘
+            const FVector ImpactLocation = SweepResult.ImpactPoint;
+            const FRotator ImpactRotation = SweepResult.ImpactNormal.Rotation();
+
+            // 5. åœ¨æ’å‡»ç‚¹ç”ŸæˆNiagaraç‰¹æ•ˆ
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                GetWorld(),
+                SelectedEffect,
+                ImpactLocation,
+                ImpactRotation
+            );
+        }
     }
-    else
-    {
-        UKismetSystemLibrary::PrintString(GetWorld(),
-            TEXT("HitSFX is NOT set on the Blueprint"), true, true, FLinearColor::Red, 2.0f);
-    }*/
+    
 
     DestroyFlag = true;
     UE_LOG(LogTemp, Warning, TEXT("Hit"));

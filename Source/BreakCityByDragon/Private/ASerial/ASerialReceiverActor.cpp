@@ -8,61 +8,38 @@
 #include "HAL/RunnableThread.h"
 #include "ASerialCore/ASerialPacket.h"
 
-class FDeviceCommunicationTask : public FRunnable
-{
-public:
-	FDeviceCommunicationTask(UASerialLibControllerWin* InController, TQueue<FSerialData, EQueueMode::Spsc>* InDataQueue)
-		: SerialController(InController), DataQueue(InDataQueue), bIsRunning(true)
-	{
-	}
-
-	// スレッドのメイン処理
-	virtual uint32 Run() override
-	{
-		// 取得したいコマンドのリスト
-		const TArray<uint8> CommandsToProcess = { 0x20,0x21,0x22,0x23,0x24,0x25,0x26 };
-
-		for (int32 i = 0; i < CommandsToProcess.Num(); ++i)
-		{
-			// スレッドの停止要求があれば、ループを抜ける
-			if (!bIsRunning) break;
-
-			const uint8 Command = CommandsToProcess[i];
-
-			// コマンドを送信し、応答を待つ
-			if (SerialController->WriteData(Command) == 0)
-			{
-				ASerialDataStruct::ASerialData ReceivedData;
-				if (SerialController->ReadData(&ReceivedData) == 1)
-				{
-					// 成功したら結果をメインスレッドに渡す
-					FSerialData DataToQueue;
-					DataToQueue.command = ReceivedData.command;
-					DataToQueue.data.Append(ReceivedData.data, ReceivedData.data_num);
-					DataQueue->Enqueue(DataToQueue);
-				}
-			}
-
-			// 最後のコマンドでなければ、2秒間待機する
-			if (bIsRunning && i < CommandsToProcess.Num() - 1)
-			{
-				FPlatformProcess::Sleep(2.0f);
-			}
-		}
-
-		// 全ての処理が終わったら、スレッドは自動的に終了する
-		return 0;
-	}
-
-	virtual void Stop() override
-	{
-		bIsRunning = false;
-	}
+class FDeviceComandTask {
 
 private:
-	UASerialLibControllerWin* SerialController;
-	TQueue<FSerialData, EQueueMode::Spsc>* DataQueue;
-	FThreadSafeBool bIsRunning;
+	int32_t EulerCmd = 0x21;
+
+public:
+	
+	static void GetSerialCalibration(UASerialLibControllerWin* Device_) {
+
+		Device_->WriteData(0x26);
+		ASerialDataStruct::ASerialData ReceiveData;
+		int Result = Device_->ReadData(&ReceiveData);
+
+		// ログ
+		uint16_t Error = Device_->GetLastErrorCode();
+		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
+		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
+		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data);
+	}
+
+	static void GetEulerAtSensor1(UASerialLibControllerWin* Device_){
+
+		Device_->WriteData(0x20);
+		ASerialDataStruct::ASerialData ReceiveData;
+		int Result = Device_->ReadData(&ReceiveData);
+
+		// ログ
+		uint16_t Error = Device_->GetLastErrorCode();
+		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
+		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
+		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data);
+	}
 };
 
 // Sets default values
@@ -85,21 +62,16 @@ void AASerialReceiverActor::BeginPlay()
 
 	if (SerialController->AutoConnectDevice() == ConnectResult::Succ)
 	{
-		bIsDeviceConnected = true;
+		IsDeviceConnected = true;
 		UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
-
-		FPlatformProcess::Sleep(2.0f); // デバイス起動待ち
-		//SerialController->WriteData(0x30); // LED点滅
-		FPlatformProcess::Sleep(2.0f); // LEDコマンド処理待ち
-
-		// 通信スレッドを開始
-		CommunicationTask = new FDeviceCommunicationTask(SerialController, &DataQueue);
-		CommunicationThread = FRunnableThread::Create(CommunicationTask, TEXT("DeviceCommunicationThread"));
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
 	}
+
+	FPlatformProcess::Sleep(2.0f);
+	FDeviceComandTask::GetSerialCalibration(SerialController);
 }
 
 // Called every frame
@@ -107,33 +79,21 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bIsDeviceConnected) return;
+	DeviceCnt += DeltaTime;
 
-	// スレッドから受信したデータを処理
-	FSerialData Data;
-	while (DataQueue.Dequeue(Data))
-	{
-		ProcessReceivedData(Data);
+	if (!IsDeviceConnected) return;
+
+	// 角度を取得する
+	if (DeviceCnt >= MaxDeviceCnt) {
+	
+		DeviceCnt = 0;
+		FDeviceComandTask::GetEulerAtSensor1(SerialController);
 	}
 }
 
 void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason) 
 {
-	// スレッドを安全に停止・破棄
-	if (CommunicationTask)
-	{
-		CommunicationTask->Stop();
-		if (CommunicationThread)
-		{
-			CommunicationThread->WaitForCompletion();
-			delete CommunicationThread;
-			CommunicationThread = nullptr;
-		}
-		delete CommunicationTask;
-		CommunicationTask = nullptr;
-	}
-
-	if (SerialController && bIsDeviceConnected)
+	if (SerialController && IsDeviceConnected)
 	{
 		SerialController->DisConnectDevice();
 	}

@@ -49,8 +49,8 @@ private:
 	TObjectPtr<UASerialLibControllerWin> SerialController;
 
 	WindowsSerial* SerialInterface;
-	class FDeviceCommunicationTask* CommunicationTask;
-	FRunnableThread* CommunicationThread;
-	TQueue<FSerialData, EQueueMode::Spsc> DataQueue;
-	bool bIsDeviceConnected;
+	bool IsDeviceConnected;
+
+	float DeviceCnt = 0;
+	const float MaxDeviceCnt = 1.0f / 1.f;
 };
