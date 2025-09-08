@@ -11,34 +11,106 @@
 class FDeviceComandTask {
 
 private:
-	int32_t EulerCmd = 0x21;
 
-public:
-	
-	static void GetSerialCalibration(UASerialLibControllerWin* Device_) {
+	UASerialLibControllerWin* Device;
 
-		Device_->WriteData(0x26);
-		ASerialDataStruct::ASerialData ReceiveData;
-		int Result = Device_->ReadData(&ReceiveData);
+	static FRotator I_uintToint(uint8_t* g_) {
 
-		// ログ
-		uint16_t Error = Device_->GetLastErrorCode();
-		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
-		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
-		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data);
+		FRotator rotaion = FRotator::ZeroRotator;
+
+		for (int i = 0; i < 3; i++) {
+
+			int32_t num = 0;
+
+			for (int n = 0; n < 4; n++) {
+
+				num += g_[i * 4 + n] << (8 * (3 - n));
+			}
+
+			float f = 0.f;
+
+			switch (i)
+			{
+			case 0:
+				f = num / 1000.f;
+				rotaion.Roll = f;
+				break;
+			case 1:
+				f = num / 1000.f;
+				rotaion.Pitch = f;
+				break;
+			case 2:
+				 f = num / 1000.f;
+				rotaion.Yaw = f;
+				break;
+			default:
+				break;
+			}
+		}
+		
+		return rotaion;
 	}
 
-	static void GetEulerAtSensor1(UASerialLibControllerWin* Device_){
+public:
 
-		Device_->WriteData(0x20);
-		ASerialDataStruct::ASerialData ReceiveData;
-		int Result = Device_->ReadData(&ReceiveData);
+	FDeviceComandTask(UASerialLibControllerWin* d_) {
+
+		Device = d_;
+	}
+	
+	void GetSerialCalibration() {
+
+		Device->WriteData(0x00);
 
 		// ログ
-		uint16_t Error = Device_->GetLastErrorCode();
+		uint16_t Error1 = Device->GetLastErrorCode();
+		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error1);
+
+		UE_LOG(LogTemp, Log, TEXT("Device Reset"));
+
+
+		Device->WriteData(0x26);
+		ASerialDataStruct::ASerialData ReceiveData;
+
+		FPlatformProcess::Sleep(2.0f);
+		int Result = Device->ReadData(&ReceiveData);
+
+		// ログ
+		uint16_t Error = Device->GetLastErrorCode();
 		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
 		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
-		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data);
+		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
+	}
+
+	FRotator GetSeneserRotation(int senserNum) {
+
+		FRotator rotation = FRotator::ZeroRotator;
+
+		if (senserNum < 1 || senserNum > 4) { 
+
+			UE_LOG(LogTemp, Error, TEXT("index is Non"))
+			return rotation;
+		}
+
+		uint8_t index[3] = {
+			0x23,
+			0x24,
+			0x25
+		};
+
+		Device->WriteData(index[senserNum - 1]);
+		ASerialDataStruct::ASerialData ReceiveData;
+
+		int Result = Device->ReadData(&ReceiveData);
+
+		// ログ
+		uint16_t Error2 = Device->GetLastErrorCode();
+		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error2);
+		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
+
+		rotation = I_uintToint(ReceiveData.data);
+
+		return rotation;
 	}
 };
 
@@ -47,7 +119,6 @@ AASerialReceiverActor::AASerialReceiverActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
@@ -70,8 +141,7 @@ void AASerialReceiverActor::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
 	}
 
-	FPlatformProcess::Sleep(2.0f);
-	FDeviceComandTask::GetSerialCalibration(SerialController);
+	DCT = new FDeviceComandTask(SerialController);
 }
 
 // Called every frame
@@ -81,13 +151,34 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 	DeviceCnt += DeltaTime;
 
+	// 接続できてなかったら処理なし
 	if (!IsDeviceConnected) return;
+
+	// キャリブレーション中は角度の処理をしない
+	if (IsCalibration == true) {
+
+		if (DeviceCnt >= MaxCalibrationTime) {
+
+			DeviceCnt = 0;
+			IsCalibration = false;
+			DCT -> GetSerialCalibration();
+			UE_LOG(LogTemp, Log, TEXT("Calibration End"));
+		}
+
+		return;
+	}
 
 	// 角度を取得する
 	if (DeviceCnt >= MaxDeviceCnt) {
 	
 		DeviceCnt = 0;
-		FDeviceComandTask::GetEulerAtSensor1(SerialController);
+
+		for (int n = 1; n <= 3; n++) {
+
+			FRotator r = DCT->GetSeneserRotation(n);
+			UE_LOG(LogTemp, Log, TEXT("Rotator: Senesr%d %s"), n , *r.ToString());
+		}
+		
 	}
 }
 
@@ -106,34 +197,4 @@ void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	Super::EndPlay(EndPlayReason);
 
-}
-
-void AASerialReceiverActor::ProcessReceivedData(const FSerialData& Data)
-{
-	UE_LOG(LogTemp, Log, TEXT("SUCCESS: Data received for command 0x%X, length: %d"), Data.command, Data.data.Num());
-
-	switch (Data.command)
-	{
-	case 0x20:
-
-		break;
-	case 0x21:
-
-		break;
-	case 0x22:
-
-		break;
-	case 0x23:
-
-		break;
-	case 0x24:
-
-		break;
-	case 0x25:
-
-		break;
-	case 0x26:
-
-		break;
-	}
 }
