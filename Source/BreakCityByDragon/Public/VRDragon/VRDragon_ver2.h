@@ -12,6 +12,7 @@
 #include "VRDragon/TailActor.h"
 #include "ITailInformaition.h"
 #include "UI/DamageText.h"
+#include "ASerial/ASerialReceiverActor.h"
 #include "VRDragon_ver2.generated.h"
 
 class UStaticMeshComponent;
@@ -124,7 +125,7 @@ protected:
 
 private:
 
-	float MoveSpeedPoint = 10.0f;
+	float MoveSpeedPoint = 300.0f;
 
 	bool CanFire;
 
@@ -144,6 +145,8 @@ private:
 
 	UStaticMeshComponent* LFootMesh; // ç∂ãr
 	UStaticMeshComponent* RFootMesh; // âEãr
+
+	AASerialReceiverActor* ASerialReceiverActor;
 
 public :
 

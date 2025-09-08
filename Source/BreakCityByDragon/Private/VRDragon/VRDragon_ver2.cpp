@@ -210,6 +210,13 @@ void AVRDragon_ver2::BeginPlay()
 			tail[i]->SetParentTail(tail[i - 1]);
 		}
 	}
+
+	// ASerialReceiverActorの生成
+	{
+		FRotator r = FRotator::ZeroRotator;
+		FVector v = FVector::ZeroVector;
+		ASerialReceiverActor = GetWorld()->SpawnActor<AASerialReceiverActor>(AASerialReceiverActor::StaticClass(), v, r);
+	}
 }
 
 // Called every frame
@@ -227,8 +234,6 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 		FireChargeCnt -= DeltaTime;
 	}
 
-	FString str = FString::SanitizeFloat(FireChargeCnt);
-
 	// VRのカメラ
 	{
 		if (GEngine && GEngine->XRSystem.IsValid())
@@ -244,12 +249,39 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 
 	// 尻尾に合わせて動かす
 	{
-		float pow = newTailVec.X - preTailVec.X;
+		newTailVec =
+		{
+			ASerialReceiverActor->GetRotation(3).Roll,
+			ASerialReceiverActor->GetRotation(3).Pitch,
+			ASerialReceiverActor->GetRotation(3).Yaw
+		};
 
-		if (pow < 0)pow *= -1;
+		FVector p = newTailVec - preTailVec;
+
+		float pow[3] = {
+
+			p.X,
+			p.Y,
+			p.Z
+		};
+
+		float addpow = 0;
+
+		for (int n = 0; n < 3; n++) {
+		
+			if (pow[n] < 0) pow[n] *= -1;
+
+			pow[n] /= 360.f;
+
+			addpow += pow[n];
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("AddPow: %f"), addpow);
+
+		if (addpow < 0.0003f) { addpow = 0; }
 
 		FVector PreLocation = GetActorLocation();
-		FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector::ForwardVector * MoveSpeedPoint * pow);
+		FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector::ForwardVector * MoveSpeedPoint * addpow);
 
 		SetActorLocation(NewLocation);
 
@@ -310,7 +342,7 @@ void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 	// inputのValueはVector2Dに変換できる
 	const FVector2D V = Value.Get<FVector2D>();
 
-	newTailVec = FVector(V.X, V.Y, 0);
+	//newTailVec = FVector(V.X, V.Y, 0);
 }
 
 // 火球コントロール

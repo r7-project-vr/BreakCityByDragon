@@ -119,6 +119,12 @@ AASerialReceiverActor::AASerialReceiverActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	for (int i = 0; i < 3; i++) {
+
+		DeviceRotation[i] = FRotator::ZeroRotator;
+	}
+	
 }
 
 // Called when the game starts or when spawned
@@ -175,8 +181,7 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 		for (int n = 1; n <= 3; n++) {
 
-			FRotator r = DCT->GetSeneserRotation(n);
-			UE_LOG(LogTemp, Log, TEXT("Rotator: Senesr%d %s"), n , *r.ToString());
+			DeviceRotation[n - 1] = DCT->GetSeneserRotation(n);
 		}
 		
 	}
@@ -197,4 +202,14 @@ void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	Super::EndPlay(EndPlayReason);
 
+}
+
+FRotator AASerialReceiverActor::GetRotation(int s_) {
+
+	if (s_ < 1 || s_ > 4) {
+
+		return FRotator::ZeroRotator;
+	}
+
+	return DeviceRotation[s_ - 1];
 }
