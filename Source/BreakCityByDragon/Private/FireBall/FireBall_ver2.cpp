@@ -100,7 +100,6 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     //SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     //PrimaryActorTick.bCanEverTick = false;
     //SetLifeSpan(2.0f);
-    //// TODO: 添加?害和音效??
 
     //Attackの時に効果音一回プレイ
     if (!bHitSFXPlayed && HitSFX) {
@@ -118,24 +117,27 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
         bHitSFXPlayed = true;
     }
 
-    // --- 【新增】在撞击点播放一个随机的Niagara特效 ---
-    // 1. 检查特效数组是否为空
+    // --- Attack所で爆発のエフェクトをプレイ ---
+    // 1. チェックエフェクトArrayはNullかどうか
     if (HitNiagaraEffects.Num() > 0)
     {
-        // 2. 从0到数组末尾之间，生成一个随机的索引
+        // 2. 0 から配列の末尾までの範囲でランダムなインデックスを生成する
         const int32 RandomIndex = FMath::RandRange(0, HitNiagaraEffects.Num() - 1);
 
-        // 3. 使用随机索引从数组中获取一个Niagara系统
+        // 3. ランダムなインデックスを使って配列からNiagaraシステムを取得する
         UNiagaraSystem* SelectedEffect = HitNiagaraEffects[RandomIndex];
 
-        // 4. 确保选中的特效是有效的（不是空指针）
+        // 4. 選択したエフェクトが有効（nullptr ではない）であることを確認する
         if (SelectedEffect)
         {
-            // 从碰撞结果(SweepResult)中获取精确的撞击点位置和法线方向
-            const FVector ImpactLocation = SweepResult.ImpactPoint;
-            const FRotator ImpactRotation = SweepResult.ImpactNormal.Rotation();
+            FVector ImpactLocation;
+            // 衝突結果（SweepResult）から正確なヒット位置と法線方向を取得する
+            //const FVector ImpactLocation = SweepResult.ImpactPoint;
+            OtherComp->GetClosestPointOnCollision(GetActorLocation(), ImpactLocation);
+            //const FRotator ImpactRotation = SweepResult.ImpactNormal.Rotation();
+            const FRotator ImpactRotation = (GetActorLocation() - ImpactLocation).Rotation();
 
-            // 5. 在撞击点生成Niagara特效
+            // 5. ヒット地点に Niagara エフェクトを生成する
             UNiagaraFunctionLibrary::SpawnSystemAtLocation(
                 GetWorld(),
                 SelectedEffect,
