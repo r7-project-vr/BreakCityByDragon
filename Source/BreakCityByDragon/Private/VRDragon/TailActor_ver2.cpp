@@ -98,8 +98,14 @@ void ATailActor_ver2::UpdateTailRotation() {
     UAnimInstance* AnimInst = SkeletalMeshComponent->GetAnimInstance();
     if (UTailAnimInstance* TailInst = Cast<UTailAnimInstance>(AnimInst))
     {
-        TailInst->TailBoneRotation_Senser1 = FRotator(20.f, 0.f, 0.f);
+        TailInst->TailBoneRotation_Senser1 += FRotator(0.f, 0.f, 2.f);
+        TailInst->TailBoneRotation_Senser2 += FRotator(0.f, 0.f, 2.f);
+        TailInst->TailBoneRotation_Senser3 += FRotator(0.f, 0.f, 2.f);
         UE_LOG(LogTemp, Log, TEXT("SkeletalMesh Anim"));
+    }
+    else {
+
+        UE_LOG(LogTemp, Log, TEXT("No AnimInstance"));
     }
 }
 
