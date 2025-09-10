@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ASerial/ASerialReceiverActor.h"
+#include "VRDragon/TailAnimInstance.h"
 #include "TailActor_ver2.generated.h"
 
 UCLASS()
@@ -41,4 +43,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* SkeletalMeshComponent;
+
+	AASerialReceiverActor* SerialReceiver;
+
+	UTailAnimInstance* TailInstance;
 };
