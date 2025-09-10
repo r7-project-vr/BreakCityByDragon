@@ -124,14 +124,14 @@ protected:
 	// 座標制御
 	void CheckVec(FVector& PlayerNextVec);
 
-	void MovePlayer();
+	void MovePlayer(float DeltaTime);
 
 	// デバイスからの値をゲームに反映させる関数
 	void SerialReceiver();
 
 private:
 
-	float MoveSpeedPoint = 30.0f;
+	float MoveSpeedPoint = 200.0f;
 
 	bool CanFire;
 

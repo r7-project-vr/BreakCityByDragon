@@ -142,7 +142,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Arrow->SetRelativeLocation(FVector(400.0f, 0.0f, 130.0f));
 
 		// ArrowÇï\é¶Ç≥ÇÍÇÈÇÊÇ§Ç…Ç∑ÇÈ
-		Arrow->bHiddenInGame = false;
+		Arrow->bHiddenInGame = true;
 	}
 
 	// FireBall
@@ -199,15 +199,12 @@ void AVRDragon_ver2::BeginPlay()
 
 	// êKîˆÇÃê∂ê¨
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		FRotator look = GetControlRotation();
 		look = Camera->GetComponentToWorld().GetRotation().Rotator() + FRotator(0, -90.f, 0);
-		FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
+		FVector pos = GetActorLocation() + FVector(0.f, 0, 20.f);
 
-		tails = GetWorld()->SpawnActor<ATailActor_ver2>(ATailActor_ver2::StaticClass(), pos, look, SpawnParams);
-		tails->GetRootComponent()->SetupAttachment(RootComponent);
+		tails = GetWorld()->SpawnActor<ATailActor_ver2>(ATailActor_ver2::StaticClass(), pos, look);
+		tails->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 		tails->SerialReceiver = ASerialReceiverActor;
 	}
 }
@@ -241,7 +238,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 	}
 
 	// êKîˆÇ…âûÇ∂ÇƒìÆÇ©Ç∑
-	MovePlayer();
+	MovePlayer(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -388,13 +385,13 @@ void AVRDragon_ver2::CheckVec(FVector& v_) {
 	if (v_.Y < -14700.f)	{ v_.Y = -14700.f; }
 
 	// É{ÉXÇÃèàóù
-	if (v_.X > 4050.f) { v_.X = 4050.f; }
-	if (v_.X < -350.f) { v_.X = -350.f; }
-	if (v_.Y > 3300.f) { v_.Y = 3300.f; }
-	if (v_.Y < -3100.f) { v_.Y = -3100.f; }
+	//if (v_.X < 4050.f) { v_.X = 4050.f; }
+	//if (v_.X > -350.f) { v_.X = -350.f; }
+	//if (v_.Y < 3300.f) { v_.Y = 3300.f; }
+	//if (v_.Y > -3100.f) { v_.Y = -3100.f; }
 }
 
-void AVRDragon_ver2::MovePlayer() {
+void AVRDragon_ver2::MovePlayer(float DeltaTime) {
 
 	// êKîˆÇ…çáÇÌÇπÇƒìÆÇ©Ç∑
 	{
@@ -405,8 +402,6 @@ void AVRDragon_ver2::MovePlayer() {
 			ASerialReceiverActor->GetRotation(3).Yaw
 		};
 
-		FString s = newTailVec.ToString();
-		UE_LOG(LogTemp, Log, TEXT("newTailVec : %s"),*s)
 		FVector p = newTailVec - preTailVec;
 
 		float pow[3] = {
@@ -421,21 +416,23 @@ void AVRDragon_ver2::MovePlayer() {
 		for (int n = 0; n < 3; n++) {
 
 			if (pow[n] < 0) pow[n] *= -1;
-
-			pow[n] /= 360.f;
-
 			addpow += pow[n];
 		}
 
 		if (addpow < 0.0003f) { addpow = 0; }
 
+		FString s = newTailVec.ToString();
+		UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
+
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {
-			FVector::ForwardVector.X,
-			FVector::ForwardVector.Y,
+			Camera->GetForwardVector().X,
+			Camera->GetForwardVector().Y,
 			0
 		};
-		FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(Forward * MoveSpeedPoint * addpow);
+		
+		FVector Vector = Forward * MoveSpeedPoint * addpow;
+		FVector NewLocation = PreLocation + Vector * DeltaTime;
 
 		CheckVec(NewLocation);
 		SetActorLocation(NewLocation);
