@@ -190,32 +190,25 @@ void AVRDragon_ver2::BeginPlay()
 		}
 	}
 
-	// 尻尾の生成
-	{
-		FRotator look = GetControlRotation();
-		look = Camera->GetComponentToWorld().GetRotation().Rotator();
-
-		{
-			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
-
-			tail[0] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
-			tail[0]->SetParentTail(this);
-		}
-
-		for (int i = 1; i < 6; i++) {
-
-			// しっぽの位置
-			FVector pos = GetActorLocation() + FVector(-20.f, 0, 0) * (i + 1);
-			tail[i] = GetWorld()->SpawnActor<ATailActor>(ATailActor::StaticClass(), pos, look);
-			tail[i]->SetParentTail(tail[i - 1]);
-		}
-	}
-
 	// ASerialReceiverActorの生成
 	{
 		FRotator r = FRotator::ZeroRotator;
 		FVector v = FVector::ZeroVector;
 		ASerialReceiverActor = GetWorld()->SpawnActor<AASerialReceiverActor>(AASerialReceiverActor::StaticClass(), v, r);
+	}
+
+	// 尻尾の生成
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		FRotator look = GetControlRotation();
+		look = Camera->GetComponentToWorld().GetRotation().Rotator() + FRotator(0, -90.f, 0);
+		FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
+
+		tails = GetWorld()->SpawnActor<ATailActor_ver2>(ATailActor_ver2::StaticClass(), pos, look, SpawnParams);
+		tails->GetRootComponent()->SetupAttachment(RootComponent);
+		tails->SerialReceiver = ASerialReceiverActor;
 	}
 }
 
@@ -247,49 +240,8 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 		}
 	}
 
-	// 尻尾に合わせて動かす
-	{
-		newTailVec =
-		{
-			ASerialReceiverActor->GetRotation(3).Roll,
-			ASerialReceiverActor->GetRotation(3).Pitch,
-			ASerialReceiverActor->GetRotation(3).Yaw
-		};
-
-		FVector p = newTailVec - preTailVec;
-
-		float pow[3] = {
-
-			p.X,
-			p.Y,
-			p.Z
-		};
-
-		float addpow = 0;
-
-		for (int n = 0; n < 3; n++) {
-		
-			if (pow[n] < 0) pow[n] *= -1;
-
-			pow[n] /= 360.f;
-
-			addpow += pow[n];
-		}
-
-		UE_LOG(LogTemp, Log, TEXT("AddPow: %f"), addpow);
-
-		if (addpow < 0.0003f) { addpow = 0; }
-
-		FVector PreLocation = GetActorLocation();
-		FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(FVector::ForwardVector * MoveSpeedPoint * addpow);
-
-		SetActorLocation(NewLocation);
-
-		preTailVec = newTailVec;
-	}
-
-#if false
-#endif
+	// 尻尾に応じて動かす
+	MovePlayer();
 }
 
 // Called to bind functionality to input
@@ -359,9 +311,6 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 			{
 				DamageText->AddToViewport();
 				DamageText->SetDesiredSizeInViewport(FVector2D(200.f, 100.f));
-
-				/*FVector2D ScreenPosition = FVector2D(960.0f, 540.0f);
-				DamageText->SetPositionInViewport(ScreenPosition, true);*/
 			}
 		}
 
@@ -374,8 +323,6 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-			//AFireBall_ver2* s = GetWorld()->SpawnActor<AFireBall_ver2>(AFireBall_ver2::StaticClass(), pos, look); // スポーン処理 
 
 			GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
 
@@ -430,6 +377,71 @@ bool AVRDragon_ver2::GetHMDPose(FVector& OutPosition, FRotator& OutRotation)
 		}
 	}
 	return false;
+}
+
+void AVRDragon_ver2::CheckVec(FVector& v_) {
+
+	// マップの処理
+	if (v_.X > 6000.f)		{ v_.X = 6000.f; }
+	if (v_.X < -18000.f)	{ v_.X = -18000.f;}
+	if (v_.Y > 14700.f)		{ v_.Y = 14700.f; }
+	if (v_.Y < -14700.f)	{ v_.Y = -14700.f; }
+
+	// ボスの処理
+	if (v_.X > 4050.f) { v_.X = 4050.f; }
+	if (v_.X < -350.f) { v_.X = -350.f; }
+	if (v_.Y > 3300.f) { v_.Y = 3300.f; }
+	if (v_.Y < -3100.f) { v_.Y = -3100.f; }
+}
+
+void AVRDragon_ver2::MovePlayer() {
+
+	// 尻尾に合わせて動かす
+	{
+		newTailVec =
+		{
+			ASerialReceiverActor->GetRotation(3).Roll,
+			ASerialReceiverActor->GetRotation(3).Pitch,
+			ASerialReceiverActor->GetRotation(3).Yaw
+		};
+
+		FString s = newTailVec.ToString();
+		UE_LOG(LogTemp, Log, TEXT("newTailVec : %s"),*s)
+		FVector p = newTailVec - preTailVec;
+
+		float pow[3] = {
+
+			p.X,
+			p.Y,
+			p.Z
+		};
+
+		float addpow = 0;
+
+		for (int n = 0; n < 3; n++) {
+
+			if (pow[n] < 0) pow[n] *= -1;
+
+			pow[n] /= 360.f;
+
+			addpow += pow[n];
+		}
+
+		if (addpow < 0.0003f) { addpow = 0; }
+
+		FVector PreLocation = GetActorLocation();
+		FVector Forward = {
+			FVector::ForwardVector.X,
+			FVector::ForwardVector.Y,
+			0
+		};
+		FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(Forward * MoveSpeedPoint * addpow);
+
+		CheckVec(NewLocation);
+		SetActorLocation(NewLocation);
+
+		preTailVec = newTailVec;
+	}
 }
 
 // しっぽの付け根を返す

@@ -59,7 +59,7 @@ ConnectResult UASerialLibControllerWin::ConnectDevice(int COM_num)
     while (1) {
         st = ReadDataProcess(&data_buf);
 
-        if (st != 0 || clock() - read_time >= 10000) {
+        if (st != 0 || clock() - read_time >= 300) {
             break;
         }
     }
@@ -147,7 +147,7 @@ int UASerialLibControllerWin::ReadData(ASerialDataStruct::ASerialData* read_data
         return -1;
     }
 
-    constexpr clock_t time_out = 50;
+    constexpr clock_t time_out = 25;
 
     bool time_out_flag = false;
     bool error_flag = false;
