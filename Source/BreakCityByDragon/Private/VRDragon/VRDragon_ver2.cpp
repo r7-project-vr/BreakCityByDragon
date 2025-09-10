@@ -16,6 +16,11 @@
 #include "Engine/Engine.h"
 #include "IXRTrackingSystem.h"
 #include "HeadMountedDisplay.h"
+// 
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
+#include "UObject/SoftObjectPath.h"
+#include "UObject/SoftObjectPtr.h"
 
 // Sets default values
 AVRDragon_ver2::AVRDragon_ver2() :
@@ -96,25 +101,28 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 	// VRコントローラ
 	{
-		UStaticMesh* _Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere"));
+		// アセットパス指定
+		LSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
+			FSoftObjectPath(TEXT("/Game/Dradon/polySurface8.polySurface8"))
+		);
+
+		RSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
+			FSoftObjectPath(TEXT("/Game/Dradon/polySurface9.polySurface9"))
+		);
 
 		// 左手
 		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
 		LeftMotionController->SetupAttachment(RootComponent);
 		LeftMotionController->SetTrackingSource(EControllerHand::Left);
-		LMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftMesh"));
+		LMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftMesh"));
 		LMesh->SetupAttachment(LeftMotionController);
-		LMesh->SetStaticMesh(_Sphere);
-		LMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 
 		// 右手
 		RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
 		RightMotionController->SetupAttachment(RootComponent);
 		RightMotionController->SetTrackingSource(EControllerHand::Right);
-		RMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightMesh"));
+		RMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightMesh"));
 		RMesh->SetupAttachment(RightMotionController);
-		RMesh->SetStaticMesh(_Sphere);
-		RMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	}
 
 	// エンハンス何とか
@@ -142,7 +150,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Arrow->SetRelativeLocation(FVector(400.0f, 0.0f, 130.0f));
 
 		// Arrowを表示されるようにする
-		Arrow->bHiddenInGame = false;
+		Arrow->bHiddenInGame = true;
 	}
 
 	// FireBall
@@ -199,16 +207,18 @@ void AVRDragon_ver2::BeginPlay()
 
 	// 尻尾の生成
 	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		FRotator look = GetControlRotation();
 		look = Camera->GetComponentToWorld().GetRotation().Rotator() + FRotator(0, -90.f, 0);
-		FVector pos = GetActorLocation() + FVector(-20.f, 0, 0);
+		FVector pos = GetActorLocation() + FVector(0.f, 0, 20.f);
 
-		tails = GetWorld()->SpawnActor<ATailActor_ver2>(ATailActor_ver2::StaticClass(), pos, look, SpawnParams);
-		tails->GetRootComponent()->SetupAttachment(RootComponent);
+		tails = GetWorld()->SpawnActor<ATailActor_ver2>(ATailActor_ver2::StaticClass(), pos, look);
+		tails->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 		tails->SerialReceiver = ASerialReceiverActor;
+	}
+
+	// VRの手
+	{
+		//LoadMeshAsync();
 	}
 }
 
@@ -241,7 +251,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 	}
 
 	// 尻尾に応じて動かす
-	MovePlayer();
+	MovePlayer(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -388,13 +398,13 @@ void AVRDragon_ver2::CheckVec(FVector& v_) {
 	if (v_.Y < -14700.f)	{ v_.Y = -14700.f; }
 
 	// ボスの処理
-	if (v_.X > 4050.f) { v_.X = 4050.f; }
-	if (v_.X < -350.f) { v_.X = -350.f; }
-	if (v_.Y > 3300.f) { v_.Y = 3300.f; }
-	if (v_.Y < -3100.f) { v_.Y = -3100.f; }
+	//if (v_.X < 4050.f) { v_.X = 4050.f; }
+	//if (v_.X > -350.f) { v_.X = -350.f; }
+	//if (v_.Y < 3300.f) { v_.Y = 3300.f; }
+	//if (v_.Y > -3100.f) { v_.Y = -3100.f; }
 }
 
-void AVRDragon_ver2::MovePlayer() {
+void AVRDragon_ver2::MovePlayer(float DeltaTime) {
 
 	// 尻尾に合わせて動かす
 	{
@@ -405,8 +415,6 @@ void AVRDragon_ver2::MovePlayer() {
 			ASerialReceiverActor->GetRotation(3).Yaw
 		};
 
-		FString s = newTailVec.ToString();
-		UE_LOG(LogTemp, Log, TEXT("newTailVec : %s"),*s)
 		FVector p = newTailVec - preTailVec;
 
 		float pow[3] = {
@@ -421,26 +429,89 @@ void AVRDragon_ver2::MovePlayer() {
 		for (int n = 0; n < 3; n++) {
 
 			if (pow[n] < 0) pow[n] *= -1;
-
-			pow[n] /= 360.f;
-
 			addpow += pow[n];
 		}
 
 		if (addpow < 0.0003f) { addpow = 0; }
 
+		FString s = newTailVec.ToString();
+		UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
+
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {
-			FVector::ForwardVector.X,
-			FVector::ForwardVector.Y,
+			Camera->GetForwardVector().X,
+			Camera->GetForwardVector().Y,
 			0
 		};
-		FVector NewLocation = PreLocation + Arrow->GetComponentToWorld().TransformVectorNoScale(Forward * MoveSpeedPoint * addpow);
+		
+		FVector Vector = Forward * MoveSpeedPoint * addpow;
+		FVector NewLocation = PreLocation + Vector * DeltaTime;
 
 		CheckVec(NewLocation);
 		SetActorLocation(NewLocation);
 
 		preTailVec = newTailVec;
+	}
+}
+
+void AVRDragon_ver2::OnMeshLoaded() {
+
+	USkeletalMesh* LLoadedMesh = LSoftSkeletalMeshRef.Get();
+	USkeletalMesh* RLoadedMesh = RSoftSkeletalMeshRef.Get();
+
+	if (LLoadedMesh)
+	{
+		LMesh->SetSkeletalMesh(LLoadedMesh);
+		LMesh->SetWorldScale3D(FVector(50.0f));
+		UE_LOG(LogTemp, Log, TEXT("SkeletalMesh successfully loaded!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load LSkeletalMesh."));
+	}
+
+	if(RLoadedMesh)
+	{
+		RMesh->SetSkeletalMesh(RLoadedMesh);
+		RMesh->SetWorldScale3D(FVector(50.0f));
+		UE_LOG(LogTemp, Log, TEXT("SkeletalMesh successfully loaded!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load RSkeletalMesh."));
+	}
+}
+
+void AVRDragon_ver2::LoadMeshAsync() {
+
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+
+	if (LSoftSkeletalMeshRef.IsValid())
+	{
+		// 既にロード済みなら即座に反映
+		OnMeshLoaded();
+	}
+	else
+	{
+		// 非同期ロード開始
+		Streamable.RequestAsyncLoad(
+			LSoftSkeletalMeshRef.ToSoftObjectPath(),
+			FStreamableDelegate::CreateUObject(this, &AVRDragon_ver2::OnMeshLoaded)
+		);
+	}
+
+	if (RSoftSkeletalMeshRef.IsValid())
+	{
+		// 既にロード済みなら即座に反映
+		OnMeshLoaded();
+	}
+	else
+	{
+		// 非同期ロード開始
+		Streamable.RequestAsyncLoad(
+			RSoftSkeletalMeshRef.ToSoftObjectPath(),
+			FStreamableDelegate::CreateUObject(this, &AVRDragon_ver2::OnMeshLoaded)
+		);
 	}
 }
 
