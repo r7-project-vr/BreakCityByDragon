@@ -6,24 +6,25 @@
 #include "Engine/AssetManager.h"
 #include "UObject/SoftObjectPath.h"
 #include "UObject/SoftObjectPtr.h"
-#include "VRDragon/TailAnimInstance.h"
 
 // Sets default values
-ATailActor_ver2::ATailActor_ver2()
+ATailActor_ver2::ATailActor_ver2() :
+    SerialReceiver(nullptr),
+    TailInstance(nullptr)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
     // コンポーネント作成＆ルートに設定
     SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
-    RootComponent = SkeletalMeshComponent;
+    SkeletalMeshComponent->SetupAttachment(RootComponent);
 
     // アセットパス指定（プロジェクトに合わせて変更）
     SoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
         FSoftObjectPath(TEXT("/Game/Dradon/TailSkeleton.TailSkeleton"))
     );
-
-    //SkeletalMeshComponent->SetAnimInstanceClass(MyAnimBPClass);
 }
 
 // Called when the game starts or when spawned
@@ -72,6 +73,14 @@ void ATailActor_ver2::LoadAnimBPAsync() {
     if (AnimBPClassRef.IsValid())
     {
         SkeletalMeshComponent->SetAnimInstanceClass(AnimBPClassRef.Get());
+        UAnimInstance* AnimInst = SkeletalMeshComponent->GetAnimInstance();
+        if (UTailAnimInstance* TI = Cast<UTailAnimInstance>(AnimInst)) {
+
+            TailInstance = TI;
+        }
+        else { 
+            UE_LOG(LogTemp, Error, TEXT("No AnimInstance"));
+        }
     }
 }
 
@@ -94,18 +103,11 @@ void ATailActor_ver2::OnMeshLoaded() {
 void ATailActor_ver2::UpdateTailRotation() {
 
     if (!SkeletalMeshComponent) return;
+    if (!TailInstance)return;
+    if (!SerialReceiver)return;
 
-    UAnimInstance* AnimInst = SkeletalMeshComponent->GetAnimInstance();
-    if (UTailAnimInstance* TailInst = Cast<UTailAnimInstance>(AnimInst))
-    {
-        TailInst->TailBoneRotation_Senser1 += FRotator(0.f, 0.f, 2.f);
-        TailInst->TailBoneRotation_Senser2 += FRotator(0.f, 0.f, 2.f);
-        TailInst->TailBoneRotation_Senser3 += FRotator(0.f, 0.f, 2.f);
-        UE_LOG(LogTemp, Log, TEXT("SkeletalMesh Anim"));
-    }
-    else {
-
-        UE_LOG(LogTemp, Log, TEXT("No AnimInstance"));
-    }
+    TailInstance->TailBoneRotation_Senser1 = SerialReceiver->GetRotation(1);
+    TailInstance->TailBoneRotation_Senser2 = SerialReceiver->GetRotation(2);
+    TailInstance->TailBoneRotation_Senser3 = SerialReceiver->GetRotation(3);
 }
 

@@ -13,6 +13,7 @@
 #include "ITailInformaition.h"
 #include "UI/DamageText.h"
 #include "ASerial/ASerialReceiverActor.h"
+#include "VRDragon/TailActor_ver2.h"
 #include "VRDragon_ver2.generated.h"
 
 class UStaticMeshComponent;
@@ -120,6 +121,11 @@ protected:
 	// VRカメラ
 	bool GetHMDPose(FVector& OutPosition, FRotator& OutRotation);
 
+	// 座標制御
+	void CheckVec(FVector& PlayerNextVec);
+
+	void MovePlayer();
+
 	// デバイスからの値をゲームに反映させる関数
 	void SerialReceiver();
 
@@ -136,9 +142,7 @@ private:
 	FVector newTailVec;
 	FVector preTailVec;
 
-	FVector tailSpawnLenge = FVector(-20, 0, 0);
-
-	ATailActor* tail[6]; // 尻尾のアクター
+	ATailActor_ver2* tails;// 尻尾
 
 	UStaticMeshComponent* LMesh; // 左腕
 	UStaticMeshComponent* RMesh; // 右腕
@@ -147,6 +151,26 @@ private:
 	UStaticMeshComponent* RFootMesh; // 右脚
 
 	AASerialReceiverActor* ASerialReceiverActor;
+
+	// ----------------------------
+	// 定数
+	// ----------------------------
+
+	FVector CheckMapVec[4] = {
+
+		FVector(),
+		FVector(),
+		FVector(),
+		FVector()
+	};
+
+	FVector CheckBossVec[4] = {
+
+		FVector(),
+		FVector(),
+		FVector(),
+		FVector()
+	};
 
 public :
 
