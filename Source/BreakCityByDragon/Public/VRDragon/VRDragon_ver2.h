@@ -126,6 +126,10 @@ protected:
 
 	void MovePlayer(float DeltaTime);
 
+	void OnMeshLoaded();
+
+	void LoadMeshAsync();
+
 	// ƒfƒoƒCƒX‚©‚ç‚Ì’l‚ğƒQ[ƒ€‚É”½‰f‚³‚¹‚éŠÖ”
 	void SerialReceiver();
 
@@ -144,13 +148,17 @@ private:
 
 	ATailActor_ver2* tails;// K”ö
 
-	UStaticMeshComponent* LMesh; // ¶˜r
-	UStaticMeshComponent* RMesh; // ‰E˜r
+	USkeletalMeshComponent* LMesh; // ¶˜r
+	USkeletalMeshComponent* RMesh; // ‰E˜r
 
-	UStaticMeshComponent* LFootMesh; // ¶‹r
-	UStaticMeshComponent* RFootMesh; // ‰E‹r
+	TSoftObjectPtr<USkeletalMesh> LSoftSkeletalMeshRef;
+	TSoftObjectPtr<USkeletalMesh> RSoftSkeletalMeshRef;
+
+	USkeletalMesh* LFootMesh; // ¶‹r
+	USkeletalMesh* RFootMesh; // ‰E‹r
 
 	AASerialReceiverActor* ASerialReceiverActor;
+	
 
 	// ----------------------------
 	// ’è”
