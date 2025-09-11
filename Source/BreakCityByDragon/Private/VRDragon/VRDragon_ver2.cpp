@@ -16,7 +16,7 @@
 #include "Engine/Engine.h"
 #include "IXRTrackingSystem.h"
 #include "HeadMountedDisplay.h"
-// 
+// ロードで使うやつ
 #include "Engine/StreamableManager.h"
 #include "Engine/AssetManager.h"
 #include "UObject/SoftObjectPath.h"
@@ -258,7 +258,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
@@ -298,13 +298,16 @@ void AVRDragon_ver2::OnSphereEndOverlap(
 
 // 入力イベント
 
-// プレイヤーのコントロール
+// プレイヤーのコントロール (デバッグ用)
 void AVRDragon_ver2::ControlPlayer(const FInputActionValue& Value) {
 
 	// inputのValueはVector2Dに変換できる
 	const FVector2D V = Value.Get<FVector2D>();
 
-	//newTailVec = FVector(V.X, V.Y, 0);
+	FVector PreLocation = GetActorLocation();
+	FVector NewLocation = PreLocation + (FVector(V.Y, V.X, 0) * 30.f);
+	CheckVec(NewLocation);
+	SetActorLocation(NewLocation);
 }
 
 // 火球コントロール
@@ -397,11 +400,14 @@ void AVRDragon_ver2::CheckVec(FVector& v_) {
 	if (v_.Y > 14700.f)		{ v_.Y = 14700.f; }
 	if (v_.Y < -14700.f)	{ v_.Y = -14700.f; }
 
+	FVector nowLocation = GetActorLocation();
+
 	// ボスの処理
-	//if (v_.X < 4050.f) { v_.X = 4050.f; }
-	//if (v_.X > -350.f) { v_.X = -350.f; }
-	//if (v_.Y < 3300.f) { v_.Y = 3300.f; }
-	//if (v_.Y > -3100.f) { v_.Y = -3100.f; }
+	if (v_.X > -350.f && v_.X < 4050.f ) { 
+		if (v_.Y > -3100.f && v_.Y < 3300.f) { 
+			v_ = nowLocation;
+		}
+	}
 }
 
 void AVRDragon_ver2::MovePlayer(float DeltaTime) {

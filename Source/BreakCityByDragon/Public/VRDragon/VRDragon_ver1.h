@@ -3,11 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "GameFramework/Pawn.h"
+#include "Components/StaticMeshComponent.h"
+#include "MotionControllerComponent.h"
+#include "InputActionValue.h"
 #include "VRDragon_ver1.generated.h"
 
+class UCameraComponent;
+class UInputMappingContext;
+class UInputAction;
+class AFireBall_ver2;
+
 UCLASS()
-class BREAKCITYBYDRAGON_API AVRDragon_ver1 : public ACharacter
+class BREAKCITYBYDRAGON_API AVRDragon_ver1 : public APawn
 {
 	GENERATED_BODY()
 
@@ -26,4 +34,26 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+private:
+
+	// 火球コントロール
+	void GoFire(const FInputActionValue& Value);
+
+	TWeakObjectPtr<AFireBall_ver2> FB;
+
+protected:
+
+	// カメラ
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> Camera;
+
+	// コントローラーのマッピング
+	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> ControlFire;
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<AActor> BlueprintFireBall;
 };

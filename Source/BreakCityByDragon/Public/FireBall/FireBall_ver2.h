@@ -73,6 +73,7 @@ private :
 
     bool DestroyFlag;
     float timeCnt;
+    float defaltTimeCnt;
 
     //Œø‰Ê‰¹ˆê‰ñ‚¾‚¯ƒvƒŒƒC
     bool bHitSFXPlayed = false;
@@ -81,4 +82,5 @@ private :
 
     const float FollowSpeed     = 3000.0f;
     const float MaxDestroyCnt   = 0.1f;
+    const float MaxDefaltDestroyCnt = 5.0f;
 };

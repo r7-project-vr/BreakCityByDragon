@@ -1,4 +1,4 @@
-ï»¿#include "FireBall/FireBall_ver2.h"
+#include "FireBall/FireBall_ver2.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -14,27 +14,28 @@
 AFireBall_ver2::AFireBall_ver2():
     DestroyFlag(false),
     timeCnt(0),
-    bHitSFXPlayed(false)
+    bHitSFXPlayed(false),
+    defaltTimeCnt(0)
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // 1. ãƒ•ã‚¡ã‚¤ãƒ¤ãƒ¼ãƒœãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚³ãƒ³ãƒãƒãƒ³ãƒˆ
+    // 1. ƒtƒ@ƒCƒ„[ƒ{[ƒ‹ƒ‚ƒfƒ‹ƒRƒ“ƒ|ƒlƒ“ƒg
     FireBall = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
     RootComponent = FireBall;
 
-    // 2. collisionã‚³ãƒ³ãƒãƒãƒ³ãƒˆ
+    // 2. collisionƒRƒ“ƒ|ƒlƒ“ƒg
     SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
     SphereComponent->SetupAttachment(RootComponent);
     SphereComponent->SetCollisionProfileName(TEXT("OverlapAll"));
     SphereComponent->SetSphereRadius(100.0f);
 
-    // 3. ??æ??ä¾‹ï¼ˆåœ¨ BeginPlay ??å»ºï¼Œ?ä¿ BaseMaterialAsset å·²??ï¼‰
+    // 3. ??Ş??—áiİ BeginPlay ??ŒšC?•Û BaseMaterialAsset ›ß??j
 
-    // 4. ãƒˆãƒ¬ãƒ¼ãƒ³ã‚³ãƒ³ãƒãƒãƒ³ãƒˆ
+    // 4. ƒgƒŒ[ƒ“ƒRƒ“ƒ|ƒlƒ“ƒg
     TrailComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailComponent"));
     TrailComponent->SetupAttachment(RootComponent);
 
-    // 5. ?å®š?æ’äº‹ä»¶
+    // 5. ?’è?“³–Œ
     SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AFireBall_ver2::OnHit);
 }
 
@@ -42,13 +43,13 @@ void AFireBall_ver2::BeginPlay()
 {
     Super::BeginPlay();
 
-    //ç™ºå°„ã®åŠ¹æœéŸ³
+    //”­Ë‚ÌŒø‰Ê‰¹
     if (LaunchSFX)
     {
         UGameplayStatics::PlaySoundAtLocation(this, LaunchSFX, GetActorLocation());
     }
 
-    // ?å»ºå¹¶?ç”¨??æ??ä¾‹
+    // ?Œš›ó?—p??Ş??—á
     if (BaseMaterialAsset && FireBall)
     {
         UMaterialInstanceDynamic* DynMat = UMaterialInstanceDynamic::Create(BaseMaterialAsset, this);
@@ -59,7 +60,7 @@ void AFireBall_ver2::BeginPlay()
         }
     }
 
-    // æ¿€æ´»?å°¾ç‰¹æ•ˆ
+    // ŒƒŠˆ?”ö“ÁÁ
     if (TrailEffectAsset && TrailComponent)
     {
         TrailComponent->SetAsset(TrailEffectAsset);
@@ -72,6 +73,13 @@ void AFireBall_ver2::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
     FVector NewLocation = GetActorLocation() + (GetActorRotation().Vector().GetSafeNormal() * FollowSpeed * DeltaTime);
     SetActorLocation(NewLocation);
+
+    defaltTimeCnt += DeltaTime;
+
+    if (defaltTimeCnt >= MaxDefaltDestroyCnt) {
+
+        this->Destroy();
+    }
 
     if (DestroyFlag) {
 
@@ -101,7 +109,7 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     //PrimaryActorTick.bCanEverTick = false;
     //SetLifeSpan(2.0f);
 
-    //Attackã®æ™‚ã«åŠ¹æœéŸ³ä¸€å›ãƒ—ãƒ¬ã‚¤
+    //Attack‚Ì‚ÉŒø‰Ê‰¹ˆê‰ñƒvƒŒƒC
     if (!bHitSFXPlayed && HitSFX) {
         UKismetSystemLibrary::PrintString(GetWorld(),
             TEXT("OnHit fired!"), true, true, FLinearColor::Green, 1.5f);//test
@@ -117,27 +125,27 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
         bHitSFXPlayed = true;
     }
 
-    // --- Attackæ‰€ã§çˆ†ç™ºã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ãƒ—ãƒ¬ã‚¤ ---
-    // 1. ãƒã‚§ãƒƒã‚¯ã‚¨ãƒ•ã‚§ã‚¯ãƒˆArrayã¯Nullã‹ã©ã†ã‹
+    // --- AttackŠ‚Å”š”­‚ÌƒGƒtƒFƒNƒg‚ğƒvƒŒƒC ---
+    // 1. ƒ`ƒFƒbƒNƒGƒtƒFƒNƒgArray‚ÍNull‚©‚Ç‚¤‚©
     if (HitNiagaraEffects.Num() > 0)
     {
-        // 2. 0 ã‹ã‚‰é…åˆ—ã®æœ«å°¾ã¾ã§ã®ç¯„å›²ã§ãƒ©ãƒ³ãƒ€ãƒ ãªã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ç”Ÿæˆã™ã‚‹
+        // 2. 0 ‚©‚ç”z—ñ‚Ì––”ö‚Ü‚Å‚Ì”ÍˆÍ‚Åƒ‰ƒ“ƒ_ƒ€‚ÈƒCƒ“ƒfƒbƒNƒX‚ğ¶¬‚·‚é
         const int32 RandomIndex = FMath::RandRange(0, HitNiagaraEffects.Num() - 1);
 
-        // 3. ãƒ©ãƒ³ãƒ€ãƒ ãªã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ä½¿ã£ã¦é…åˆ—ã‹ã‚‰Niagaraã‚·ã‚¹ãƒ†ãƒ ã‚’å–å¾—ã™ã‚‹
+        // 3. ƒ‰ƒ“ƒ_ƒ€‚ÈƒCƒ“ƒfƒbƒNƒX‚ğg‚Á‚Ä”z—ñ‚©‚çNiagaraƒVƒXƒeƒ€‚ğæ“¾‚·‚é
         UNiagaraSystem* SelectedEffect = HitNiagaraEffects[RandomIndex];
 
-        // 4. é¸æŠã—ãŸã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒæœ‰åŠ¹ï¼ˆnullptr ã§ã¯ãªã„ï¼‰ã§ã‚ã‚‹ã“ã¨ã‚’ç¢ºèªã™ã‚‹
+        // 4. ‘I‘ğ‚µ‚½ƒGƒtƒFƒNƒg‚ª—LŒøinullptr ‚Å‚Í‚È‚¢j‚Å‚ ‚é‚±‚Æ‚ğŠm”F‚·‚é
         if (SelectedEffect)
         {
             FVector ImpactLocation;
-            // è¡çªçµæœï¼ˆSweepResultï¼‰ã‹ã‚‰æ­£ç¢ºãªãƒ’ãƒƒãƒˆä½ç½®ã¨æ³•ç·šæ–¹å‘ã‚’å–å¾—ã™ã‚‹
+            // Õ“ËŒ‹‰ÊiSweepResultj‚©‚ç³Šm‚ÈƒqƒbƒgˆÊ’u‚Æ–@ü•ûŒü‚ğæ“¾‚·‚é
             //const FVector ImpactLocation = SweepResult.ImpactPoint;
             OtherComp->GetClosestPointOnCollision(GetActorLocation(), ImpactLocation);
             //const FRotator ImpactRotation = SweepResult.ImpactNormal.Rotation();
             const FRotator ImpactRotation = (GetActorLocation() - ImpactLocation).Rotation();
 
-            // 5. ãƒ’ãƒƒãƒˆåœ°ç‚¹ã« Niagara ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã™ã‚‹
+            // 5. ƒqƒbƒg’n“_‚É Niagara ƒGƒtƒFƒNƒg‚ğ¶¬‚·‚é
             UNiagaraFunctionLibrary::SpawnSystemAtLocation(
                 GetWorld(),
                 SelectedEffect,
