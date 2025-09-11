@@ -9,7 +9,6 @@
 #include "Components/StaticMeshComponent.h"
 #include "MotionControllerComponent.h"
 #include "InputActionValue.h"
-#include "VRDragon/TailActor.h"
 #include "ITailInformaition.h"
 #include "UI/DamageText.h"
 #include "ASerial/ASerialReceiverActor.h"
@@ -130,12 +129,9 @@ protected:
 
 	void LoadMeshAsync();
 
-	// デバイスからの値をゲームに反映させる関数
-	void SerialReceiver();
-
 private:
 
-	float MoveSpeedPoint = 200.0f;
+	float MoveSpeedPoint = 50.0f;
 
 	bool CanFire;
 
