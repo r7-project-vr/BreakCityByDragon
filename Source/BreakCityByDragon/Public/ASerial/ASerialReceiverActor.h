@@ -6,13 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "ASerialLibControllerWin.h"
 #include "Containers/Queue.h"
+#include "ASerial/DeviceRotation.h"
 #include "ASerialReceiverActor.generated.h"
 
 class UASerialLibControllerWin;
 class FRunnableThread;
 class WindowsSerial;
 class FDeviceComandTask;
-
 
 UCLASS()
 class BREAKCITYBYDRAGON_API AASerialReceiverActor : public AActor
@@ -35,6 +35,9 @@ public:
 
 	FRotator GetRotation(int SencerNum);
 
+	// Šp“x‚ðŽæ“¾‚·‚é
+	void GetDeviceRotate(FRotator* r);
+
 public :
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Device Data")
@@ -47,8 +50,10 @@ private:
 
 	WindowsSerial* SerialInterface;
 	class FDeviceComandTask* DCT;
-	FRotator DeviceRotation[3];
+	FRotator DeviceRotate[3];
 	bool IsDeviceConnected;
+
+	DeviceRotation* DR;
 
 	bool IsCalibration = true;
 	float DeviceCnt = 0;

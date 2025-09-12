@@ -98,6 +98,7 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 {
     
     if (OtherActor == this) return;
+    if (DestroyFlag) return;
 
     //Attackの時に効果音一回プレイ
     if (!bHitSFXPlayed && HitSFX) {
@@ -115,38 +116,37 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
         bHitSFXPlayed = true;
     }
 
-    // --- Attack所で爆発のエフェクトをプレイ ---
-    // 1. チェックエフェクトArrayはNullかどうか
-    //if (HitNiagaraEffects.Num() > 0)
-    //{
-    //    // 2. 0 から配列の末尾までの範囲でランダムなインデックスを生成する
-    //    const int32 RandomIndex = FMath::RandRange(0, HitNiagaraEffects.Num() - 1);
+     /*--- Attack所で爆発のエフェクトをプレイ ---
+     1. チェックエフェクトArrayはNullかどうか*/
+    if (HitNiagaraEffects.Num() > 0)
+    {
+        // 2. 0 から配列の末尾までの範囲でランダムなインデックスを生成する
+        const int32 RandomIndex = FMath::RandRange(0, HitNiagaraEffects.Num() - 1);
 
-    //    // 3. ランダムなインデックスを使って配列からNiagaraシステムを取得する
-    //    UNiagaraSystem* SelectedEffect = HitNiagaraEffects[RandomIndex];
+        // 3. ランダムなインデックスを使って配列からNiagaraシステムを取得する
+        UNiagaraSystem* SelectedEffect = HitNiagaraEffects[RandomIndex];
 
-    //    // 4. 選択したエフェクトが有効（nullptr ではない）であることを確認する
-    //    if (SelectedEffect)
-    //    {
-    //        FVector ImpactLocation;
-    //        // 衝突結果（SweepResult）から正確なヒット位置と法線方向を取得する
-    //        //const FVector ImpactLocation = SweepResult.ImpactPoint;
-    //        OtherComp->GetClosestPointOnCollision(GetActorLocation(), ImpactLocation);
-    //        //const FRotator ImpactRotation = SweepResult.ImpactNormal.Rotation();
-    //        const FRotator ImpactRotation = (GetActorLocation() - ImpactLocation).Rotation();
+        // 4. 選択したエフェクトが有効（nullptr ではない）であることを確認する
+        if (SelectedEffect)
+        {
+            FVector ImpactLocation;
+            // 衝突結果（SweepResult）から正確なヒット位置と法線方向を取得する
+            //const FVector ImpactLocation = SweepResult.ImpactPoint;
+            OtherComp->GetClosestPointOnCollision(GetActorLocation(), ImpactLocation);
+            //const FRotator ImpactRotation = SweepResult.ImpactNormal.Rotation();
+            const FRotator ImpactRotation = (GetActorLocation() - ImpactLocation).Rotation();
 
-    //        // 5. ヒット地点に Niagara エフェクトを生成する
-    //        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-    //            GetWorld(),
-    //            SelectedEffect,
-    //            ImpactLocation,
-    //            ImpactRotation
-    //        );
-    //    }
-    //}
+            // 5. ヒット地点に Niagara エフェクトを生成する
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                GetWorld(),
+                SelectedEffect,
+                ImpactLocation,
+                ImpactRotation
+            );
+        }
+    }
     
 
     DestroyFlag = true;
     UE_LOG(LogTemp, Warning, TEXT("Hit"));
-    /*this->Destroy();*/
 }

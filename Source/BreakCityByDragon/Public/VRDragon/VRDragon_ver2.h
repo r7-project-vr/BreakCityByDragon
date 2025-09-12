@@ -26,7 +26,7 @@ class ATailActor;
 class UBoxComponent;
 
 UCLASS()
-class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn, public IITailInformaition
+class BREAKCITYBYDRAGON_API AVRDragon_ver2 : public APawn
 {
 	GENERATED_BODY()
 
@@ -44,10 +44,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual FVector GetTargetActorLocation() override;
-	virtual FRotator GetTargetActorRotation() override;
-	virtual FVector GetTargetActorForwardVector() override;
 
 private:
 
@@ -153,7 +149,7 @@ private:
 	USkeletalMesh* LFootMesh; // ç∂ãr
 	USkeletalMesh* RFootMesh; // âEãr
 
-	AASerialReceiverActor* ASerialReceiverActor;
+	TWeakObjectPtr<AASerialReceiverActor> ASerialReceiverActor;
 	
 
 	// ----------------------------
@@ -175,10 +171,4 @@ private:
 		FVector(),
 		FVector()
 	};
-
-public :
-
-		// UI
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-		TSubclassOf<class UDamageText> DamageTextClass;
 };

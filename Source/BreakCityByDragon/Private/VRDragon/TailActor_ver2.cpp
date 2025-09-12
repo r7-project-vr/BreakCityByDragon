@@ -9,7 +9,6 @@
 
 // Sets default values
 ATailActor_ver2::ATailActor_ver2() :
-    SerialReceiver(nullptr),
     TailInstance(nullptr)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -25,6 +24,10 @@ ATailActor_ver2::ATailActor_ver2() :
     SoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
         FSoftObjectPath(TEXT("/Game/Dradon/TailSkeleton.TailSkeleton"))
     );
+
+    int size = sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
+    for (int n = 0; n < size; n++)
+        DeviceRotate[n] = FRotator::ZeroRotator;
 }
 
 // Called when the game starts or when spawned
@@ -104,10 +107,20 @@ void ATailActor_ver2::UpdateTailRotation() {
 
     if (!SkeletalMeshComponent) return;
     if (!TailInstance)return;
-    if (!SerialReceiver)return;
 
-    TailInstance->TailBoneRotation_Senser1 = SerialReceiver->GetRotation(1);
-    TailInstance->TailBoneRotation_Senser2 = SerialReceiver->GetRotation(2);
-    TailInstance->TailBoneRotation_Senser3 = SerialReceiver->GetRotation(3);
+    TailInstance->TailBoneRotation_Senser1 = DeviceRotate[0];
+    TailInstance->TailBoneRotation_Senser2 = DeviceRotate[1];
+    TailInstance->TailBoneRotation_Senser3 = DeviceRotate[2];
+}
+
+void ATailActor_ver2::SetDeviceRotate(FRotator* r) {
+
+    int size = sizeof(r) / sizeof((r)[0]);
+    int RotateSize = sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
+
+    if (size != RotateSize) { return; }
+
+    for (int n = 0; n < RotateSize; n++)
+        DeviceRotate[n] = *(r);
 }
 

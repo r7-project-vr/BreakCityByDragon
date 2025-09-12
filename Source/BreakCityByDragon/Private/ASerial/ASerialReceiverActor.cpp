@@ -14,7 +14,7 @@ private:
 
 	UASerialLibControllerWin* Device;
 
-	static FRotator I_uintToint(uint8_t* g_) {
+	FRotator I_uintToint(uint8_t* g_) {
 
 		FRotator rotaion = FRotator::ZeroRotator;
 
@@ -60,19 +60,18 @@ public:
 	
 	void GetSerialCalibration() {
 
-		Device->WriteData(0x00);
+		//Device->WriteData(0x00);
 
-		// ÉçÉO
-		uint16_t Error1 = Device->GetLastErrorCode();
-		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error1);
+		//// ÉçÉO
+		//uint16_t Error1 = Device->GetLastErrorCode();
+		//UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error1);
 
-		UE_LOG(LogTemp, Log, TEXT("Device Reset"));
+		//UE_LOG(LogTemp, Log, TEXT("Device Reset"));
 
 
 		Device->WriteData(0x26);
 		ASerialDataStruct::ASerialData ReceiveData;
 
-		FPlatformProcess::Sleep(2.0f);
 		int Result = Device->ReadData(&ReceiveData);
 
 		// ÉçÉO
@@ -117,7 +116,7 @@ AASerialReceiverActor::AASerialReceiverActor()
 
 	for (int i = 0; i < 3; i++) {
 
-		DeviceRotation[i] = FRotator::ZeroRotator;
+		DeviceRotate[i] = FRotator::ZeroRotator;
 	}
 	
 }
@@ -176,10 +175,8 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 		for (int n = 1; n <= 3; n++) {
 
-			DeviceRotation[n - 1] = DCT->GetSeneserRotation(n);
+			DeviceRotate[n - 1] = DCT->GetSeneserRotation(n);
 		}
-		
-		//DeviceRotation[2] = DCT->GetSeneserRotation(2);
 	}
 }
 
@@ -207,5 +204,16 @@ FRotator AASerialReceiverActor::GetRotation(int s_) {
 		return FRotator::ZeroRotator;
 	}
 
-	return DeviceRotation[s_ - 1];
+	return DeviceRotate[s_ - 1];
+}
+
+void AASerialReceiverActor::GetDeviceRotate(FRotator* r) {
+
+	int size = sizeof(r) / sizeof((r)[0]);
+	int RotateSize= sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
+
+	if (size != RotateSize) { return; }
+
+	for (int n = 0; n < RotateSize; n++)
+		*(r) = DeviceRotate[n];
 }
