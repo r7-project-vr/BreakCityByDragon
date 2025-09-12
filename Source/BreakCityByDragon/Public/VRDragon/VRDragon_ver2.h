@@ -86,6 +86,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> LookAction;
 
+	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> ESCAction;
+
 	UPROPERTY(VisibleAnywhere, Category = Control, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> Arrow;
 
@@ -112,6 +115,9 @@ protected:
 
 	// カメラコントロール
 	void Look(const FInputActionValue& Value);
+
+	// カメラコントロール
+	void ESCtoStart(const FInputActionValue& Value);
 
 	// VRカメラ
 	bool GetHMDPose(FVector& OutPosition, FRotator& OutRotation);

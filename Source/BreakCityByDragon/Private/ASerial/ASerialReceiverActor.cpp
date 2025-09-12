@@ -102,6 +102,12 @@ public:
 
 		int Result = Device->ReadData(&ReceiveData);
 
+		// ƒƒO
+		uint16_t Error = Device->GetLastErrorCode();
+		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
+		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
+		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
+
 		rotation = I_uintToint(ReceiveData.data);
 
 		return rotation;
@@ -109,7 +115,8 @@ public:
 };
 
 // Sets default values
-AASerialReceiverActor::AASerialReceiverActor()
+AASerialReceiverActor::AASerialReceiverActor():
+	index(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -173,10 +180,14 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	
 		DeviceCnt = 0;
 
-		for (int n = 1; n <= 3; n++) {
+		index++;
 
-			DeviceRotate[n - 1] = DCT->GetSeneserRotation(n);
-		}
+		if (index >= 1000000)
+			index = 0;
+
+		int i = index % 3;
+
+		DeviceRotate[i] = DCT->GetSeneserRotation(i + 1);
 	}
 }
 
@@ -209,7 +220,7 @@ FRotator AASerialReceiverActor::GetRotation(int s_) {
 
 void AASerialReceiverActor::GetDeviceRotate(FRotator* r) {
 
-	int size = sizeof(r) / sizeof((r)[0]);
+	int size = sizeof(*r) / sizeof(r[0]);
 	int RotateSize= sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
 
 	if (size != RotateSize) { return; }

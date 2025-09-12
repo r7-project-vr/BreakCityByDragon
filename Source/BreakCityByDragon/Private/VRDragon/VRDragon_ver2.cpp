@@ -80,6 +80,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	// Camera
 	{
 		CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
+		CameraRoot->SetupAttachment(RootComponent);
 
 		// Cameraを追加する
 		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
@@ -136,6 +137,9 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 		// Input Action「IA_DragonLook」を読み込む
 		LookAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonLook"));
+
+		// Input Action「IA_ESC」を読み込む
+		ESCAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_ESC"));
 	}
 
 	// Arrowの初期化
@@ -344,6 +348,14 @@ void AVRDragon_ver2::Look(const FInputActionValue& Value) {
 		// 移動方向を指定する
 		FRotator ArrowRotate = FRotator(0, controlRotate.Yaw, 0);
 		Arrow->SetWorldRotation(ArrowRotate);
+	}
+}
+
+void AVRDragon_ver2::ESCtoStart(const FInputActionValue& Value) {
+
+	if (const bool B = Value.Get<bool>()) {
+
+		//UGameplayStatics::OpenLevel(this, FName("Level2"));
 	}
 }
 
