@@ -98,16 +98,7 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 {
     
     if (OtherActor == this) return;
-    //if (!OtherActor || OtherActor == this) return;
-
-    //if (TrailComponent)
-    //{
-    //    TrailComponent->Deactivate();
-    //}
-    //FireBall->SetVisibility(false);
-    //SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    //PrimaryActorTick.bCanEverTick = false;
-    //SetLifeSpan(2.0f);
+    if (DestroyFlag) return;
 
     //Attackの時に効果音一回プレイ
     if (!bHitSFXPlayed && HitSFX) {
@@ -125,8 +116,8 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
         bHitSFXPlayed = true;
     }
 
-    // --- Attack所で爆発のエフェクトをプレイ ---
-    // 1. チェックエフェクトArrayはNullかどうか
+     /*--- Attack所で爆発のエフェクトをプレイ ---
+     1. チェックエフェクトArrayはNullかどうか*/
     if (HitNiagaraEffects.Num() > 0)
     {
         // 2. 0 から配列の末尾までの範囲でランダムなインデックスを生成する
@@ -158,5 +149,4 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
     DestroyFlag = true;
     UE_LOG(LogTemp, Warning, TEXT("Hit"));
-    /*this->Destroy();*/
 }
