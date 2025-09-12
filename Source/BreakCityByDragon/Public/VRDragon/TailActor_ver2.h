@@ -25,6 +25,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// Šp“x‚ğæ“¾‚·‚é
+	void SetDeviceRotate(FRotator* r);
+
+private:
+
 	// ”ñ“¯Šú‚ÅƒƒbƒVƒ…‚ğ“Ç‚İ‚Ş
 	void LoadMeshAsync();
 
@@ -44,7 +49,8 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* SkeletalMeshComponent;
 
-	AASerialReceiverActor* SerialReceiver;
-
 	UTailAnimInstance* TailInstance;
+
+private :
+	FRotator DeviceRotate[3];
 };

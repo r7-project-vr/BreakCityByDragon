@@ -79,7 +79,6 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 	// Camera
 	{
-		// HMDの原点
 		CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
 		CameraRoot->SetupAttachment(RootComponent);
 
@@ -138,6 +137,9 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 		// Input Action「IA_DragonLook」を読み込む
 		LookAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_DragonLook"));
+
+		// Input Action「IA_ESC」を読み込む
+		ESCAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/VRTemplate/Input/Actions/Dragon/IA_ESC"));
 	}
 
 	// Arrowの初期化
@@ -161,15 +163,6 @@ AVRDragon_ver2::AVRDragon_ver2() :
 			BlueprintFireBall = BPClass.Class;
 		}
 	}
-
-	// UI
-	{
-		static ConstructorHelpers::FClassFinder<UDamageText> WidgetClass(TEXT("/Game/WBP_TEstDamageTExt"));
-		if (WidgetClass.Succeeded())
-		{
-			DamageTextClass = WidgetClass.Class;
-		}
-	}
 }
 
 // Called when the game starts or when spawned
@@ -177,7 +170,7 @@ void AVRDragon_ver2::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//Add Input Mapping Context
+	// インプットアクションコンテキスト
 	if (const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -202,6 +195,8 @@ void AVRDragon_ver2::BeginPlay()
 	{
 		FRotator r = FRotator::ZeroRotator;
 		FVector v = FVector::ZeroVector;
+
+		if(!ASerialReceiverActor.IsValid())
 		ASerialReceiverActor = GetWorld()->SpawnActor<AASerialReceiverActor>(AASerialReceiverActor::StaticClass(), v, r);
 	}
 
@@ -213,7 +208,6 @@ void AVRDragon_ver2::BeginPlay()
 
 		tails = GetWorld()->SpawnActor<ATailActor_ver2>(ATailActor_ver2::StaticClass(), pos, look);
 		tails->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
-		tails->SerialReceiver = ASerialReceiverActor;
 	}
 
 	// VRの手
@@ -317,17 +311,6 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		if (DamageTextClass)
-		{
-			UDamageText* DamageText = CreateWidget<UDamageText>(GetWorld(), DamageTextClass);
-			if (DamageText)
-			{
-				DamageText->AddToViewport();
-				DamageText->SetDesiredSizeInViewport(FVector2D(200.f, 100.f));
-			}
-		}
-
-
 		if (FireChargeCnt >= 2.f)
 		{
 			FRotator look = GetControlRotation();
@@ -365,6 +348,14 @@ void AVRDragon_ver2::Look(const FInputActionValue& Value) {
 		// 移動方向を指定する
 		FRotator ArrowRotate = FRotator(0, controlRotate.Yaw, 0);
 		Arrow->SetWorldRotation(ArrowRotate);
+	}
+}
+
+void AVRDragon_ver2::ESCtoStart(const FInputActionValue& Value) {
+
+	if (const bool B = Value.Get<bool>()) {
+
+		//UGameplayStatics::OpenLevel(this, FName("Level2"));
 	}
 }
 
@@ -519,22 +510,4 @@ void AVRDragon_ver2::LoadMeshAsync() {
 			FStreamableDelegate::CreateUObject(this, &AVRDragon_ver2::OnMeshLoaded)
 		);
 	}
-}
-
-// しっぽの付け根を返す
-FVector AVRDragon_ver2::GetTargetActorLocation() {
-
-	return GetActorLocation();
-}
-
-// しっぽの角度を返す
-FRotator AVRDragon_ver2::GetTargetActorRotation() {
-
-	return GetActorRotation();
-}
-
-// アクターの前方方向のベクトルを返す
-FVector AVRDragon_ver2::GetTargetActorForwardVector() {
-
-	return GetActorForwardVector();
 }

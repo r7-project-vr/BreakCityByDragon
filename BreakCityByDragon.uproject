@@ -49,7 +49,7 @@
 			"Enabled": true
 		},
 		{
-			"Name": "ModelingToolsEditorMode",
+			"Name": "DatasmithFBXImporter",
 			"Enabled": true
 		}
 	],

@@ -14,7 +14,7 @@ private:
 
 	UASerialLibControllerWin* Device;
 
-	static FRotator I_uintToint(uint8_t* g_) {
+	FRotator I_uintToint(uint8_t* g_) {
 
 		FRotator rotaion = FRotator::ZeroRotator;
 
@@ -60,19 +60,18 @@ public:
 	
 	void GetSerialCalibration() {
 
-		Device->WriteData(0x00);
+		//Device->WriteData(0x00);
 
-		// ログ
-		uint16_t Error1 = Device->GetLastErrorCode();
-		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error1);
+		//// ログ
+		//uint16_t Error1 = Device->GetLastErrorCode();
+		//UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error1);
 
-		UE_LOG(LogTemp, Log, TEXT("Device Reset"));
+		//UE_LOG(LogTemp, Log, TEXT("Device Reset"));
 
 
 		Device->WriteData(0x26);
 		ASerialDataStruct::ASerialData ReceiveData;
 
-		FPlatformProcess::Sleep(2.0f);
 		int Result = Device->ReadData(&ReceiveData);
 
 		// ログ
@@ -103,6 +102,12 @@ public:
 
 		int Result = Device->ReadData(&ReceiveData);
 
+		// ログ
+		uint16_t Error = Device->GetLastErrorCode();
+		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
+		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
+		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
+
 		rotation = I_uintToint(ReceiveData.data);
 
 		return rotation;
@@ -110,14 +115,15 @@ public:
 };
 
 // Sets default values
-AASerialReceiverActor::AASerialReceiverActor()
+AASerialReceiverActor::AASerialReceiverActor():
+	index(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	for (int i = 0; i < 3; i++) {
 
-		DeviceRotation[i] = FRotator::ZeroRotator;
+		DeviceRotate[i] = FRotator::ZeroRotator;
 	}
 	
 }
@@ -174,12 +180,14 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	
 		DeviceCnt = 0;
 
-		for (int n = 1; n <= 3; n++) {
+		index++;
 
-			DeviceRotation[n - 1] = DCT->GetSeneserRotation(n);
-		}
-		
-		//DeviceRotation[2] = DCT->GetSeneserRotation(2);
+		if (index >= 1000000)
+			index = 0;
+
+		int i = index % 3;
+
+		DeviceRotate[i] = DCT->GetSeneserRotation(i + 1);
 	}
 }
 
@@ -207,5 +215,16 @@ FRotator AASerialReceiverActor::GetRotation(int s_) {
 		return FRotator::ZeroRotator;
 	}
 
-	return DeviceRotation[s_ - 1];
+	return DeviceRotate[s_ - 1];
+}
+
+void AASerialReceiverActor::GetDeviceRotate(FRotator* r) {
+
+	int size = sizeof(*r) / sizeof(r[0]);
+	int RotateSize= sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
+
+	if (size != RotateSize) { return; }
+
+	for (int n = 0; n < RotateSize; n++)
+		*(r) = DeviceRotate[n];
 }
