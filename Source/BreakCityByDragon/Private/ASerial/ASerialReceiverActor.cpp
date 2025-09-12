@@ -142,6 +142,8 @@ void AASerialReceiverActor::BeginPlay()
 	{
 		IsDeviceConnected = true;
 		UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
+
+		SerialController->WriteData(0x00);
 	}
 	else
 	{
