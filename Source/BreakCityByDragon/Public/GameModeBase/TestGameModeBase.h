@@ -35,6 +35,6 @@ private:
 	// ’è”
 	// ----------------------
 
-	const float MaxGameTime = 180.f;
+	const float MaxGameTime = 30.f;
 
 };
