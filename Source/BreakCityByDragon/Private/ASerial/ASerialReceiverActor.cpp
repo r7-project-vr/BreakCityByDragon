@@ -60,15 +60,6 @@ public:
 	
 	void GetSerialCalibration() {
 
-		//Device->WriteData(0x00);
-
-		//// ログ
-		//uint16_t Error1 = Device->GetLastErrorCode();
-		//UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error1);
-
-		//UE_LOG(LogTemp, Log, TEXT("Device Reset"));
-
-
 		Device->WriteData(0x26);
 		ASerialDataStruct::ASerialData ReceiveData;
 
@@ -126,6 +117,7 @@ AASerialReceiverActor::AASerialReceiverActor():
 		DeviceRotate[i] = FRotator::ZeroRotator;
 	}
 	
+	handle = 0;
 }
 
 // Called when the game starts or when spawned
@@ -138,10 +130,13 @@ void AASerialReceiverActor::BeginPlay()
 	SerialController->Initialize(0x04, 0x01);
 	SerialController->SetInterfacePt(SerialInterface);
 
-	if (SerialController->AutoConnectDevice() == ConnectResult::Succ)
+	if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
 	{
 		IsDeviceConnected = true;
 		UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
+
+		// メモリのクリア
+		PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
 		SerialController->WriteData(0x00);
 	}
@@ -150,7 +145,12 @@ void AASerialReceiverActor::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
 	}
 
+	// メモリのクリア
+	PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+
 	DCT = new FDeviceComandTask(SerialController);
+
+	DCT->GetSerialCalibration();
 }
 
 // Called every frame
@@ -170,7 +170,10 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 			DeviceCnt = 0;
 			IsCalibration = false;
-			DCT -> GetSerialCalibration();
+
+			// メモリのクリア
+			PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+
 			UE_LOG(LogTemp, Log, TEXT("Calibration End"));
 		}
 
@@ -184,12 +187,14 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 		index++;
 
-		if (index >= 1000000)
-			index = 0;
+		if (index >= 1000000) index = 0;
 
 		int i = index % 3;
 
 		DeviceRotate[i] = DCT->GetSeneserRotation(i + 1);
+
+		FString s = DeviceRotate[i].ToString();
+		UE_LOG(LogTemp, Log, TEXT("Rotatino%d ; %s"), i + 1, *s);
 	}
 }
 

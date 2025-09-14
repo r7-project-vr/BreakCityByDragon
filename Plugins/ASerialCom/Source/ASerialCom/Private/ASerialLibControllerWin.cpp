@@ -37,13 +37,13 @@ void UASerialLibControllerWin::Initialize(int target_device_id, int device_ver_m
     m_device_ver_min = device_ver_min;
 }
 
-ConnectResult UASerialLibControllerWin::ConnectDevice(int COM_num)
+ConnectResult UASerialLibControllerWin::ConnectDevice(int COM_num, HANDLE& h_)
 {
     if (GetConnectionState() == true) {
         return ConnectResult::Fail;
     }
 
-    int st = m_inteface->OpenPort(COM_num);
+    int st = m_inteface->OpenPort(COM_num, h_);
     if (st != 0) {
         return ConnectResult::Fail;
     }
@@ -84,7 +84,7 @@ ConnectResult UASerialLibControllerWin::ConnectDevice(int COM_num)
     return ConnectResult::Succ;
 }
 
-ConnectResult UASerialLibControllerWin::AutoConnectDevice() {
+ConnectResult UASerialLibControllerWin::AutoConnectDevice(HANDLE& h_) {
 
     if (GetConnectionState() == true) {
         return ConnectResult::Fail;
@@ -93,7 +93,7 @@ ConnectResult UASerialLibControllerWin::AutoConnectDevice() {
     ConnectResult ret = ConnectResult::Fail;
 
     for (int i = 1; i <= 255; ++i) {
-        int st = ConnectDevice(i);
+        int st = ConnectDevice(i, h_);
         if (st == 0) {
 
             m_com = i;
@@ -134,7 +134,6 @@ int UASerialLibControllerWin::ReadDataProcess(ASerialDataStruct::ASerialData* re
     int st = 0;
     if (m_inteface->available() > 0) {
         uint8_t read_c = (uint8_t)m_inteface->read();
-        UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), read_c);
         st = this->ReadPacketData(read_c, read_data_buf);
     }
 

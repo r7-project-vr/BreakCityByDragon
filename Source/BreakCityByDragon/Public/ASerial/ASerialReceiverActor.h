@@ -54,6 +54,7 @@ private:
 	bool IsDeviceConnected;
 
 	DeviceRotation* DR;
+	HANDLE handle;
 
 	bool IsCalibration = true;
 	float DeviceCnt = 0;
@@ -61,5 +62,5 @@ private:
 	int index;
 
 	const float MaxDeviceCnt = 1.0f / 30.f;
-	const float MaxCalibrationTime = 1.0f;
+	const float MaxCalibrationTime = 5.0f;
 };
