@@ -25,6 +25,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// 初期角度調整用
+	bool ResetRotation(FRotator* r, int index);
+
 	// 角度を取得する
 	void SetDeviceRotate(FRotator* r,int size);
 
@@ -39,6 +42,9 @@ private:
 	// メッシュ読み込み後に呼ばれるコールバック関数
 	void OnMeshLoaded();
 
+	// 角度調整用
+	void SetRotation(FRotator& r);
+
 	// 尻尾の回転
 	void UpdateTailRotation();
 
@@ -52,5 +58,15 @@ public:
 	UTailAnimInstance* TailInstance;
 
 private :
+
+	// 変数
+
 	FRotator DeviceRotate[3];
+	FRotator FirstRotate[3];
+	bool FirstRotateSetFlag;
+
+	// 定数
+
+	const float PitchProduct = (1.f / 5.f);
+	const float RollProduct = 2.f;
 };

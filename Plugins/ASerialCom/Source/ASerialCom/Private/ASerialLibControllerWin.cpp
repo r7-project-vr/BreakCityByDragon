@@ -60,8 +60,6 @@ ConnectResult UASerialLibControllerWin::ConnectDevice(int COM_num, HANDLE& h_)
         st = ReadDataProcess(&data_buf);
 
         if (st != 0 || clock() - read_time >= 50) {
-            //{ UE_LOG(LogTemp, Log, TEXT("data_buf : %x"), data_buf.data); }
-            { UE_LOG(LogTemp, Log, TEXT("clock() - read_time : %d"), clock() - read_time); }
             break;
         }
     }
@@ -70,10 +68,10 @@ ConnectResult UASerialLibControllerWin::ConnectDevice(int COM_num, HANDLE& h_)
         (data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)) {
         m_inteface->ClosePort();
 
-        if (clock() - read_time >= 100) { UE_LOG(LogTemp, Log, TEXT("clock() - read_time >= 1000")); }
+        /*if (clock() - read_time >= 100) { UE_LOG(LogTemp, Log, TEXT("clock() - read_time >= 1000")); }
         if (st == -1) { UE_LOG(LogTemp, Log, TEXT("st == -1")); }
         if (data_buf.data[0] != GetID()) { UE_LOG(LogTemp, Log, TEXT("data_buf.data[0] != GetID()")); }
-        if ((data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)) { UE_LOG(LogTemp, Log, TEXT("(data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)")); }
+        if ((data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)) { UE_LOG(LogTemp, Log, TEXT("(data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)")); }*/
 
         return ConnectResult::Fail;
     }

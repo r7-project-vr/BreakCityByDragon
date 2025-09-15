@@ -125,7 +125,7 @@ protected:
 	// ç¿ïWêßå‰
 	void CheckVec(FVector& PlayerNextVec);
 
-	void MovePlayer(float DeltaTime);
+	void MovePlayer(float DeltaTime,FRotator DeviceRotate);
 
 	void OnMeshLoaded();
 
@@ -136,12 +136,12 @@ private:
 	float MoveSpeedPoint = 50.0f;
 
 	bool CanFire;
+	bool IsSetFirstRotation;
 
 	float FireChargeCnt;
 
 	int tailLength = 1;
 
-	FVector newTailVec;
 	FVector preTailVec;
 
 	ATailActor_ver2* tails;// êKîˆ

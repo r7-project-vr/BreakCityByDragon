@@ -3,3 +3,7 @@
 
 #include "VRDragon/TailAnimInstance.h"
 
+UTailAnimInstance::UTailAnimInstance() {
+
+	TailBoneRotation_Senser.SetNum(3);
+}

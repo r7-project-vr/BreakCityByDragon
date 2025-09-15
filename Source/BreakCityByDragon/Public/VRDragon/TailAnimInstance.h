@@ -15,12 +15,9 @@ class BREAKCITYBYDRAGON_API UTailAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tail")
-	FRotator TailBoneRotation_Senser1;
+
+	UTailAnimInstance();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tail")
-	FRotator TailBoneRotation_Senser2;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tail")
-	FRotator TailBoneRotation_Senser3;
+	TArray<FRotator> TailBoneRotation_Senser;
 };

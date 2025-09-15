@@ -27,7 +27,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	FireChargeCnt(0),
 	CanFire(false),
 	preTailVec(0, 0, 0),
-	newTailVec(0, 0, 0)
+	IsSetFirstRotation(false)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -244,13 +244,23 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 		}
 	}
 
-	// K”ö‚ð“®‚©‚·
+	// ƒfƒoƒCƒX‚©‚çŠp“x‚ðŽæ“¾‚·‚é
 	FRotator tr[3];
 	ASerialReceiverActor->GetDeviceRotate(tr, 3);
-	tails->SetDeviceRotate(tr, 3);
 
 	// K”ö‚É‰ž‚¶‚Ä“®‚©‚·
-	MovePlayer(DeltaTime);
+	MovePlayer(DeltaTime, tr[2]);
+
+	// K”ö‚É‰Šú’l‚ð“ü—Í
+	if (!IsSetFirstRotation) {
+
+		IsSetFirstRotation = tails->ResetRotation(tr, 3);
+		return;
+	}
+
+	// K”ö‚ð“®‚©‚·
+	if(IsSetFirstRotation)
+		tails->SetDeviceRotate(tr, 3);
 }
 
 // Called to bind functionality to input
@@ -406,15 +416,17 @@ void AVRDragon_ver2::CheckVec(FVector& v_) {
 	}
 }
 
-void AVRDragon_ver2::MovePlayer(float DeltaTime) {
+void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
+
+	if (!IsSetFirstRotation)return;
 
 	// K”ö‚É‡‚í‚¹‚Ä“®‚©‚·
 	{
-		newTailVec =
+		FVector newTailVec =
 		{
-			ASerialReceiverActor->GetRotation(3).Roll,
-			ASerialReceiverActor->GetRotation(3).Pitch,
-			ASerialReceiverActor->GetRotation(3).Yaw
+			DeviceRotate.Roll,
+			DeviceRotate.Pitch,
+			DeviceRotate.Yaw
 		};
 
 		FVector p = newTailVec - preTailVec;
@@ -437,7 +449,7 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime) {
 		if (addpow < 0.0003f) { addpow = 0; }
 
 		FString s = newTailVec.ToString();
-		UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
+		//UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
 
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {

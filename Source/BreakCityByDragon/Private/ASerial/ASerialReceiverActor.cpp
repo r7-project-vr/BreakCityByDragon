@@ -75,14 +75,12 @@ public:
 #endif 	
 	}
 
-	FRotator GetSeneserRotation(int senserNum) {
-
-		FRotator rotation = FRotator::ZeroRotator;
+	void GetSeneserRotation(int senserNum, FRotator& r) {
 
 		if (senserNum < 1 || senserNum > 4) { 
 
 			UE_LOG(LogTemp, Error, TEXT("index is Non"))
-			return rotation;
+			return;
 		}
 
 		uint8_t index[3] = {
@@ -106,9 +104,10 @@ public:
 
 #endif // UE_DEBUG_LOG
 
-		rotation = I_uintToint(ReceiveData.data);
+		if(Result == 0)
+			r = I_uintToint(ReceiveData.data);
 
-		return rotation;
+		return;
 	}
 };
 
@@ -121,7 +120,7 @@ AASerialReceiverActor::AASerialReceiverActor():
 
 	for (int i = 0; i < 3; i++) {
 
-		DeviceRotate[i] = FRotator::ZeroRotator;
+		DeviceRotate[i] = FRotator(10000, 0, 0);//‰Šú’l‚Í‚Å‚½‚ç‚ß
 	}
 	
 	handle = 0;
@@ -192,16 +191,12 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	
 		DeviceCnt = 0;
 
-		index++;
-
-		if (index >= 1000000) index = 0;
-
 		int i = index % 3;
 
-		DeviceRotate[i] = DCT->GetSeneserRotation(i + 1);
+		DCT -> GetSeneserRotation(i + 1, DeviceRotate[i]);
 
-		FString s = DeviceRotate[i].ToString();
-		//UE_LOG(LogTemp, Log, TEXT("Rotatino%d ; %s"), i + 1, *s);
+		index++;
+		if (index >= 3) index = 0;
 	}
 }
 
