@@ -26,7 +26,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Šp“x‚ðŽæ“¾‚·‚é
-	void SetDeviceRotate(FRotator* r);
+	void SetDeviceRotate(FRotator* r,int size);
 
 private:
 

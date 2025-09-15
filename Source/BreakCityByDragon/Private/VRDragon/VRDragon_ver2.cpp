@@ -244,6 +244,11 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 		}
 	}
 
+	// K”ö‚ğ“®‚©‚·
+	FRotator tr[3];
+	ASerialReceiverActor->GetDeviceRotate(tr, 3);
+	tails->SetDeviceRotate(tr, 3);
+
 	// K”ö‚É‰‚¶‚Ä“®‚©‚·
 	MovePlayer(DeltaTime);
 }

@@ -22,7 +22,7 @@ ATailActor_ver2::ATailActor_ver2() :
 
     // アセットパス指定（プロジェクトに合わせて変更）
     SoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
-        FSoftObjectPath(TEXT("/Game/Dradon/TailSkeleton.TailSkeleton"))
+        FSoftObjectPath(TEXT("/Game/Dradon/Dragon_1/TailSkeleton.TailSkeleton"))
     );
 
     int size = sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
@@ -69,7 +69,7 @@ void ATailActor_ver2::LoadMeshAsync() {
 void ATailActor_ver2::LoadAnimBPAsync() {
 
     TSoftClassPtr<UAnimInstance> AnimBPClassRef = 
-        TSoftClassPtr<UAnimInstance>(FSoftObjectPath(TEXT("/Game/Dradon/TailAnimation.TailAnimation_C")));
+        TSoftClassPtr<UAnimInstance>(FSoftObjectPath(TEXT("/Game/Dradon/Dragon_1/TailAnimation.TailAnimation_C")));
 
     AnimBPClassRef.LoadSynchronous();
 
@@ -80,6 +80,7 @@ void ATailActor_ver2::LoadAnimBPAsync() {
         if (UTailAnimInstance* TI = Cast<UTailAnimInstance>(AnimInst)) {
 
             TailInstance = TI;
+            UE_LOG(LogTemp, Error, TEXT("AnimInstance successfully loaded!"));
         }
         else { 
             UE_LOG(LogTemp, Error, TEXT("No AnimInstance"));
@@ -113,14 +114,13 @@ void ATailActor_ver2::UpdateTailRotation() {
     TailInstance->TailBoneRotation_Senser3 = DeviceRotate[2];
 }
 
-void ATailActor_ver2::SetDeviceRotate(FRotator* r) {
+void ATailActor_ver2::SetDeviceRotate(FRotator* r,int size) {
 
-    int size = sizeof(r) / sizeof((r)[0]);
     int RotateSize = sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
 
     if (size != RotateSize) { return; }
 
     for (int n = 0; n < RotateSize; n++)
-        DeviceRotate[n] = *(r);
+        DeviceRotate[n] = r[n];
 }
 

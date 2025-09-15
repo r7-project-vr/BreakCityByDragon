@@ -65,11 +65,14 @@ public:
 
 		int Result = Device->ReadData(&ReceiveData);
 
+#ifdef UE_DEBUG_LOG
+
 		// ƒƒO
 		uint16_t Error = Device->GetLastErrorCode();
 		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
 		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
 		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
+#endif 	
 	}
 
 	FRotator GetSeneserRotation(int senserNum) {
@@ -93,11 +96,15 @@ public:
 
 		int Result = Device->ReadData(&ReceiveData);
 
+#ifdef UE_DEBUG_LOG
+
 		// ƒƒO
 		uint16_t Error = Device->GetLastErrorCode();
 		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
 		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
 		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
+
+#endif // UE_DEBUG_LOG
 
 		rotation = I_uintToint(ReceiveData.data);
 
@@ -194,7 +201,7 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 		DeviceRotate[i] = DCT->GetSeneserRotation(i + 1);
 
 		FString s = DeviceRotate[i].ToString();
-		UE_LOG(LogTemp, Log, TEXT("Rotatino%d ; %s"), i + 1, *s);
+		//UE_LOG(LogTemp, Log, TEXT("Rotatino%d ; %s"), i + 1, *s);
 	}
 }
 
@@ -225,13 +232,12 @@ FRotator AASerialReceiverActor::GetRotation(int s_) {
 	return DeviceRotate[s_ - 1];
 }
 
-void AASerialReceiverActor::GetDeviceRotate(FRotator* r) {
+void AASerialReceiverActor::GetDeviceRotate(FRotator* r, int size) {
 
-	int size = sizeof(*r) / sizeof(r[0]);
 	int RotateSize= sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
 
 	if (size != RotateSize) { return; }
 
 	for (int n = 0; n < RotateSize; n++)
-		*(r) = DeviceRotate[n];
+		r[n] = DeviceRotate[n];
 }

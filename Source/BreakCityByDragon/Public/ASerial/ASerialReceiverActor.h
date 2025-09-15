@@ -14,6 +14,8 @@ class FRunnableThread;
 class WindowsSerial;
 class FDeviceComandTask;
 
+#define UE_DEBUG_LOG false;
+
 UCLASS()
 class BREAKCITYBYDRAGON_API AASerialReceiverActor : public AActor
 {
@@ -36,7 +38,7 @@ public:
 	FRotator GetRotation(int SencerNum);
 
 	// Šp“x‚ðŽæ“¾‚·‚é
-	void GetDeviceRotate(FRotator* r);
+	void GetDeviceRotate(FRotator* r, int size);
 
 public :
 
