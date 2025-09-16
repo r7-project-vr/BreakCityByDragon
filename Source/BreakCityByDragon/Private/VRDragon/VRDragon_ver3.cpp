@@ -121,3 +121,4 @@ void AVRDragon_ver3::GoFire(const FInputActionValue& Value) {
 			FB = GetWorld()->SpawnActor<AFireBall_ver2>(BlueprintFireBall, pos, look); // ƒXƒ|[ƒ“ˆ— 
 	}
 }
+
