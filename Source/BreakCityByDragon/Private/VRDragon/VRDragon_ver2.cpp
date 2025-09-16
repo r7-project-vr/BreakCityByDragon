@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "Components/ArrowComponent.h" 
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "EnhancedInputSubsystems.h"
 #include "FireBall/FireBall_ver1.h"
 #include "FireBall/FireBall_ver2.h"
@@ -248,9 +249,6 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 	FRotator tr[3];
 	ASerialReceiverActor->GetDeviceRotate(tr, 3);
 
-	// K”ö‚É‰ž‚¶‚Ä“®‚©‚·
-	MovePlayer(DeltaTime, tr[2]);
-
 	// K”ö‚É‰Šú’l‚ð“ü—Í
 	if (!IsSetFirstRotation) {
 
@@ -259,8 +257,14 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 	}
 
 	// K”ö‚ð“®‚©‚·
-	if(IsSetFirstRotation)
+	if (IsSetFirstRotation) {
+
 		tails->SetDeviceRotate(tr, 3);
+
+		// K”ö‚É‰ž‚¶‚Ä“®‚©‚·
+		MovePlayer(DeltaTime, tr[2]);
+	}
+		
 }
 
 // Called to bind functionality to input
@@ -279,6 +283,9 @@ void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 		// Look‚ÆIA_Look‚ÌTriggered‚ðBind‚·‚é
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::Look);
+
+		// ESC
+		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ESCtoStart);
 	}
 }
 
@@ -370,7 +377,7 @@ void AVRDragon_ver2::ESCtoStart(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
-		//UGameplayStatics::OpenLevel(this, FName("Level2"));
+		UGameplayStatics::OpenLevel(this, FName("Onishi_TitleTest"));
 	}
 }
 
