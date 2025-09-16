@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "Components/ArrowComponent.h" 
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "EnhancedInputSubsystems.h"
 #include "FireBall/FireBall_ver1.h"
 #include "FireBall/FireBall_ver2.h"
@@ -27,7 +28,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	FireChargeCnt(0),
 	CanFire(false),
 	preTailVec(0, 0, 0),
-	newTailVec(0, 0, 0)
+	IsSetFirstRotation(false)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -100,14 +101,14 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 	// VRコントローラ
 	{
-		// アセットパス指定
+	/*	 // アセットパス指定
 		LSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
 			FSoftObjectPath(TEXT("/Game/Dradon/polySurface8.polySurface8"))
 		);
 
 		RSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
 			FSoftObjectPath(TEXT("/Game/Dradon/polySurface9.polySurface9"))
-		);
+		);*/
 
 		// 左手
 		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
@@ -163,6 +164,9 @@ AVRDragon_ver2::AVRDragon_ver2() :
 			BlueprintFireBall = BPClass.Class;
 		}
 	}
+
+	// 尻尾
+	tails = CreateDefaultSubobject<ATailActor_ver2>(TEXT("ATailActor"));
 }
 
 // Called when the game starts or when spawned
@@ -239,13 +243,33 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			FVector Position;
 			if (GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, Orientation, Position))
 			{
-				CameraRoot->SetRelativeLocationAndRotation(Position, Orientation);
+				Camera->SetRelativeLocationAndRotation(Position, Orientation);
 			}
 		}
 	}
 
-	// 尻尾に応じて動かす
-	MovePlayer(DeltaTime);
+	// デバイスから角度を取得する
+	FRotator tr[3];
+	ASerialReceiverActor->GetDeviceRotate(tr, 3);
+
+	if (tails && tails->TailInstance)
+	{
+		// 尻尾に初期値を入力
+		if (!IsSetFirstRotation) {
+
+			IsSetFirstRotation = tails->ResetRotation(tr, 3);
+			return;
+		}
+
+		// 尻尾を動かす
+		if (IsSetFirstRotation) {
+
+			tails->SetDeviceRotate(tr, 3);
+
+			// 尻尾に応じて動かす
+			MovePlayer(DeltaTime, tr[2]);
+		}
+	}	
 }
 
 // Called to bind functionality to input
@@ -264,6 +288,9 @@ void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 		// LookとIA_LookのTriggeredをBindする
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::Look);
+
+		// ESC
+		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ESCtoStart);
 	}
 }
 
@@ -355,7 +382,7 @@ void AVRDragon_ver2::ESCtoStart(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
-		//UGameplayStatics::OpenLevel(this, FName("Level2"));
+		UGameplayStatics::OpenLevel(this, FName("Onishi_TitleTest"));
 	}
 }
 
@@ -401,15 +428,17 @@ void AVRDragon_ver2::CheckVec(FVector& v_) {
 	}
 }
 
-void AVRDragon_ver2::MovePlayer(float DeltaTime) {
+void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
+
+	if (!IsSetFirstRotation)return;
 
 	// 尻尾に合わせて動かす
 	{
-		newTailVec =
+		FVector newTailVec =
 		{
-			ASerialReceiverActor->GetRotation(3).Roll,
-			ASerialReceiverActor->GetRotation(3).Pitch,
-			ASerialReceiverActor->GetRotation(3).Yaw
+			DeviceRotate.Roll,
+			DeviceRotate.Pitch,
+			DeviceRotate.Yaw
 		};
 
 		FVector p = newTailVec - preTailVec;
@@ -432,7 +461,7 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime) {
 		if (addpow < 0.0003f) { addpow = 0; }
 
 		FString s = newTailVec.ToString();
-		UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
+		//UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
 
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {

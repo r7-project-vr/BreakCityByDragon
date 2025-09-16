@@ -56,7 +56,7 @@ public:
     //UFUNCTION(BlueprintCallable, Category = "ASerial Controller")
     // 2025.08.06 ウー start
     //int ConnectDevice(int COM_num);
-    ConnectResult ConnectDevice(int COM_num);
+    ConnectResult ConnectDevice(int COM_num, HANDLE& h_);
     // 2025.08.06 end
 
     /// @brief デバイスに自動接続する
@@ -64,7 +64,7 @@ public:
     /// @note 1~255のCOM番号を順に試行し、接続可能なデバイスを探します。
     //UFUNCTION(BlueprintCallable, Category = "ASerial Controller")
     // 2025.08.06 ウー start
-    ConnectResult AutoConnectDevice();
+    ConnectResult AutoConnectDevice(HANDLE& h_);
     // 2025.08.06 end
 
     /// @brief デバイスの接続を切断する 
@@ -104,6 +104,7 @@ public:
     /// @return 0:書き込み成功 -1:書き込み失敗
     //UFUNCTION(BlueprintCallable, Category = "ASerial Controller")
     int WriteData(uint8_t command);
+
 
 private:
     WindowsSerial* m_inteface = nullptr;

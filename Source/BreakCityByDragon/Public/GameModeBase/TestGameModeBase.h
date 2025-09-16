@@ -23,6 +23,14 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+protected:
+
+	UPROPERTY(EditAnywhere, Category = "DefaultPawn")
+	TSubclassOf<APawn> DefaultPawn;
+
+	UPROPERTY(EditAnywhere, Category = "MaxGameTime")
+	float MaxGameTime = 30.f;
+
 private:
 
 	void ToResultGame();
@@ -30,11 +38,4 @@ private:
 private:
 
 	float GameTimeCnt;
-
-	// ----------------------
-	// íËêî
-	// ----------------------
-
-	const float MaxGameTime = 30.f;
-
 };
