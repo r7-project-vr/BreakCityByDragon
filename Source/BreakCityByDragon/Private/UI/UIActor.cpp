@@ -19,13 +19,13 @@ AUIActor::AUIActor():
 	}
 	
 	// ƒƒbƒVƒ…‚Ì¶¬
-	{
+	/*{
 		UStaticMesh* Box = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
 		mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 		mesh->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 		mesh->SetupAttachment(RootComponent);
 		mesh->SetStaticMesh(Box);
-	}
+	}*/
 }
 
 // Called when the game starts or when spawned
