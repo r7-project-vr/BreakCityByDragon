@@ -63,6 +63,6 @@ private:
 
 	int index;
 
-	const float MaxDeviceCnt = 1.0f / 30.f;
-	const float MaxCalibrationTime = 5.0f;
+	const float MaxDeviceCnt = 1.0f / 60.f;
+	const float MaxCalibrationTime = 2.0f;
 };
