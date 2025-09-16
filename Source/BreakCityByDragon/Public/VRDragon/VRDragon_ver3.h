@@ -4,9 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Components/StaticMeshComponent.h"
+#include "MotionControllerComponent.h"
+#include "InputActionValue.h"
 #include "VRDragon_ver3.generated.h"
 
-class DeviceRotation;
+class UCameraComponent;
+class UInputMappingContext;
+class UInputAction;
+class AFireBall_ver2;
 
 UCLASS()
 class BREAKCITYBYDRAGON_API AVRDragon_ver3 : public APawn
@@ -30,5 +36,24 @@ public:
 
 private :
 
-	FRotator Rotator[3];
+	// 火球コントロール
+	void GoFire(const FInputActionValue& Value);
+
+	TWeakObjectPtr<AFireBall_ver2> FB;
+
+protected:
+
+	// カメラ
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> Camera;
+
+	// コントローラーのマッピング
+	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(EditAnywhere, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> ControlFire;
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<AActor> BlueprintFireBall;
 };

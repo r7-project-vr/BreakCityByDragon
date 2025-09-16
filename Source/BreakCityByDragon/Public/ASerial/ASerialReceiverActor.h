@@ -14,6 +14,8 @@ class FRunnableThread;
 class WindowsSerial;
 class FDeviceComandTask;
 
+#define UE_DEBUG_LOG false;
+
 UCLASS()
 class BREAKCITYBYDRAGON_API AASerialReceiverActor : public AActor
 {
@@ -36,7 +38,7 @@ public:
 	FRotator GetRotation(int SencerNum);
 
 	// Šp“x‚ðŽæ“¾‚·‚é
-	void GetDeviceRotate(FRotator* r);
+	void GetDeviceRotate(FRotator* r, int size);
 
 public :
 
@@ -54,12 +56,13 @@ private:
 	bool IsDeviceConnected;
 
 	DeviceRotation* DR;
+	HANDLE handle;
 
 	bool IsCalibration = true;
 	float DeviceCnt = 0;
 
 	int index;
 
-	const float MaxDeviceCnt = 1.0f / 18.f;
+	const float MaxDeviceCnt = 1.0f / 60.f;
 	const float MaxCalibrationTime = 2.0f;
 };

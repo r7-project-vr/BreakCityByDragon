@@ -36,11 +36,13 @@ public:
     /// @return -3:受信バッファ設定失敗
     /// @return -4:タイムアウト設定失敗
     int OpenPort(int com_num,
+        HANDLE& h_,
         int receive_buffer = ASERIAL_RECEIVEBUFFER_NORMAL,
         int transmit_buffer = ASERIAL_TRANSMITBUFFER_NOMAL,
         int read_interval_timeout = ASERIAL_READ_INTERVAL_TIMEOUT_NORMAL,
         int read_timeout = ASERIAL_READTIMEOUT_NORMAL,
-        int write_timeout = ASERIAL_WRITETIMEOUT_NORMAL);
+        int write_timeout = ASERIAL_WRITETIMEOUT_NORMAL
+    );
 
     //  @brief  シリアルポートをクローズする
     //  @return 0:成功 -1:失敗
@@ -91,7 +93,6 @@ private:
     static const int ASERIAL_WRITETIMEOUT_NORMAL = 200;          // デフォルト送信タイムアウト時間[ms]
     static const int ASERIAL_READ_INTERVAL_TIMEOUT_NORMAL = 50;  // デフォルト読み込みインターバルタイム
 
-    HANDLE m_serial_handle = nullptr;  // シリアル通信ハンドル
     int m_connect_comnum = 0;          // 接続しているポート番号
     bool m_connect_state = false;  // 接続ステータス
     int m_baudrate = 0;                // 通信速度(ボーレート)
@@ -110,6 +111,10 @@ private:
     // @param   read_timeout   読込エラー検出用のタイムアウト時間(msec)
     // @param   write_timeout  書き込みエラー検出用のタイムアウト時間(msec)
     int SetTimeout(int read_interval_timeout, int read_timeout, int write_timeout);
+
+public:
+
+    HANDLE m_serial_handle = nullptr;  // シリアル通信ハンドル
 };
 
 #endif

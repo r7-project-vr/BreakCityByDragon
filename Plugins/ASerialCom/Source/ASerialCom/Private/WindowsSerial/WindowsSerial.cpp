@@ -6,11 +6,13 @@
 WindowsSerial::WindowsSerial(int baudrate) { m_baudrate = baudrate; }
 
 int WindowsSerial::OpenPort(int com_num,
+    HANDLE& h_,
     int receive_buffer,
     int transmit_buffer,
     int read_interval_timeout,
     int read_timeout,
-    int write_timeout)
+    int write_timeout
+    )
 {
     if (GetState() == true) {
         ClosePort();
@@ -61,6 +63,7 @@ int WindowsSerial::OpenPort(int com_num,
 
     m_connect_comnum = com_num;  // 接続しているポート番号を更新
     m_connect_state = true;      // 接続ステータスを更新
+    h_ = m_serial_handle;
     return 0;
 }
 

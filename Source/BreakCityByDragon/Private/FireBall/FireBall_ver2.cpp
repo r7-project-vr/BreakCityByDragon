@@ -124,10 +124,10 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
         const int32 RandomIndex = FMath::RandRange(0, HitNiagaraEffects.Num() - 1);
 
         // 3. ランダムなインデックスを使って配列からNiagaraシステムを取得する
-        UNiagaraSystem* SelectedEffect = HitNiagaraEffects[RandomIndex];
+        TWeakObjectPtr<UNiagaraSystem> SelectedEffect = HitNiagaraEffects[RandomIndex];
 
         // 4. 選択したエフェクトが有効（nullptr ではない）であることを確認する
-        if (SelectedEffect)
+        if (SelectedEffect.IsValid())
         {
             FVector ImpactLocation;
             // 衝突結果（SweepResult）から正確なヒット位置と法線方向を取得する
@@ -139,13 +139,12 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
             // 5. ヒット地点に Niagara エフェクトを生成する
             UNiagaraFunctionLibrary::SpawnSystemAtLocation(
                 GetWorld(),
-                SelectedEffect,
+                SelectedEffect.Get(),
                 ImpactLocation,
                 ImpactRotation
             );
         }
     }
-    
 
     DestroyFlag = true;
     UE_LOG(LogTemp, Warning, TEXT("Hit"));

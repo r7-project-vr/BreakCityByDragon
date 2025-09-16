@@ -95,6 +95,23 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<AActor> BlueprintFireBall;
 
+	// ˜r‚ÌƒƒbƒVƒ…
+
+	UPROPERTY(EditAnywhere, Category = LSkeletalMeshComponent, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USkeletalMeshComponent> LMesh; // ¶˜r
+
+	UPROPERTY(EditAnywhere, Category = RSkeletalMeshComponent, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USkeletalMeshComponent> RMesh; // ‰E˜r
+
+	UPROPERTY(EditAnywhere, Category = LSoftSkeletalMesh, meta = (AllowPrivateAccess = "true"))
+	TSoftObjectPtr<USkeletalMesh> LSoftSkeletalMeshRef;
+
+	UPROPERTY(EditAnywhere, Category = RSoftSkeletalMesh, meta = (AllowPrivateAccess = "true"))
+	TSoftObjectPtr<USkeletalMesh> RSoftSkeletalMeshRef;
+
+	UPROPERTY(EditAnywhere, Category = TailActor, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<ATailActor_ver2> tails;// K”ö
+
 private:
 
 	// ÚG”»’è‚Ìˆ—AƒRƒ‰ƒCƒ_[“¯m‚ªÚG‚µ‚½‚Æ‚«‚ÉŒÄ‚Ño‚³‚ê‚é
@@ -125,7 +142,7 @@ protected:
 	// À•W§Œä
 	void CheckVec(FVector& PlayerNextVec);
 
-	void MovePlayer(float DeltaTime);
+	void MovePlayer(float DeltaTime,FRotator DeviceRotate);
 
 	void OnMeshLoaded();
 
@@ -137,24 +154,21 @@ private:
 
 	bool CanFire;
 
+	bool IsSetFirstRotation;
+
 	float FireChargeCnt;
 
 	int tailLength = 1;
 
-	FVector newTailVec;
 	FVector preTailVec;
 
-	ATailActor_ver2* tails;// K”ö
-
-	USkeletalMeshComponent* LMesh; // ¶˜r
-	USkeletalMeshComponent* RMesh; // ‰E˜r
-
-	TSoftObjectPtr<USkeletalMesh> LSoftSkeletalMeshRef;
-	TSoftObjectPtr<USkeletalMesh> RSoftSkeletalMeshRef;
-
+	UPROPERTY()
 	USkeletalMesh* LFootMesh; // ¶‹r
+
+	UPROPERTY()
 	USkeletalMesh* RFootMesh; // ‰E‹r
 
+	UPROPERTY()
 	TWeakObjectPtr<AASerialReceiverActor> ASerialReceiverActor;
 	
 

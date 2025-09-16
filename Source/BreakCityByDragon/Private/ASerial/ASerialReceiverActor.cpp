@@ -60,35 +60,27 @@ public:
 	
 	void GetSerialCalibration() {
 
-		//Device->WriteData(0x00);
-
-		//// ログ
-		//uint16_t Error1 = Device->GetLastErrorCode();
-		//UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error1);
-
-		//UE_LOG(LogTemp, Log, TEXT("Device Reset"));
-
-
 		Device->WriteData(0x26);
 		ASerialDataStruct::ASerialData ReceiveData;
 
 		int Result = Device->ReadData(&ReceiveData);
+
+#ifdef UE_DEBUG_LOG
 
 		// ログ
 		uint16_t Error = Device->GetLastErrorCode();
 		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
 		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
 		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
+#endif 	
 	}
 
-	FRotator GetSeneserRotation(int senserNum) {
-
-		FRotator rotation = FRotator::ZeroRotator;
+	void GetSeneserRotation(int senserNum, FRotator& r) {
 
 		if (senserNum < 1 || senserNum > 4) { 
 
 			UE_LOG(LogTemp, Error, TEXT("index is Non"))
-			return rotation;
+			return;
 		}
 
 		uint8_t index[3] = {
@@ -102,15 +94,20 @@ public:
 
 		int Result = Device->ReadData(&ReceiveData);
 
+#ifdef UE_DEBUG_LOG
+
 		// ログ
 		uint16_t Error = Device->GetLastErrorCode();
 		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
 		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
 		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
 
-		rotation = I_uintToint(ReceiveData.data);
+#endif // UE_DEBUG_LOG
 
-		return rotation;
+		if(Result == 0)
+			r = I_uintToint(ReceiveData.data);
+
+		return;
 	}
 };
 
@@ -123,9 +120,10 @@ AASerialReceiverActor::AASerialReceiverActor():
 
 	for (int i = 0; i < 3; i++) {
 
-		DeviceRotate[i] = FRotator::ZeroRotator;
+		DeviceRotate[i] = FRotator(10000, 0, 0);//初期値はでたらめ
 	}
 	
+	handle = 0;
 }
 
 // Called when the game starts or when spawned
@@ -135,20 +133,30 @@ void AASerialReceiverActor::BeginPlay()
 	
 	SerialController = NewObject<UASerialLibControllerWin>(this);
 	SerialInterface = new WindowsSerial();
-	SerialController->Initialize(0x04, 0x01);
+	SerialController->Initialize(0x04, 0x02);
 	SerialController->SetInterfacePt(SerialInterface);
 
-	if (SerialController->AutoConnectDevice() == ConnectResult::Succ)
+	if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
 	{
 		IsDeviceConnected = true;
 		UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
+
+		// メモリのクリア
+		PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+
+		SerialController->WriteData(0x00);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
 	}
 
+	// メモリのクリア
+	PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+
 	DCT = new FDeviceComandTask(SerialController);
+
+	DCT->GetSerialCalibration();
 }
 
 // Called every frame
@@ -168,7 +176,10 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 			DeviceCnt = 0;
 			IsCalibration = false;
-			DCT -> GetSerialCalibration();
+
+			// メモリのクリア
+			PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+
 			UE_LOG(LogTemp, Log, TEXT("Calibration End"));
 		}
 
@@ -180,14 +191,12 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	
 		DeviceCnt = 0;
 
-		index++;
-
-		if (index >= 1000000)
-			index = 0;
-
 		int i = index % 3;
 
-		DeviceRotate[i] = DCT->GetSeneserRotation(i + 1);
+		DCT -> GetSeneserRotation(i + 1, DeviceRotate[i]);
+
+		index++;
+		if (index >= 3) index = 0;
 	}
 }
 
@@ -204,6 +213,12 @@ void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		SerialInterface = nullptr;
 	}
 
+	if (DCT) {
+
+		delete DCT;
+		DCT = nullptr;
+	}
+
 	Super::EndPlay(EndPlayReason);
 
 }
@@ -218,13 +233,12 @@ FRotator AASerialReceiverActor::GetRotation(int s_) {
 	return DeviceRotate[s_ - 1];
 }
 
-void AASerialReceiverActor::GetDeviceRotate(FRotator* r) {
+void AASerialReceiverActor::GetDeviceRotate(FRotator* r, int size) {
 
-	int size = sizeof(*r) / sizeof(r[0]);
 	int RotateSize= sizeof(DeviceRotate) / sizeof(DeviceRotate[0]);
 
 	if (size != RotateSize) { return; }
 
 	for (int n = 0; n < RotateSize; n++)
-		*(r) = DeviceRotate[n];
+		r[n] = DeviceRotate[n];
 }
