@@ -20,4 +20,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tail")
 	TArray<FRotator> TailBoneRotation_Senser;
+
+	// ŠO‚©‚ç‘‚«Š·‚¦‰Â”\‚É‚·‚é
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tail")
+	bool bIsTailBonesValid = false;
 };

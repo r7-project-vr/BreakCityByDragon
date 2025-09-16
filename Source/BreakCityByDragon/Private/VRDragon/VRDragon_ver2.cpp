@@ -101,14 +101,14 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 	// VRコントローラ
 	{
-		// アセットパス指定
+	/*	 // アセットパス指定
 		LSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
 			FSoftObjectPath(TEXT("/Game/Dradon/polySurface8.polySurface8"))
 		);
 
 		RSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
 			FSoftObjectPath(TEXT("/Game/Dradon/polySurface9.polySurface9"))
-		);
+		);*/
 
 		// 左手
 		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
@@ -164,6 +164,9 @@ AVRDragon_ver2::AVRDragon_ver2() :
 			BlueprintFireBall = BPClass.Class;
 		}
 	}
+
+	// 尻尾
+	tails = CreateDefaultSubobject<ATailActor_ver2>(TEXT("ATailActor"));
 }
 
 // Called when the game starts or when spawned
@@ -240,7 +243,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			FVector Position;
 			if (GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, Orientation, Position))
 			{
-				CameraRoot->SetRelativeLocationAndRotation(Position, Orientation);
+				Camera->SetRelativeLocationAndRotation(Position, Orientation);
 			}
 		}
 	}
@@ -249,22 +252,24 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 	FRotator tr[3];
 	ASerialReceiverActor->GetDeviceRotate(tr, 3);
 
-	// 尻尾に初期値を入力
-	if (!IsSetFirstRotation) {
+	if (tails && tails->TailInstance)
+	{
+		// 尻尾に初期値を入力
+		if (!IsSetFirstRotation) {
 
-		IsSetFirstRotation = tails->ResetRotation(tr, 3);
-		return;
-	}
+			IsSetFirstRotation = tails->ResetRotation(tr, 3);
+			return;
+		}
 
-	// 尻尾を動かす
-	if (IsSetFirstRotation) {
+		// 尻尾を動かす
+		if (IsSetFirstRotation) {
 
-		tails->SetDeviceRotate(tr, 3);
+			tails->SetDeviceRotate(tr, 3);
 
-		// 尻尾に応じて動かす
-		MovePlayer(DeltaTime, tr[2]);
-	}
-		
+			// 尻尾に応じて動かす
+			MovePlayer(DeltaTime, tr[2]);
+		}
+	}	
 }
 
 // Called to bind functionality to input

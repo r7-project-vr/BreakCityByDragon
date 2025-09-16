@@ -133,7 +133,7 @@ void AASerialReceiverActor::BeginPlay()
 	
 	SerialController = NewObject<UASerialLibControllerWin>(this);
 	SerialInterface = new WindowsSerial();
-	SerialController->Initialize(0x04, 0x01);
+	SerialController->Initialize(0x04, 0x02);
 	SerialController->SetInterfacePt(SerialInterface);
 
 	if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
@@ -211,6 +211,12 @@ void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		delete SerialInterface;
 		SerialInterface = nullptr;
+	}
+
+	if (DCT) {
+
+		delete DCT;
+		DCT = nullptr;
 	}
 
 	Super::EndPlay(EndPlayReason);

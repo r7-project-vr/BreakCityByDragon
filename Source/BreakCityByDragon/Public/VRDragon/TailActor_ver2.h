@@ -39,6 +39,8 @@ private:
 	// 非同期でアニメBPを読み込む
 	void LoadAnimBPAsync();
 
+	void OnAnimBPLoaded();
+
 	// メッシュ読み込み後に呼ばれるコールバック関数
 	void OnMeshLoaded();
 
@@ -48,13 +50,20 @@ private:
 	// 尻尾の回転
 	void UpdateTailRotation();
 
+	void CheckTailBonesValid();
+
 public:
 
+	UPROPERTY(EditAnywhere, Category = USkeletalMesh, meta = (AllowPrivateAccess = "true"))
 	TSoftObjectPtr<USkeletalMesh> SoftSkeletalMeshRef;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere, Category = AnimBPClassRef, meta = (AllowPrivateAccess = "true"))
+	TSoftClassPtr<UAnimInstance> AnimBPClassRef;
+
+	UPROPERTY(EditAnywhere, Category = USkeletalMeshComponent, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* SkeletalMeshComponent;
 
+	UPROPERTY()
 	UTailAnimInstance* TailInstance;
 
 private :
@@ -64,6 +73,9 @@ private :
 	FRotator DeviceRotate[3];
 	FRotator FirstRotate[3];
 	bool FirstRotateSetFlag;
+	bool bCheckSkeltalMeshInstancePending = false;
+	bool bCheckAnimInstancePending = false;
+	FTimerHandle AnimInstanceTimerHandle;
 
 	// 定数
 
