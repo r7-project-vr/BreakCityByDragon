@@ -7,6 +7,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "MotionControllerComponent.h"
 #include "InputActionValue.h"
+#include "ASerial/ASerialReceiverActor.h"
 #include "VRDragon_ver3.generated.h"
 
 class UCameraComponent;
@@ -43,6 +44,10 @@ private :
 
 protected:
 
+	/** Character用のStaticMesh : Sphere */
+	UPROPERTY(VisibleAnywhere, Category = Character, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> Player;
+
 	// カメラ
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
@@ -56,4 +61,18 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<AActor> BlueprintFireBall;
+
+private :
+
+	// playerコントロール
+	void ControlPlayer(const FInputActionValue& Value);
+
+	void MovePlayer(float DeltaTime, FRotator DeviceRotate);
+
+	UPROPERTY()
+	TWeakObjectPtr<AASerialReceiverActor> ASerialReceiverActor;
+
+	FVector preTailVec;
+
+	const float MoveSpeedPoint = 50;
 };
