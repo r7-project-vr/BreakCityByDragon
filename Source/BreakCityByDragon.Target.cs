@@ -11,5 +11,5 @@ public class BreakCityByDragonTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 
 		ExtraModuleNames.AddRange( new string[] { "BreakCityByDragon" } );
-	}
+    }
 }

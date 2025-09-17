@@ -104,8 +104,15 @@ public:
 
 #endif // UE_DEBUG_LOG
 
-		if(Result == 0)
-			r = I_uintToint(ReceiveData.data);
+		/*if(Result == 0)
+			r = I_uintToint(ReceiveData.data);*/
+
+		while (true) {
+			if (Result == 0) {
+				r = I_uintToint(ReceiveData.data);
+				break;
+			}
+		}
 
 		return;
 	}
@@ -136,21 +143,25 @@ void AASerialReceiverActor::BeginPlay()
 	SerialController->Initialize(0x04, 0x02);
 	SerialController->SetInterfacePt(SerialInterface);
 
-	if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
-	{
-		IsDeviceConnected = true;
-		UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
+	while (1) {
 
-		// メモリのクリア
-		PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+		if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
+		{
+			IsDeviceConnected = true;
+			UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
 
-		SerialController->WriteData(0x00);
+			// メモリのクリア
+			PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+
+			SerialController->WriteData(0x00);
+			break;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
+		}
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
-	}
-
+	
 	// メモリのクリア
 	PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
