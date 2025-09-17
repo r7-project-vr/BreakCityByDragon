@@ -7,6 +7,7 @@
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
 #include "ASerialCore/ASerialPacket.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 class FDeviceComandTask {
 
@@ -104,14 +105,8 @@ public:
 
 #endif // UE_DEBUG_LOG
 
-		/*if(Result == 0)
-			r = I_uintToint(ReceiveData.data);*/
-
-		while (true) {
-			if (Result == 0) {
-				r = I_uintToint(ReceiveData.data);
-				break;
-			}
+		if (Result == 0) {
+			r = I_uintToint(ReceiveData.data);
 		}
 
 		return;
@@ -127,7 +122,7 @@ AASerialReceiverActor::AASerialReceiverActor():
 
 	for (int i = 0; i < 3; i++) {
 
-		DeviceRotate[i] = FRotator(10000, 0, 0);//‰Šú’l‚Í‚Å‚½‚ç‚ß
+		DeviceRotate[i] = FRotator(0, 0, 0);//‰Šú’l‚Í‚Å‚½‚ç‚ß
 	}
 	
 	handle = 0;

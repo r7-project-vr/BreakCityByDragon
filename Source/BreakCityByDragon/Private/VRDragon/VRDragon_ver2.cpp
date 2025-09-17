@@ -444,20 +444,20 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 		FVector p = newTailVec - preTailVec;
 
 		float pow[3] = {
-
 			p.X,
 			p.Y,
 			p.Z
 		};
 
-		float addpow = 0;
+		//float addpow = 0;
+		addpow = 0;
 
 		for (int n = 0; n < 3; n++) {
 
 			if (pow[n] < 0) pow[n] *= -1;
 			addpow += pow[n];
 		}
-
+		UKismetSystemLibrary::PrintString(GEngine->GetWorld(), FString::SanitizeFloat(addpow));
 		if (addpow < 0.0003f) { addpow = 0; }
 
 		FString s = newTailVec.ToString();

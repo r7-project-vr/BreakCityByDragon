@@ -150,7 +150,7 @@ protected:
 
 private:
 
-	float MoveSpeedPoint = 100000.0f;
+	float MoveSpeedPoint = 150.0f;
 
 	bool CanFire;
 
@@ -191,4 +191,9 @@ private:
 		FVector(),
 		FVector()
 	};
+
+	//DebugópÇ…publicâª ëÂêº
+	public:
+		UPROPERTY(BluePrintReadWrite)
+		float addpow = 0;
 };
