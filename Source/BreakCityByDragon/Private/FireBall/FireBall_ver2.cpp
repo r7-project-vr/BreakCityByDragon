@@ -5,7 +5,7 @@
 #include "NiagaraComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
-
+#include "VRDragon/VRDragon_ver2.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
@@ -96,6 +96,7 @@ void AFireBall_ver2::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Oth
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
     bool bFromSweep, const FHitResult& SweepResult)
 {
+    if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
     
     if (OtherActor == this) return;
     if (DestroyFlag) return;
