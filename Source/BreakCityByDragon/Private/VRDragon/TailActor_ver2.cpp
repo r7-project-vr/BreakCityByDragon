@@ -39,7 +39,7 @@ ATailActor_ver2::ATailActor_ver2() :
         for (int n = 0; n < size; n++) {
 
             DeviceRotate[n] = FRotator::ZeroRotator;
-            FirstRotate[n] = FRotator(10000, 0, 0);//‰Šú’l‚Í‚Å‚½‚ç‚ß
+            FirstRotate[n] = FRotator(0, 10000, 0);//‰Šú’l‚Í‚Å‚½‚ç‚ß
         }
     }
 }
@@ -270,7 +270,7 @@ bool ATailActor_ver2::ResetRotation(FRotator* r, int i_) {
             break;
         }
 
-        if (FirstRotate[index].Pitch == 10000) {
+        if (FirstRotate[index].Yaw == 10000) {
 
             break;
         }

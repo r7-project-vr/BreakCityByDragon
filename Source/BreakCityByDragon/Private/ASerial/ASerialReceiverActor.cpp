@@ -122,7 +122,7 @@ AASerialReceiverActor::AASerialReceiverActor():
 
 	for (int i = 0; i < 3; i++) {
 
-		DeviceRotate[i] = FRotator(0, 0, 0);//‰Šú’l‚Í‚Å‚½‚ç‚ß
+		DeviceRotate[i] = FRotator(0, 10000, 0);//‰Šú’l‚Í‚Å‚½‚ç‚ß
 	}
 	
 	handle = 0;
