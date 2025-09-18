@@ -17,13 +17,18 @@
 #include "HeadMountedDisplay.h"
 
 // Sets default values
-AVRDragon_ver3::AVRDragon_ver3()
+AVRDragon_ver3::AVRDragon_ver3():
+	ASerialReceiverActor(nullptr)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	USceneComponent* root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = root;
+
+	// StaticMeshComponentを追加し、RootComponentに設定する
+	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
+	Player->SetupAttachment(RootComponent);
 
 	// エンハンス何とか
 	{
@@ -82,6 +87,14 @@ void AVRDragon_ver3::BeginPlay()
 		}
 	}
 
+	// ASerialReceiverActorの生成
+	{
+		FRotator r = FRotator::ZeroRotator;
+		FVector v = FVector::ZeroVector;
+
+		if (!ASerialReceiverActor.IsValid())
+			ASerialReceiverActor = GetWorld()->SpawnActor<AASerialReceiverActor>(AASerialReceiverActor::StaticClass(), v, r);
+	}
 }
 
 // Called every frame
@@ -89,6 +102,11 @@ void AVRDragon_ver3::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// デバイスから角度を取得する
+	FRotator tr[3];
+	ASerialReceiverActor->GetDeviceRotate(tr, 3);
+
+	MovePlayer(DeltaTime, tr[2]);
 }
 
 // Called to bind functionality to input
@@ -119,6 +137,55 @@ void AVRDragon_ver3::GoFire(const FInputActionValue& Value) {
 
 		if (!FB.IsValid())
 			FB = GetWorld()->SpawnActor<AFireBall_ver2>(BlueprintFireBall, pos, look); // スポーン処理 
+	}
+}
+
+void AVRDragon_ver3::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
+
+	// 尻尾に合わせて動かす
+	{
+		FVector newTailVec =
+		{
+			DeviceRotate.Roll,
+			DeviceRotate.Pitch,
+			DeviceRotate.Yaw
+		};
+
+		FVector p = newTailVec - preTailVec;
+
+		float pow[3] = {
+
+			p.X,
+			p.Y,
+			p.Z
+		};
+
+		float addpow = 0;
+
+		for (int n = 0; n < 3; n++) {
+
+			if (pow[n] < 0) pow[n] *= -1;
+			addpow += pow[n];
+		}
+
+		if (addpow < 0.0003f) { addpow = 0; }
+
+		FString s = newTailVec.ToString();
+		//UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
+
+		FVector PreLocation = GetActorLocation();
+		FVector Forward = {
+			Camera->GetForwardVector().X,
+			Camera->GetForwardVector().Y,
+			0
+		};
+
+		FVector Vector = Forward * MoveSpeedPoint * addpow;
+		FVector NewLocation = PreLocation + Vector * DeltaTime;
+
+		SetActorLocation(NewLocation);
+
+		preTailVec = newTailVec;
 	}
 }
 

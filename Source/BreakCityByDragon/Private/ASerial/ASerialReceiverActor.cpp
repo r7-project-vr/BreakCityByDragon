@@ -7,6 +7,7 @@
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
 #include "ASerialCore/ASerialPacket.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 class FDeviceComandTask {
 
@@ -104,8 +105,9 @@ public:
 
 #endif // UE_DEBUG_LOG
 
-		if(Result == 0)
+		if (Result == 0) {
 			r = I_uintToint(ReceiveData.data);
+		}
 
 		return;
 	}
@@ -120,7 +122,7 @@ AASerialReceiverActor::AASerialReceiverActor():
 
 	for (int i = 0; i < 3; i++) {
 
-		DeviceRotate[i] = FRotator(10000, 0, 0);//初期値はでたらめ
+		DeviceRotate[i] = FRotator(0, 10000, 0);//初期値はでたらめ
 	}
 	
 	handle = 0;
@@ -136,21 +138,25 @@ void AASerialReceiverActor::BeginPlay()
 	SerialController->Initialize(0x04, 0x02);
 	SerialController->SetInterfacePt(SerialInterface);
 
-	if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
-	{
-		IsDeviceConnected = true;
-		UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
+	while (1) {
 
-		// メモリのクリア
-		PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+		if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
+		{
+			IsDeviceConnected = true;
+			UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
 
-		SerialController->WriteData(0x00);
+			// メモリのクリア
+			PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+
+			SerialController->WriteData(0x00);
+			break;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
+		}
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
-	}
-
+	
 	// メモリのクリア
 	PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
 

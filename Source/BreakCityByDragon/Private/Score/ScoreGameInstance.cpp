@@ -13,7 +13,8 @@ void UScoreGameInstance::CreateScoreInformation() {
 
 void UScoreGameInstance::SaveScoreInformaiton(int s_) {
 
-	scoreInfo->AddScore(s_);
+	if(scoreInfo)
+		scoreInfo->AddScore(s_);
 }
 
 int UScoreGameInstance::GetScoreInformaiton() {

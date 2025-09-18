@@ -28,7 +28,8 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	FireChargeCnt(0),
 	CanFire(false),
 	preTailVec(0, 0, 0),
-	IsSetFirstRotation(false)
+	IsSetFirstRotation(false),
+	tails(nullptr)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -200,17 +201,18 @@ void AVRDragon_ver2::BeginPlay()
 		FRotator r = FRotator::ZeroRotator;
 		FVector v = FVector::ZeroVector;
 
-		if(!ASerialReceiverActor.IsValid())
+		if(!ASerialReceiverActor)
 		ASerialReceiverActor = GetWorld()->SpawnActor<AASerialReceiverActor>(AASerialReceiverActor::StaticClass(), v, r);
 	}
 
 	// êKîˆÇÃê∂ê¨
+	if(TailBP)
 	{
 		FRotator look = GetControlRotation();
 		look = Camera->GetComponentToWorld().GetRotation().Rotator() + FRotator(0, -90.f, 0);
 		FVector pos = GetActorLocation() + FVector(0.f, 0, 20.f);
 
-		tails = GetWorld()->SpawnActor<ATailActor_ver2>(ATailActor_ver2::StaticClass(), pos, look);
+		tails = GetWorld()->SpawnActor<ATailActor_ver2>(TailBP, pos, look);
 		tails->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 	}
 
@@ -430,7 +432,7 @@ void AVRDragon_ver2::CheckVec(FVector& v_) {
 
 void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 
-	if (!IsSetFirstRotation)return;
+	//if (!IsSetFirstRotation)return;
 
 	// êKîˆÇ…çáÇÌÇπÇƒìÆÇ©Ç∑
 	{
@@ -438,26 +440,26 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 		{
 			DeviceRotate.Roll,
 			DeviceRotate.Pitch,
-			DeviceRotate.Yaw
+			0
 		};
 
 		FVector p = newTailVec - preTailVec;
 
 		float pow[3] = {
-
 			p.X,
 			p.Y,
 			p.Z
 		};
 
-		float addpow = 0;
+		//float addpow = 0;
+		addpow = 0;
 
 		for (int n = 0; n < 3; n++) {
 
 			if (pow[n] < 0) pow[n] *= -1;
 			addpow += pow[n];
 		}
-
+		UKismetSystemLibrary::PrintString(GEngine->GetWorld(), FString::SanitizeFloat(addpow));
 		if (addpow < 0.0003f) { addpow = 0; }
 
 		FString s = newTailVec.ToString();

@@ -45,7 +45,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-private:
+protected:
 
 	/** CharacterópÇÃStaticMesh : Sphere */
 	UPROPERTY(VisibleAnywhere, Category = Character, meta = (AllowPrivateAccess = "true"))
@@ -109,6 +109,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = RSoftSkeletalMesh, meta = (AllowPrivateAccess = "true"))
 	TSoftObjectPtr<USkeletalMesh> RSoftSkeletalMeshRef;
 
+	UPROPERTY(EditAnywhere, Category = Tail_BP_Class, meta = (AllowPrivateAccess = "true"))
+	UClass* TailBP;
+
 	UPROPERTY(EditAnywhere, Category = TailActor, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ATailActor_ver2> tails;// êKîˆ
 
@@ -150,7 +153,7 @@ protected:
 
 private:
 
-	float MoveSpeedPoint = 50.0f;
+	float MoveSpeedPoint = 150.0f;
 
 	bool CanFire;
 
@@ -169,7 +172,7 @@ private:
 	USkeletalMesh* RFootMesh; // âEãr
 
 	UPROPERTY()
-	TWeakObjectPtr<AASerialReceiverActor> ASerialReceiverActor;
+	TObjectPtr<AASerialReceiverActor> ASerialReceiverActor;
 	
 
 	// ----------------------------
@@ -191,4 +194,9 @@ private:
 		FVector(),
 		FVector()
 	};
+
+	//DebugópÇ…publicâª ëÂêº
+	public:
+		UPROPERTY(BluePrintReadWrite)
+		float addpow = 0;
 };
