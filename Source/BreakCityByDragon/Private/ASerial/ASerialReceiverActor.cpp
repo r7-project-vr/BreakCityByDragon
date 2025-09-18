@@ -138,23 +138,19 @@ void AASerialReceiverActor::BeginPlay()
 	SerialController->Initialize(0x04, 0x02);
 	SerialController->SetInterfacePt(SerialInterface);
 
-	while (1) {
+	if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
+	{
+		IsDeviceConnected = true;
+		UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
 
-		if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)
-		{
-			IsDeviceConnected = true;
-			UE_LOG(LogTemp, Log, TEXT("Device connected successfully."));
+		// メモリのクリア
+		PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
-			// メモリのクリア
-			PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
-
-			SerialController->WriteData(0x00);
-			break;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
-		}
+		SerialController->WriteData(0x00);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to auto-connect to device."));
 	}
 	
 	// メモリのクリア
