@@ -102,6 +102,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		LStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftStaticMeshComponent"));
 		LStaticMeshRef->SetupAttachment(LeftMotionController);
 		LStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnLHandBeginOverlap);
+		LStaticMeshRef->SetNotifyRigidBodyCollision(true);
 
 		// ‰EŽè
 		RMesh = CreateDefaultSubobject<USceneComponent>(TEXT("RightSceneComponent"));
@@ -114,6 +115,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		RStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightStaticMeshComponent"));
 		RStaticMeshRef->SetupAttachment(RightMotionController);
 		RStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnRHandBeginOverlap);
+		RStaticMeshRef->SetNotifyRigidBodyCollision(true);
 	}
 
 	// ƒGƒ“ƒnƒ“ƒX‰½‚Æ‚©
@@ -329,11 +331,11 @@ void AVRDragon_ver2::OnSphereBeginOverlap(
 		UHapticFeedbackEffect_Base* MyHapticEffect =
 			LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
 
-		if (MyHapticEffect)
+		/*if (MyHapticEffect)
 		{
 			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
 			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
-		}
+		}*/
 	}
 }
 
@@ -345,7 +347,7 @@ void AVRDragon_ver2::OnLHandBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
-	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	//if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
 	// U“®‚Ìˆ—
@@ -354,7 +356,6 @@ void AVRDragon_ver2::OnLHandBeginOverlap(
 
 	if (MyHapticEffect)
 	{
-		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
 		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
 	}
 }
@@ -367,7 +368,7 @@ void AVRDragon_ver2::OnRHandBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
-	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	//if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
 	// U“®‚Ìˆ—
@@ -377,7 +378,6 @@ void AVRDragon_ver2::OnRHandBeginOverlap(
 	if (MyHapticEffect)
 	{
 		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
-		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
 	}
 }
 
