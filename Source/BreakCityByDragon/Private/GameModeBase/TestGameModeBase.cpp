@@ -4,6 +4,7 @@
 #include "GameModeBase/TestGameModeBase.h"
 #include "VRDragon/VRDragon_ver2.h"
 #include "Score/ScoreGameInstance.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 
 ATestGameModeBase::ATestGameModeBase() :
