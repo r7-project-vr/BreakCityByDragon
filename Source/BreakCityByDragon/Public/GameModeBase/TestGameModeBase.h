@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Blueprint/UserWidget.h"
 #include "TestGameModeBase.generated.h"
 
 /**
@@ -38,4 +39,15 @@ private:
 private:
 
 	float GameTimeCnt;
+
+	bool WidgetSpawn = false;
+
+	TSubclassOf<UUserWidget> WidgetClass;
+
+	APlayerController* PlayerController;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* Fade;
+
+	UUMGSequencePlayer* Player;
 };
