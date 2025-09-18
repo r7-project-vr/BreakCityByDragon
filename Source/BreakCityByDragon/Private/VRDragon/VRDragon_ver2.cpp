@@ -342,9 +342,8 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 		if (FireChargeCnt >= 2.f)
 		{
-			FRotator look = GetControlRotation();
-			look = Camera->GetComponentToWorld().GetRotation().Rotator();
-			FVector pos = GetActorLocation() + GetActorForwardVector() * 160;
+			FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
+			FVector pos = Camera->GetComponentToWorld().GetLocation();
 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
