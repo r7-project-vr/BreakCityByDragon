@@ -17,11 +17,16 @@
 #include "Engine/Engine.h"
 #include "IXRTrackingSystem.h"
 #include "HeadMountedDisplay.h"
+#include "HeadMountedDisplayFunctionLibrary.h"
+#include "InputCoreTypes.h"
 // ロードで使うやつ
 #include "Engine/StreamableManager.h"
 #include "Engine/AssetManager.h"
 #include "UObject/SoftObjectPath.h"
 #include "UObject/SoftObjectPtr.h"
+// コントローラの振動
+#include "GameFramework/PlayerController.h"
+#include "Haptics/HapticFeedbackEffect_Base.h"
 
 // Sets default values
 AVRDragon_ver2::AVRDragon_ver2() :
@@ -41,29 +46,13 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	Player->SetupAttachment(RootComponent);
 
-	// Sphere
-	{
-		// SphereComponentを追加し
-		Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-		Sphere->SetupAttachment(RootComponent);
-
-		// Sphereのサイズを設定する
-		Sphere->SetSphereRadius(30.f);
-
-		// Sphereの位置を調整する
-		Sphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f), false);
-
-		Sphere->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
-		Sphere->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
-	}
-
 	// Box_body
 	{
 		// メッシュの生成
 		UStaticMesh* Box = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
 		Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
 		Body->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
-		Body->SetupAttachment(RootComponent);
+		Body->SetupAttachment(Player);
 		//Body->SetStaticMesh(Box);
 
 		// Material
@@ -76,54 +65,55 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Body_Base->SetupAttachment(Body);
 		Body_Base->SetWorldScale3D(FVector(0.7f, 0.6f, 1.0f));
 		Body_Base->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
-		Body_Base->OnComponentEndOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereEndOverlap);
 	}
 
 	// Camera
 	{
 		CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
-		CameraRoot->SetupAttachment(RootComponent);
+		CameraRoot->SetupAttachment(Player);
 
 		// Cameraを追加する
 		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 		Camera->SetupAttachment(CameraRoot);
 	}
 
-	// 脚
+	// Sphere
 	{
-		/*UStaticMesh* Box = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+		// SphereComponentを追加し
+		Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+		Sphere->SetupAttachment(CameraRoot);
 
-		LFootMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LFootMeshComponent"));
-		LFootMesh->SetWorldScale3D(FVector(0.2f, 0.2f, 0.2f));
-		LFootMesh->SetupAttachment(RootComponent);
-		LFootMesh->SetRelativeLocation(FVector(50.0f, 20.0f, -100.0f));
-		LFootMesh->SetStaticMesh(Box);*/
+		// Sphereのサイズを設定する
+		Sphere->SetSphereRadius(10.f);
+
+		Sphere->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
 	}
 
 	// VRコントローラ
 	{
-	/*	 // アセットパス指定
-		LSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
-			FSoftObjectPath(TEXT("/Game/Dradon/polySurface8.polySurface8"))
-		);
-
-		RSoftSkeletalMeshRef = TSoftObjectPtr<USkeletalMesh>(
-			FSoftObjectPath(TEXT("/Game/Dradon/polySurface9.polySurface9"))
-		);*/
-
 		// 左手
+		LMesh = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSceneComponent"));
+		LMesh->SetupAttachment(Player);
+		LMesh->SetRelativeLocation(FVector(100.0f, 200.0f, 0.0f), false);
+		LMesh->SetMobility(EComponentMobility::Movable);
 		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
-		LeftMotionController->SetupAttachment(RootComponent);
+		LeftMotionController->SetupAttachment(LMesh);
 		LeftMotionController->SetTrackingSource(EControllerHand::Left);
-		LMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftMesh"));
-		LMesh->SetupAttachment(LeftMotionController);
+		LStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftStaticMeshComponent"));
+		LStaticMeshRef->SetupAttachment(LeftMotionController);
+		LStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnLHandBeginOverlap);
 
 		// 右手
+		RMesh = CreateDefaultSubobject<USceneComponent>(TEXT("RightSceneComponent"));
+		RMesh->SetupAttachment(Player);
+		LMesh->SetRelativeLocation(FVector(100.0f, -200.0f, 0.0f), false);
+		RMesh->SetMobility(EComponentMobility::Movable);
 		RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
-		RightMotionController->SetupAttachment(RootComponent);
+		RightMotionController->SetupAttachment(RMesh);
 		RightMotionController->SetTrackingSource(EControllerHand::Right);
-		RMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightMesh"));
-		RMesh->SetupAttachment(RightMotionController);
+		RStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightStaticMeshComponent"));
+		RStaticMeshRef->SetupAttachment(RightMotionController);
+		RStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnRHandBeginOverlap);
 	}
 
 	// エンハンス何とか
@@ -220,6 +210,10 @@ void AVRDragon_ver2::BeginPlay()
 	{
 		//LoadMeshAsync();
 	}
+
+	// Sphereの位置を調整する
+	FVector pos = Camera->GetRelativeLocation() + Camera->GetForwardVector() * 30.f;
+	Sphere->SetRelativeLocation(pos, false);
 }
 
 // Called every frame
@@ -246,6 +240,15 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			if (GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, Orientation, Position))
 			{
 				Camera->SetRelativeLocationAndRotation(Position, Orientation);
+
+				Orientation = FQuat{
+					0,
+					0,
+					Orientation.Z,
+					Orientation.W
+				};
+
+				Player->SetRelativeRotation(Orientation);
 			}
 		}
 	}
@@ -307,16 +310,75 @@ void AVRDragon_ver2::OnSphereBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor)) {
 
+		if (FireChargeCnt > 0)return;
+
+		FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
+		FVector pos =
+			Camera->GetComponentToWorld().GetLocation() + Camera->GetForwardVector() * 30.f;
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
+
+		FireChargeCnt = 2.f;
+
+		// 振動の処理
+		UHapticFeedbackEffect_Base* MyHapticEffect =
+			LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
+
+		if (MyHapticEffect)
+		{
+			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
+		}
+	}
 }
 
-// コライダー同士が離れたときに呼び出される
-void AVRDragon_ver2::OnSphereEndOverlap(
+void AVRDragon_ver2::OnLHandBeginOverlap(
 	UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex) {
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult) {
 
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
+
+	// 振動の処理
+	UHapticFeedbackEffect_Base* MyHapticEffect =
+		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
+
+	if (MyHapticEffect)
+	{
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
+	}
+}
+
+void AVRDragon_ver2::OnRHandBeginOverlap(
+	UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult) {
+
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
+
+	// 振動の処理
+	UHapticFeedbackEffect_Base* MyHapticEffect =
+		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
+
+	if (MyHapticEffect)
+	{
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
+	}
 }
 
 // 入力イベント
@@ -338,20 +400,32 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
-		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
+		//FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		if (FireChargeCnt >= 2.f)
-		{
-			FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
-			FVector pos = Camera->GetComponentToWorld().GetLocation();
+		//if (FireChargeCnt >= 3.f)
+		//{
+		//	FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
+		//	FVector pos =
+		//		Camera->GetComponentToWorld().GetLocation() + Camera->GetForwardVector() * 30.f;
 
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		//	FActorSpawnParameters SpawnParams;
+		//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-			GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
+		//	GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
 
-			FireChargeCnt = 0;
-		}
+		//	FireChargeCnt = 0;
+
+
+		//	// 振動の処理
+		//	UHapticFeedbackEffect_Base* MyHapticEffect =
+		//		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
+
+		//	if (MyHapticEffect)
+		//	{
+		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
+		//	}
+		//}
 	}
 }
 
@@ -458,11 +532,8 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 			if (pow[n] < 0) pow[n] *= -1;
 			addpow += pow[n];
 		}
-		UKismetSystemLibrary::PrintString(GEngine->GetWorld(), FString::SanitizeFloat(addpow));
-		if (addpow < 0.0003f) { addpow = 0; }
-
-		FString s = newTailVec.ToString();
-		//UE_LOG(LogTemp, Log, TEXT("newTailVec : %s\naddpow : %f"), *s, addpow);
+		
+		if (addpow < 0.03f) { addpow = 0; }
 
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {
@@ -481,63 +552,10 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 	}
 }
 
-void AVRDragon_ver2::OnMeshLoaded() {
-
-	USkeletalMesh* LLoadedMesh = LSoftSkeletalMeshRef.Get();
-	USkeletalMesh* RLoadedMesh = RSoftSkeletalMeshRef.Get();
-
-	if (LLoadedMesh)
+void AVRDragon_ver2::PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* HapticEffect, EControllerHand Hand)
+{
+	if (PlayerController && HapticEffect)
 	{
-		LMesh->SetSkeletalMesh(LLoadedMesh);
-		LMesh->SetWorldScale3D(FVector(50.0f));
-		UE_LOG(LogTemp, Log, TEXT("SkeletalMesh successfully loaded!"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to load LSkeletalMesh."));
-	}
-
-	if(RLoadedMesh)
-	{
-		RMesh->SetSkeletalMesh(RLoadedMesh);
-		RMesh->SetWorldScale3D(FVector(50.0f));
-		UE_LOG(LogTemp, Log, TEXT("SkeletalMesh successfully loaded!"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to load RSkeletalMesh."));
-	}
-}
-
-void AVRDragon_ver2::LoadMeshAsync() {
-
-	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-
-	if (LSoftSkeletalMeshRef.IsValid())
-	{
-		// 既にロード済みなら即座に反映
-		OnMeshLoaded();
-	}
-	else
-	{
-		// 非同期ロード開始
-		Streamable.RequestAsyncLoad(
-			LSoftSkeletalMeshRef.ToSoftObjectPath(),
-			FStreamableDelegate::CreateUObject(this, &AVRDragon_ver2::OnMeshLoaded)
-		);
-	}
-
-	if (RSoftSkeletalMeshRef.IsValid())
-	{
-		// 既にロード済みなら即座に反映
-		OnMeshLoaded();
-	}
-	else
-	{
-		// 非同期ロード開始
-		Streamable.RequestAsyncLoad(
-			RSoftSkeletalMeshRef.ToSoftObjectPath(),
-			FStreamableDelegate::CreateUObject(this, &AVRDragon_ver2::OnMeshLoaded)
-		);
+		PlayerController->PlayHapticEffect(HapticEffect, Hand);
 	}
 }
