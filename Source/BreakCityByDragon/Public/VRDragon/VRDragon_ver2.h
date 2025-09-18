@@ -97,17 +97,17 @@ protected:
 
 	// òrÇÃÉÅÉbÉVÉÖ
 
-	UPROPERTY(EditAnywhere, Category = LSkeletalMeshComponent, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USkeletalMeshComponent> LMesh; // ç∂òr
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SceneComponent, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneComponent> LMesh; // ç∂òr
 
-	UPROPERTY(EditAnywhere, Category = RSkeletalMeshComponent, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USkeletalMeshComponent> RMesh; // âEòr
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SceneComponent, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneComponent> RMesh; // âEòr
 
 	UPROPERTY(EditAnywhere, Category = LSoftSkeletalMesh, meta = (AllowPrivateAccess = "true"))
-	TSoftObjectPtr<USkeletalMesh> LSoftSkeletalMeshRef;
+	TObjectPtr<UStaticMeshComponent> LStaticMeshRef;
 
 	UPROPERTY(EditAnywhere, Category = RSoftSkeletalMesh, meta = (AllowPrivateAccess = "true"))
-	TSoftObjectPtr<USkeletalMesh> RSoftSkeletalMeshRef;
+	TObjectPtr<UStaticMeshComponent> RStaticMeshRef;
 
 	UPROPERTY(EditAnywhere, Category = Tail_BP_Class, meta = (AllowPrivateAccess = "true"))
 	UClass* TailBP;
@@ -121,9 +121,11 @@ private:
 	UFUNCTION()
 	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	// ê⁄êGîªíËÇÃèàóùÅAÉRÉâÉCÉ_Å[ìØémÇ™ó£ÇÍÇΩÇ∆Ç´Ç…åƒÇ—èoÇ≥ÇÍÇÈ
 	UFUNCTION()
-	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnLHandBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnRHandBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 protected:
 
@@ -147,9 +149,7 @@ protected:
 
 	void MovePlayer(float DeltaTime,FRotator DeviceRotate);
 
-	void OnMeshLoaded();
-
-	void LoadMeshAsync();
+	void PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* HapticEffect, EControllerHand Hand);
 
 private:
 
@@ -164,12 +164,6 @@ private:
 	int tailLength = 1;
 
 	FVector preTailVec;
-
-	UPROPERTY()
-	USkeletalMesh* LFootMesh; // ç∂ãr
-
-	UPROPERTY()
-	USkeletalMesh* RFootMesh; // âEãr
 
 	UPROPERTY()
 	TObjectPtr<AASerialReceiverActor> ASerialReceiverActor;
