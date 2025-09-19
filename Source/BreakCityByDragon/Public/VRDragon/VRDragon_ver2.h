@@ -149,7 +149,7 @@ protected:
 
 	void MovePlayer(float DeltaTime,FRotator DeviceRotate);
 
-	void PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* HapticEffect, EControllerHand Hand);
+	void PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* H_, EControllerHand Hand);
 
 private:
 
@@ -167,6 +167,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AASerialReceiverActor> ASerialReceiverActor;
+
+	UPROPERTY()
+	UHapticFeedbackEffect_Base* HapticEffect;
 	
 
 	// ----------------------------

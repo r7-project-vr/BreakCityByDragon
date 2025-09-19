@@ -34,7 +34,8 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	CanFire(false),
 	preTailVec(0, 0, 0),
 	IsSetFirstRotation(false),
-	tails(nullptr)
+	tails(nullptr),
+	addpow(0)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -164,6 +165,9 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 	// K”ö
 	tails = CreateDefaultSubobject<ATailActor_ver2>(TEXT("ATailActor"));
+
+	// sinnsou
+	HapticEffect = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
 }
 
 // Called when the game starts or when spawned
@@ -245,16 +249,16 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			FVector Position;
 			if (GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, Orientation, Position))
 			{
-				Camera->SetRelativeLocationAndRotation(Position, Orientation);
+				Player->SetRelativeLocationAndRotation(Position, Orientation);
 
-				Orientation = FQuat{
-					0,
-					0,
-					Orientation.Z,
-					Orientation.W
-				};
+				//Orientation = FQuat{
+				//	0,
+				//	0,
+				//	Orientation.Z,
+				//	Orientation.W
+				//};
 
-				Player->SetRelativeRotation(Orientation);
+				//Player->SetRelativeRotation(Orientation);
 			}
 		}
 	}
@@ -278,7 +282,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			tails->SetDeviceRotate(tr, 3);
 
 			// K”ö‚É‰‚¶‚Ä“®‚©‚·
-			MovePlayer(DeltaTime, tr[2]);
+			MovePlayer(DeltaTime, tr[1]);
 		}
 	}	
 }
@@ -333,15 +337,10 @@ void AVRDragon_ver2::OnSphereBeginOverlap(
 
 		FireChargeCnt = 2.f;
 
-		// U“®‚Ìˆ—
-		UHapticFeedbackEffect_Base* MyHapticEffect =
-			LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
-
-
-		if (MyHapticEffect)
+		if (HapticEffect)
 		{
-			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
-			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Left);
+			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Right);
 		}
 	}
 }
@@ -357,13 +356,9 @@ void AVRDragon_ver2::OnLHandBeginOverlap(
 	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
-	// U“®‚Ìˆ—
-	UHapticFeedbackEffect_Base* MyHapticEffect =
-		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
-
-	if (MyHapticEffect)
+	if (HapticEffect)
 	{
-		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Left);
 	}
 }
 
@@ -378,13 +373,9 @@ void AVRDragon_ver2::OnRHandBeginOverlap(
 	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
-	// U“®‚Ìˆ—
-	UHapticFeedbackEffect_Base* MyHapticEffect =
-		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
-
-	if (MyHapticEffect)
+	if (HapticEffect)
 	{
-		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Right);
 	}
 }
 
@@ -531,7 +522,6 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 			p.Z
 		};
 
-		//float addpow = 0;
 		addpow = 0;
 
 		for (int n = 0; n < 3; n++) {
@@ -540,7 +530,7 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 			addpow += pow[n];
 		}
 		
-		if (addpow < 10.0f) { addpow = 0; }
+		if (addpow < 5.0f) { addpow = 0; }
 
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {
@@ -559,10 +549,10 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 	}
 }
 
-void AVRDragon_ver2::PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* HapticEffect, EControllerHand Hand)
+void AVRDragon_ver2::PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* H_, EControllerHand Hand)
 {
-	if (PlayerController && HapticEffect)
+	if (PlayerController && H_)
 	{
-		PlayerController->PlayHapticEffect(HapticEffect, Hand);
+		PlayerController->PlayHapticEffect(H_, Hand);
 	}
 }
