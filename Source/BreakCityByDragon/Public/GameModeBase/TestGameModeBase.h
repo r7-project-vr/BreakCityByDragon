@@ -29,25 +29,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "DefaultPawn")
 	TSubclassOf<APawn> DefaultPawn;
 
-	UPROPERTY(EditAnywhere, Category = "MaxGameTime")
-	float MaxGameTime = 30.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MaxGameTime")
+	float MaxGameTime = 120.f;
 
 private:
 
 	void ToResultGame();
 
-private:
+protected:
 
+	UPROPERTY(BlueprintReadWrite)
 	float GameTimeCnt;
-
-	bool WidgetSpawn = false;
-
-	TSubclassOf<UUserWidget> WidgetClass;
-
-	APlayerController* PlayerController;
-
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* Fade;
-
-	UUMGSequencePlayer* Player;
 };
