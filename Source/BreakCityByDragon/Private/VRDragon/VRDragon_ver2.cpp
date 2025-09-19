@@ -312,6 +312,8 @@ void AVRDragon_ver2::OnSphereBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
+	if (!IsSetFirstRotation)return;
+
 	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor)) {
 
 		if (FireChargeCnt > 0)return;
