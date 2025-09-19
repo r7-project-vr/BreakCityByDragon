@@ -25,6 +25,8 @@ void ATestGameModeBase::BeginPlay() {
 			UScoreGameInstance* MyGI = Cast<UScoreGameInstance>(GI);
 
 			if (MyGI) {
+
+				MyGI->DeleteScoreInformaiton();
 				MyGI->CreateScoreInformation();
 			}
 		}

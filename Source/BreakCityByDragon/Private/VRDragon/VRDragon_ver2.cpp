@@ -92,30 +92,34 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	// VRコントローラ
 	{
 		// 左手
-		LMesh = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSceneComponent"));
-		LMesh->SetupAttachment(Player);
-		LMesh->SetRelativeLocation(FVector(100.0f, 200.0f, 0.0f), false);
-		LMesh->SetMobility(EComponentMobility::Movable);
-		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
-		LeftMotionController->SetupAttachment(LMesh);
-		LeftMotionController->SetTrackingSource(EControllerHand::Left);
-		LStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftStaticMeshComponent"));
-		LStaticMeshRef->SetupAttachment(LeftMotionController);
-		LStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnLHandBeginOverlap);
-		LStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		{
+			LMesh = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSceneComponent"));
+			LMesh->SetupAttachment(Player);
+			LMesh->SetRelativeLocation(FVector(100.0f, -200.0f, 0.0f), false);// 200_Y
+			LMesh->SetMobility(EComponentMobility::Movable);
+			LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
+			LeftMotionController->SetupAttachment(LMesh);
+			LeftMotionController->SetTrackingSource(EControllerHand::Left);
+			LStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftStaticMeshComponent"));
+			LStaticMeshRef->SetupAttachment(LeftMotionController);
+			LStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnLHandBeginOverlap);
+			LStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		}
 
 		// 右手
-		RMesh = CreateDefaultSubobject<USceneComponent>(TEXT("RightSceneComponent"));
-		RMesh->SetupAttachment(Player);
-		LMesh->SetRelativeLocation(FVector(100.0f, -200.0f, 0.0f), false);
-		RMesh->SetMobility(EComponentMobility::Movable);
-		RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
-		RightMotionController->SetupAttachment(RMesh);
-		RightMotionController->SetTrackingSource(EControllerHand::Right);
-		RStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightStaticMeshComponent"));
-		RStaticMeshRef->SetupAttachment(RightMotionController);
-		RStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnRHandBeginOverlap);
-		RStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		{
+			RMesh = CreateDefaultSubobject<USceneComponent>(TEXT("RightSceneComponent"));
+			RMesh->SetupAttachment(Player);
+			RMesh->SetRelativeLocation(FVector(100.0f, 200.0f, 0.0f), false);
+			RMesh->SetMobility(EComponentMobility::Movable);
+			RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
+			RightMotionController->SetupAttachment(RMesh);
+			RightMotionController->SetTrackingSource(EControllerHand::Right);
+			RStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightStaticMeshComponent"));
+			RStaticMeshRef->SetupAttachment(RightMotionController);
+			RStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnRHandBeginOverlap);
+			RStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		}
 	}
 
 	// エンハンス何とか
@@ -333,11 +337,12 @@ void AVRDragon_ver2::OnSphereBeginOverlap(
 		UHapticFeedbackEffect_Base* MyHapticEffect =
 			LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
 
-		/*if (MyHapticEffect)
+
+		if (MyHapticEffect)
 		{
-			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
 			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
-		}*/
+			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+		}
 	}
 }
 
@@ -349,7 +354,7 @@ void AVRDragon_ver2::OnLHandBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
-	//if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
 	// 振動の処理
@@ -370,7 +375,7 @@ void AVRDragon_ver2::OnRHandBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
-	//if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
 	// 振動の処理
@@ -535,7 +540,7 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 			addpow += pow[n];
 		}
 		
-		if (addpow < 0.03f) { addpow = 0; }
+		if (addpow < 10.0f) { addpow = 0; }
 
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {
