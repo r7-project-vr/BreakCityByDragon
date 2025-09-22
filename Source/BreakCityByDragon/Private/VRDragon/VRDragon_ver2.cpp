@@ -34,7 +34,8 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	CanFire(false),
 	preTailVec(0, 0, 0),
 	IsSetFirstRotation(false),
-	tails(nullptr)
+	tails(nullptr),
+	addpow(0)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -92,30 +93,34 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	// VRÉRÉìÉgÉçÅ[Éâ
 	{
 		// ç∂éË
-		LMesh = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSceneComponent"));
-		LMesh->SetupAttachment(Player);
-		LMesh->SetRelativeLocation(FVector(100.0f, 200.0f, 0.0f), false);
-		LMesh->SetMobility(EComponentMobility::Movable);
-		LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
-		LeftMotionController->SetupAttachment(LMesh);
-		LeftMotionController->SetTrackingSource(EControllerHand::Left);
-		LStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftStaticMeshComponent"));
-		LStaticMeshRef->SetupAttachment(LeftMotionController);
-		LStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnLHandBeginOverlap);
-		LStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		{
+			LMesh = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSceneComponent"));
+			LMesh->SetupAttachment(Player);
+			LMesh->SetRelativeLocation(FVector(100.0f, -200.0f, 0.0f), false);// 200_Y
+			LMesh->SetMobility(EComponentMobility::Movable);
+			LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
+			LeftMotionController->SetupAttachment(LMesh);
+			LeftMotionController->SetTrackingSource(EControllerHand::Left);
+			LStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftStaticMeshComponent"));
+			LStaticMeshRef->SetupAttachment(LeftMotionController);
+			LStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnLHandBeginOverlap);
+			LStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		}
 
 		// âEéË
-		RMesh = CreateDefaultSubobject<USceneComponent>(TEXT("RightSceneComponent"));
-		RMesh->SetupAttachment(Player);
-		LMesh->SetRelativeLocation(FVector(100.0f, -200.0f, 0.0f), false);
-		RMesh->SetMobility(EComponentMobility::Movable);
-		RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
-		RightMotionController->SetupAttachment(RMesh);
-		RightMotionController->SetTrackingSource(EControllerHand::Right);
-		RStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightStaticMeshComponent"));
-		RStaticMeshRef->SetupAttachment(RightMotionController);
-		RStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnRHandBeginOverlap);
-		RStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		{
+			RMesh = CreateDefaultSubobject<USceneComponent>(TEXT("RightSceneComponent"));
+			RMesh->SetupAttachment(Player);
+			RMesh->SetRelativeLocation(FVector(100.0f, 200.0f, 0.0f), false);
+			RMesh->SetMobility(EComponentMobility::Movable);
+			RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
+			RightMotionController->SetupAttachment(RMesh);
+			RightMotionController->SetTrackingSource(EControllerHand::Right);
+			RStaticMeshRef = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightStaticMeshComponent"));
+			RStaticMeshRef->SetupAttachment(RightMotionController);
+			RStaticMeshRef->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnRHandBeginOverlap);
+			RStaticMeshRef->SetNotifyRigidBodyCollision(true);
+		}
 	}
 
 	// ÉGÉìÉnÉìÉXâΩÇ∆Ç©
@@ -160,6 +165,9 @@ AVRDragon_ver2::AVRDragon_ver2() :
 
 	// êKîˆ
 	tails = CreateDefaultSubobject<ATailActor_ver2>(TEXT("ATailActor"));
+
+	// sinnsou
+	HapticEffect = LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
 }
 
 // Called when the game starts or when spawned
@@ -241,16 +249,16 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			FVector Position;
 			if (GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, Orientation, Position))
 			{
-				Camera->SetRelativeLocationAndRotation(Position, Orientation);
+				Player->SetRelativeLocationAndRotation(Position, Orientation);
 
-				Orientation = FQuat{
-					0,
-					0,
-					Orientation.Z,
-					Orientation.W
-				};
+				//Orientation = FQuat{
+				//	0,
+				//	0,
+				//	Orientation.Z,
+				//	Orientation.W
+				//};
 
-				Player->SetRelativeRotation(Orientation);
+				//Player->SetRelativeRotation(Orientation);
 			}
 		}
 	}
@@ -274,7 +282,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			tails->SetDeviceRotate(tr, 3);
 
 			// êKîˆÇ…âûÇ∂ÇƒìÆÇ©Ç∑
-			MovePlayer(DeltaTime, tr[2]);
+			MovePlayer(DeltaTime, tr[1]);
 		}
 	}	
 }
@@ -329,15 +337,11 @@ void AVRDragon_ver2::OnSphereBeginOverlap(
 
 		FireChargeCnt = 2.f;
 
-		// êUìÆÇÃèàóù
-		UHapticFeedbackEffect_Base* MyHapticEffect =
-			LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
-
-		/*if (MyHapticEffect)
+		if (HapticEffect)
 		{
-			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
-			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
-		}*/
+			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Left);
+			PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Right);
+		}
 	}
 }
 
@@ -349,16 +353,12 @@ void AVRDragon_ver2::OnLHandBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
-	//if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
-	// êUìÆÇÃèàóù
-	UHapticFeedbackEffect_Base* MyHapticEffect =
-		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
-
-	if (MyHapticEffect)
+	if (HapticEffect)
 	{
-		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Left);
 	}
 }
 
@@ -370,16 +370,12 @@ void AVRDragon_ver2::OnRHandBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
-	//if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
+	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor))return;
 	if (AFireBall_ver2* a = Cast<AFireBall_ver2>(OtherActor))return;
 
-	// êUìÆÇÃèàóù
-	UHapticFeedbackEffect_Base* MyHapticEffect =
-		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
-
-	if (MyHapticEffect)
+	if (HapticEffect)
 	{
-		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
+		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), HapticEffect, EControllerHand::Right);
 	}
 }
 
@@ -526,7 +522,6 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 			p.Z
 		};
 
-		//float addpow = 0;
 		addpow = 0;
 
 		for (int n = 0; n < 3; n++) {
@@ -535,7 +530,7 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 			addpow += pow[n];
 		}
 		
-		if (addpow < 0.03f) { addpow = 0; }
+		if (addpow < 5.0f) { addpow = 0; }
 
 		FVector PreLocation = GetActorLocation();
 		FVector Forward = {
@@ -554,10 +549,10 @@ void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 	}
 }
 
-void AVRDragon_ver2::PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* HapticEffect, EControllerHand Hand)
+void AVRDragon_ver2::PlayControllerHaptic(APlayerController* PlayerController, UHapticFeedbackEffect_Base* H_, EControllerHand Hand)
 {
-	if (PlayerController && HapticEffect)
+	if (PlayerController && H_)
 	{
-		PlayerController->PlayHapticEffect(HapticEffect, Hand);
+		PlayerController->PlayHapticEffect(H_, Hand);
 	}
 }

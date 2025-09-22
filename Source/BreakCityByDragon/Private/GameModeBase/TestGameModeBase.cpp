@@ -25,17 +25,12 @@ void ATestGameModeBase::BeginPlay() {
 			UScoreGameInstance* MyGI = Cast<UScoreGameInstance>(GI);
 
 			if (MyGI) {
+
+				MyGI->DeleteScoreInformaiton();
 				MyGI->CreateScoreInformation();
 			}
 		}
 	}
-
-	// WidgetBlueprintのClassを取得する
-	FString Path = TEXT("/Game/Onishi/UI/WBP_Fade.WBP_Fade_C");
-	WidgetClass = TSoftClassPtr<UUserWidget>(FSoftObjectPath(*Path)).LoadSynchronous();
-
-	// PlayerControllerを取得する
-	PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 }
 
 void ATestGameModeBase::Tick(float DeltaTime) {
@@ -47,40 +42,6 @@ void ATestGameModeBase::Tick(float DeltaTime) {
 	if (GameTimeCnt >= MaxGameTime) {
 
 		//UE_LOG(LogTemp, Display, TEXT("GameTimeCntが規定値になりました"));
-
-		if (WidgetClass && PlayerController && WidgetSpawn == false) {
-			WidgetSpawn = true;
-
-			// Widgetを作成する
-			UFadeWidget* UserWidget = CreateWidget<UFadeWidget>(GetWorld(), WidgetClass);
-
-			// Viewportに追加する
-			UserWidget->AddToViewport(0);
-
-			UKismetSystemLibrary::PrintString(GEngine->GetWorld(), "Widget Spawned");
-
-			if (!UserWidget->Fade) {
-				UKismetSystemLibrary::PrintString(GEngine->GetWorld(), "Fade is null");
-			}
-			// アニメーションを再生
-			Player = UserWidget->PlayAnimation(UserWidget->Fade);
-			if (Player)
-			{
-				// Finish Event 相当
-				Player->OnSequenceFinishedPlaying().AddLambda([this](UUMGSequencePlayer& SeqPlayer)
-					{
-						UE_LOG(LogTemp, Log, TEXT("FadeIn finished (C++)!"));
-						ToResultGame();
-					});
-			}
-		}
-		else if(!PlayerController){
-			UKismetSystemLibrary::PrintString(GEngine->GetWorld(), "Player Controller is null");
-		}
-		else if (!WidgetClass) {
-			UKismetSystemLibrary::PrintString(GEngine->GetWorld(), "Widget is null");
-		}
-		
 	}
 }
 
