@@ -398,20 +398,20 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
-		//FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
+		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		//if (FireChargeCnt >= 3.f)
-		//{
-		//	FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
-		//	FVector pos =
-		//		Camera->GetComponentToWorld().GetLocation() + Camera->GetForwardVector() * 30.f;
+		if (FireChargeCnt >= 3.f)
+		{
+			FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
+			FVector pos =
+				Camera->GetComponentToWorld().GetLocation() + Camera->GetForwardVector() * 30.f;
 
-		//	FActorSpawnParameters SpawnParams;
-		//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		//	GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
+			GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
 
-		//	FireChargeCnt = 0;
+			FireChargeCnt = 0;
 
 
 		//	// 振動の処理
@@ -423,7 +423,7 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
 		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
 		//	}
-		//}
+		}
 	}
 }
 
