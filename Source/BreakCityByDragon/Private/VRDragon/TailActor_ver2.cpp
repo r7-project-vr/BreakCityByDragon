@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "VRDragon/TailActor_ver2.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/AssetManager.h"

@@ -76,3 +76,4 @@ private :
 
 	const float MoveSpeedPoint = 50;
 };
+

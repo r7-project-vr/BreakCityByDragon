@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "VRDragon/FootActor.h"
 
 // Sets default values

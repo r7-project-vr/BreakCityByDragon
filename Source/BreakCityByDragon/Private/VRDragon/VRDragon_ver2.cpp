@@ -295,17 +295,20 @@ void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
-		// ControlBallとIA_ControlのTriggeredをBindする
+		// ESC
+		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ESCtoStart);
+
+		// ControlPlayerとControlMoveのTriggeredをBindする
 		EnhancedInputComponent->BindAction(ControlMove, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ControlPlayer);
 
-		// ControlBallとIA_ControlのTriggeredをBindする
+#if WITH_EDITOR // エディターのみのコード
+		
+		// GoFireとControlFireのTriggeredをBindする
 		EnhancedInputComponent->BindAction(ControlFire, ETriggerEvent::Triggered, this, &AVRDragon_ver2::GoFire);
 
 		// LookとIA_LookのTriggeredをBindする
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::Look);
-
-		// ESC
-		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ESCtoStart);
+#endif
 	}
 }
 

@@ -1,4 +1,4 @@
-ï»¿#include "DoorSimpleActor.h"
+#include "DoorSimpleActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -6,7 +6,7 @@
 ADoorSimpleActor::ADoorSimpleActor()
 {
     PrimaryActorTick.bCanEverTick = true;
-    SetActorTickEnabled(false); // åˆå§‹ä¸Tick
+    SetActorTickEnabled(false); // ‰n•sTick
 
     // door mesh
     DoorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorMesh"));
@@ -47,7 +47,7 @@ void ADoorSimpleActor::Tick(float DeltaSeconds)
     if (NewLoc.Equals(TargetOpenRelLoc, 0.1f))
     {
         bOpening = false;
-        SetActorTickEnabled(false); // å¼€åˆ°ä½å°±åœTick
+        SetActorTickEnabled(false); // ?“ˆÊA’âTick
     }
 }
 
@@ -62,7 +62,7 @@ void ADoorSimpleActor::OnProximityBegin(UPrimitiveComponent* /*OverlappedComp*/,
         if (OtherActor != UGameplayStatics::GetPlayerPawn(this, 0)) return;
     }
 
-    bOpened = true;     // ä¸€å›ã ã‘é–‹ã‘ã‚‹
-    bOpening = true;    // é–‹ã‘å§‹ã‚ã‚‹
+    bOpened = true;     // ˆê‰ñ‚¾‚¯ŠJ‚¯‚é
+    bOpening = true;    // ŠJ‚¯n‚ß‚é
     SetActorTickEnabled(true);
 }

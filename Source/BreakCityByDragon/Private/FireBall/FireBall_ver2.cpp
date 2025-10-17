@@ -11,6 +11,7 @@
 #include "Sound/SoundAttenuation.h"
 #include "NiagaraFunctionLibrary.h"
 
+
 AFireBall_ver2::AFireBall_ver2():
     DestroyFlag(false),
     timeCnt(0),
