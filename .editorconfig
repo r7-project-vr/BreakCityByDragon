@@ -2,6 +2,9 @@
 
 # Naming convention rules (note: currently need to be ordered from more to less specific)
 
+// 文字コード変換用
+charset = shiftjis
+
 cpp_naming_rule.aactor_prefixed.symbols                    = aactor_class
 cpp_naming_rule.aactor_prefixed.style                      = aactor_style
 
