@@ -6,6 +6,7 @@
 #include "ASerialLibControllerWin.h"
 #include "Containers/Queue.h"
 #include "ASerial/DeviceRotation.h"
+#include "ASerial/RawDataCalculator.h"
 #include "ASerialReceiverActor.generated.h"
 
 class UASerialLibControllerWin;
