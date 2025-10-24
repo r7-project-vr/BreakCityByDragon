@@ -9,8 +9,6 @@
 
 RawDataCalculator::RawDataCalculator()
 {
-	// メンバー変数の初期化
-
 	for (int i = 0; i < 3; i++) {
 
 		gyr[i] = 0;
@@ -23,24 +21,18 @@ RawDataCalculator::~RawDataCalculator()
 {
 }
 
-void RawDataCalculator::SetReciveData(const uint8* data, ESenserType type) {
-
-	// 18バイト分だけコピー
-	TArray<uint8> RawData;
-	RawData.Append(data, 18);
-
-	// 構造体に格納
-	receiveData.rawData = RawData;
+void RawDataCalculator::SetReciveData(const uint8_t* data, ESenserType type) {
 
 	// データを分割
-	DivisionData();
+	DivisionRawData divisionRawData;
+	divisionRawData = DivisionData(data);
 
 	// データを変換して格納
 	for (int i = 0; i < 3; i++) {
 
-		acc[i] = I_uintTodouble(receiveData.divRawData.acc[i]);
-		gyr[i] = I_uintTodouble(receiveData.divRawData.gyr[i]);
-		mag[i] = I_uintTodouble(receiveData.divRawData.mag[i]);
+		acc[i] = I_uintTodouble(divisionRawData.acc[i]);
+		gyr[i] = I_uintTodouble(divisionRawData.gyr[i]);
+		mag[i] = I_uintTodouble(divisionRawData.mag[i]);
 	}
 }
 
@@ -52,21 +44,24 @@ bool RawDataCalculator::GetReciveData(double* data) {
 
 	for (int i = 0; i < 3; i++) {
 
-		clereData[index] = receiveData.divRawData.gyr[i];
+		clereData[index] = acc[i] / 100;
 		index++;
 	}
 
 	for (int i = 0; i < 3; i++) {
 
-		clereData[index] = receiveData.divRawData.acc[i];
+		clereData[index] = gyr[i] / 100;
 		index++;
 	}
 
 	for (int i = 0; i < 3; i++) {
 
-		clereData[index] = receiveData.divRawData.mag[i];
+		clereData[index] = mag[i] / 100;
 		index++;
 	}
+
+	for (int i = 0; i < 9; i++)
+	UE_LOG(LogTemp, Log, TEXT("Result  ; %f"), clereData[i]);
 
 	data = clereData;
 	
@@ -77,19 +72,37 @@ bool RawDataCalculator::GetReciveData(double* data) {
 // private
 // -------------------------------------------
 
-void RawDataCalculator::DivisionData() {
+DivisionRawData RawDataCalculator::DivisionData(const uint8_t* data) {
 
 	DivisionRawData divisionRawData;
 
 	// 分割用の構造体に合わせる
-	FMemory::Memcpy(&divisionRawData, receiveData.rawData.GetData(), sizeof(DivisionRawData));
+	int index = 0;
 
-	receiveData.divRawData = divisionRawData;
+	for (int i = 0; i < 3; i++) {
+
+		divisionRawData.acc[i] = data[index];
+		index++;
+	}
+
+	for (int i = 0; i < 3; i++) {
+
+		divisionRawData.gyr[i] = data[index];
+		index++;
+	}
+
+	for (int i = 0; i < 3; i++) {
+
+		divisionRawData.mag[i] = data[index];
+		index++;
+	}
+
+	return divisionRawData;
 }
 
-double RawDataCalculator::I_uintTodouble(uint16 data) {
+double RawDataCalculator::I_uintTodouble(uint8_t data) {
 
-	double value = static_cast<double>(data);
-
+	double value = data;
+	
 	return value;
 }

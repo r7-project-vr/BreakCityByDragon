@@ -6,6 +6,7 @@
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
 #include "ASerialCore/ASerialPacket.h"
+#include "ASerial/RawDataCalculator.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 class FDeviceComandTask {
@@ -60,7 +61,7 @@ public:
 	
 	void GetSerialCalibration() {
 
-		Device->WriteData(0x26);
+		Device->WriteData(0x20);
 		ASerialDataStruct::ASerialData ReceiveData;
 
 		int Result = Device->ReadData(&ReceiveData);
@@ -84,9 +85,9 @@ public:
 		}
 
 		uint8_t index[3] = {
-			0x23,
-			0x24,
-			0x25
+			0x20,
+			0x21,
+			0x22
 		};
 
 		Device->WriteData(index[senserNum - 1]);
@@ -100,12 +101,26 @@ public:
 		uint16_t Error = Device->GetLastErrorCode();
 		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
 		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
-		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
+		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), sizeof(ReceiveData.data));
 
 #endif // UE_DEBUG_LOG
 
 		if (Result == 0) {
-			r = I_uintToint(ReceiveData.data);
+			//r = I_uintToint(ReceiveData.data);
+			RawDataCalculator rawData;
+
+			if (index == 0) {
+				rawData.SetReciveData(ReceiveData.data, ESenserType::Axis_9_Sensor);
+			}
+			else {
+				rawData.SetReciveData(ReceiveData.data, ESenserType::Axis_6_Sensor);
+			}
+			
+			double d[9] = { 0,0,0,0,0,0,0,0,0 };
+			rawData.GetReciveData(d);
+
+			/*for (int i = 0; i < 9; i++)
+			UE_LOG(LogTemp, Log, TEXT("Result  ; %f"), d[i]);*/
 		}
 
 		return;
@@ -134,7 +149,7 @@ void AASerialReceiverActor::BeginPlay()
 	
 	SerialController = NewObject<UASerialLibControllerWin>(this);
 	SerialInterface = new WindowsSerial();
-	SerialController->Initialize(0x04, 0x02);
+	SerialController->Initialize(0x04, 0x03);
 	SerialController->SetInterfacePt(SerialInterface);
 
 	if (SerialController->AutoConnectDevice(handle) == ConnectResult::Succ)

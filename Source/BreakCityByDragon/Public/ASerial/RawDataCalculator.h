@@ -17,25 +17,13 @@ struct DivisionRawData {
 public:
 
 	// ジャイロ
-	int16 gyr[3];
+	uint8_t gyr[3];
 
 	// 加速度 
-	int16 acc[3];
+	uint8_t acc[3];
 
 	// 磁力計
-	int16 mag[3];
-};
-
-// データ保存用の構造体
-struct ReceiveData {
-
-public:
-
-	TArray<uint8> rawData;
-
-	ESenserType senserTyoe;
-
-	DivisionRawData divRawData;
+	uint8_t mag[3];
 };
 
 class BREAKCITYBYDRAGON_API RawDataCalculator
@@ -45,7 +33,7 @@ public:
 	RawDataCalculator();
 	~RawDataCalculator();
 
-	void SetReciveData(const uint8* data, ESenserType type);
+	void SetReciveData(const uint8_t* data, ESenserType type);
 
 	/// <summary>
 	/// 変換後のデータ受け取り
@@ -57,7 +45,7 @@ private :
 
 	// メンバー
 
-	ReceiveData receiveData;	// 受け取ったデータの格納場所
+	DivisionRawData* receiveData;	// 受け取ったデータの格納場所
 
 	double gyr[3];				// ジャイロ
 	double acc[3];				// 加速度 
@@ -68,11 +56,11 @@ private :
 	/// <summary>
 	/// データを分割する
 	/// </summary>
-	void DivisionData();
+	DivisionRawData DivisionData(const uint8_t* data);
 
 	/// <summary>
 	/// 生データからdouble型に変換用
 	/// </summary>
 	/// <param name="data"></param>
-	double I_uintTodouble(uint16 data);
+	double I_uintTodouble(uint8_t data);
 }; 

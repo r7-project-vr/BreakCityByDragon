@@ -47,6 +47,16 @@ AVRDragon_ver2::AVRDragon_ver2() :
 	Player = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	Player->SetupAttachment(RootComponent);
 
+	// Camera
+	{
+		CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
+		CameraRoot->SetupAttachment(Player);
+
+		// Camera‚ð’Ç‰Á‚·‚é
+		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+		Camera->SetupAttachment(CameraRoot);
+	}
+
 	// Box_body
 	{
 		// ƒƒbƒVƒ…‚Ì¶¬
@@ -68,16 +78,6 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		Body_Base->OnComponentBeginOverlap.AddDynamic(this, &AVRDragon_ver2::OnSphereBeginOverlap);
 	}
 
-	// Camera
-	{
-		CameraRoot = CreateDefaultSubobject<USceneComponent>(TEXT("CameraRoot"));
-		CameraRoot->SetupAttachment(Player);
-
-		// Camera‚ð’Ç‰Á‚·‚é
-		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-		Camera->SetupAttachment(CameraRoot);
-	}
-
 	// Sphere
 	{
 		// SphereComponent‚ð’Ç‰Á‚µ
@@ -96,7 +96,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		{
 			LMesh = CreateDefaultSubobject<USceneComponent>(TEXT("LeftSceneComponent"));
 			LMesh->SetupAttachment(Player);
-			LMesh->SetRelativeLocation(FVector(100.0f, -200.0f, 0.0f), false);// 200_Y
+			LMesh->SetRelativeLocation(FVector(100.0f, -200.0f, -260.0f), false);// 200_Y
 			LMesh->SetMobility(EComponentMobility::Movable);
 			LeftMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("LeftMotionController"));
 			LeftMotionController->SetupAttachment(LMesh);
@@ -111,7 +111,7 @@ AVRDragon_ver2::AVRDragon_ver2() :
 		{
 			RMesh = CreateDefaultSubobject<USceneComponent>(TEXT("RightSceneComponent"));
 			RMesh->SetupAttachment(Player);
-			RMesh->SetRelativeLocation(FVector(100.0f, 200.0f, 0.0f), false);
+			RMesh->SetRelativeLocation(FVector(100.0f, 200.0f, -260.0f), false);
 			RMesh->SetMobility(EComponentMobility::Movable);
 			RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
 			RightMotionController->SetupAttachment(RMesh);
@@ -250,15 +250,6 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			if (GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, Orientation, Position))
 			{
 				Player->SetRelativeLocationAndRotation(Position, Orientation);
-
-				//Orientation = FQuat{
-				//	0,
-				//	0,
-				//	Orientation.Z,
-				//	Orientation.W
-				//};
-
-				//Player->SetRelativeRotation(Orientation);
 			}
 		}
 	}
@@ -323,7 +314,7 @@ void AVRDragon_ver2::OnSphereBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult) {
 
-	if (!IsSetFirstRotation)return;
+	//if (!IsSetFirstRotation)return;
 
 	if (AVRDragon_ver2* a = Cast<AVRDragon_ver2>(OtherActor)) {
 
