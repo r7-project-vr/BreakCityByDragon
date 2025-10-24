@@ -184,6 +184,7 @@ struct BasicVQFCoefficients
 class BREAKCITYBYDRAGON_API SerialData
 {
 public:
+    SerialData();
     /**
      * Initializes the object with default parameters.
      *

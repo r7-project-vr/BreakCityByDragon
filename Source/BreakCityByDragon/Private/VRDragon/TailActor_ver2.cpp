@@ -57,33 +57,39 @@ void ATailActor_ver2::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-    if (bCheckAnimInstancePending && SkeletalMeshComponent)
+    // 非同期処理が完了してから呼ばれる処理
     {
-        UAnimInstance* AnimInst = SkeletalMeshComponent->GetAnimInstance();
-        if (AnimInst)
+        if (bCheckAnimInstancePending && SkeletalMeshComponent)
         {
-            if (UTailAnimInstance* TI = Cast<UTailAnimInstance>(AnimInst))
+            UAnimInstance* AnimInst = SkeletalMeshComponent->GetAnimInstance();
+            if (AnimInst)
             {
-                TailInstance = TI;
-                UE_LOG(LogTemp, Log, TEXT("AnimInstance successfully loaded via Tick."));
+                if (UTailAnimInstance* TI = Cast<UTailAnimInstance>(AnimInst))
+                {
+                    TailInstance = TI;
+                    UE_LOG(LogTemp, Log, TEXT("AnimInstance successfully loaded via Tick."));
 
-                CheckTailBonesValid();
-            }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("AnimInstance exists but cast failed in Tick."));
-            }
+                    CheckTailBonesValid();
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("AnimInstance exists but cast failed in Tick."));
+                }
 
-            // フラグをオフ（もうチェックしない）
-            bCheckAnimInstancePending = false;
+                // フラグをオフ（もうチェックしない）
+                bCheckAnimInstancePending = false;
+            }
+        }
+
+        if (bCheckSkeltalMeshInstancePending && SkeletalMeshComponent) {
+
+            SkeletalMeshComponent->SetWorldScale3D(FVector(50.0f));
+            bCheckSkeltalMeshInstancePending = false;
         }
     }
+    
+    // 尻尾の更新処理
 
-    if (bCheckSkeltalMeshInstancePending && SkeletalMeshComponent) {
-
-        SkeletalMeshComponent->SetWorldScale3D(FVector(50.0f));
-        bCheckSkeltalMeshInstancePending = false;
-    }
 }
 
 void ATailActor_ver2::LoadMeshAsync() {
@@ -216,7 +222,7 @@ void ATailActor_ver2::CheckTailBonesValid()
 {
     if (!SkeletalMeshComponent || !TailInstance) return;
 
-    // 確認したいボーン名（プロジェクトに合わせて変更）
+    // 確認したいボーン名
     const TArray<FName> BoneNames = { "Tail_01", "Tail_02", "Tail_03" };
 
     bool bAllBonesValid = true;

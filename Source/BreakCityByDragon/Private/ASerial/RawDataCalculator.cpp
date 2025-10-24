@@ -21,7 +21,7 @@ RawDataCalculator::~RawDataCalculator()
 {
 }
 
-void RawDataCalculator::SetReciveData(const uint8_t* data, ESenserType type) {
+void RawDataCalculator::SetReciveData(const uint8_t* data) {
 
 	// データを分割
 	DivisionRawData divisionRawData;
@@ -30,40 +30,33 @@ void RawDataCalculator::SetReciveData(const uint8_t* data, ESenserType type) {
 	// データを変換して格納
 	for (int i = 0; i < 3; i++) {
 
-		acc[i] = I_uintTodouble(divisionRawData.acc[i]);
-		gyr[i] = I_uintTodouble(divisionRawData.gyr[i]);
-		mag[i] = I_uintTodouble(divisionRawData.mag[i]);
+		acc[i] = I_uintToDouble(divisionRawData.acc[i]);
+		gyr[i] = I_uintToDouble(divisionRawData.gyr[i]);
+		mag[i] = I_uintToDouble(divisionRawData.mag[i]);
 	}
 }
 
 bool RawDataCalculator::GetReciveData(double* data) {
 
-	double clereData[9];
-
 	int index = 0;
 
 	for (int i = 0; i < 3; i++) {
 
-		clereData[index] = acc[i] / 100;
+		data[index] = acc[i] / 100;
 		index++;
 	}
 
 	for (int i = 0; i < 3; i++) {
 
-		clereData[index] = gyr[i] / 100;
+		data[index] = gyr[i] / 100;
 		index++;
 	}
 
 	for (int i = 0; i < 3; i++) {
 
-		clereData[index] = mag[i] / 100;
+		data[index] = mag[i] / 100;
 		index++;
 	}
-
-	for (int i = 0; i < 9; i++)
-	UE_LOG(LogTemp, Log, TEXT("Result  ; %f"), clereData[i]);
-
-	data = clereData;
 	
 	return true;
 }
@@ -100,7 +93,7 @@ DivisionRawData RawDataCalculator::DivisionData(const uint8_t* data) {
 	return divisionRawData;
 }
 
-double RawDataCalculator::I_uintTodouble(uint8_t data) {
+double RawDataCalculator::I_uintToDouble(uint8_t data) {
 
 	double value = data;
 	

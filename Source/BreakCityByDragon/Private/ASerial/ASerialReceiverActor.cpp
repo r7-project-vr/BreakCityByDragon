@@ -52,6 +52,29 @@ private:
 		return rotaion;
 	}
 
+	void SetKeepRawData(double* data, KeepRawData& KRD) {
+
+		int index = 0;
+
+		for (int i = 0; i < 3; i++) {
+
+			KRD.acc[i] = data[index];
+			index++;
+		}
+
+		for (int i = 0; i < 3; i++) {
+
+			KRD.gyr[i] = data[index];
+			index++;
+		}
+
+		for (int i = 0; i < 3; i++) {
+
+			KRD.mag[i] = data[index];
+			index++;
+		}
+	}
+
 public:
 
 	FDeviceComandTask(UASerialLibControllerWin* d_) {
@@ -76,7 +99,7 @@ public:
 #endif 	
 	}
 
-	void GetSeneserRotation(int senserNum, FRotator& r) {
+	void GetSeneserRotation(int senserNum, KeepRawData& KRD) {
 
 		if (senserNum < 1 || senserNum > 4) { 
 
@@ -106,21 +129,17 @@ public:
 #endif // UE_DEBUG_LOG
 
 		if (Result == 0) {
-			//r = I_uintToint(ReceiveData.data);
+
 			RawDataCalculator rawData;
 
 			if (index == 0) {
-				rawData.SetReciveData(ReceiveData.data, ESenserType::Axis_9_Sensor);
-			}
-			else {
-				rawData.SetReciveData(ReceiveData.data, ESenserType::Axis_6_Sensor);
-			}
-			
-			double d[9] = { 0,0,0,0,0,0,0,0,0 };
-			rawData.GetReciveData(d);
+				rawData.SetReciveData(ReceiveData.data);
 
-			/*for (int i = 0; i < 9; i++)
-			UE_LOG(LogTemp, Log, TEXT("Result  ; %f"), d[i]);*/
+				double d[9] = { 0,0,0,0,0,0,0,0,0 };
+				rawData.GetReciveData(d);
+
+				SetKeepRawData(d, KRD);
+			}
 		}
 
 		return;
@@ -131,12 +150,21 @@ public:
 AASerialReceiverActor::AASerialReceiverActor():
 	index(0)
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+ 	PrimaryActorTick.bCanEverTick = true;
 
 	for (int i = 0; i < 3; i++) {
 
 		DeviceRotate[i] = FRotator(0, 10000, 0);//初期値はでたらめ
+		DeviceQuat[i] = FQuat(0, 0, 0, 0);
+
+		SenserData[i] = { 0,0,0 };
+		sd[i] = SerialData(0, 0, 0);
+	}
+
+	// 構造体のデータの初期化
+	for (int i = 0;i < 3;i++) {
+
+		
 	}
 	
 	handle = 0;
@@ -175,7 +203,6 @@ void AASerialReceiverActor::BeginPlay()
 	DCT->GetSerialCalibration();
 }
 
-// Called every frame
 void AASerialReceiverActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -209,7 +236,13 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 		int i = index % 3;
 
-		DCT -> GetSeneserRotation(i + 1, DeviceRotate[i]);
+		// データの処理
+		DCT -> GetSeneserRotation(i + 1, SenserData[i]);
+		sd[i].update(SenserData[i].gyr, SenserData[i].acc, SenserData[i].mag);
+
+		double q[4];
+		sd[i].getQuat9D(q);
+		DeviceQuat[i] = FQuat(q[0], q[1], q[2], q[3]);
 
 		index++;
 		if (index >= 3) index = 0;
@@ -257,4 +290,21 @@ void AASerialReceiverActor::GetDeviceRotate(FRotator* r, int size) {
 
 	for (int n = 0; n < RotateSize; n++)
 		r[n] = DeviceRotate[n];
+}
+
+// インターフェース
+
+void AASerialReceiverActor::GetDeviceData(SenserType type, FQuat& quat) {
+
+	if (SerialController == nullptr) { return; }
+
+	quat = DeviceQuat[int(type)];
+}
+
+void AASerialReceiverActor::GetDeviceData(SenserType type, FRotator& rot) {
+
+	if (SerialController == nullptr) { return; }
+
+	FRotator r = DeviceQuat[int(type)].Rotator();
+	rot = r;
 }

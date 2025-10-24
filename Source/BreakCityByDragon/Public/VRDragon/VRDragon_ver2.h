@@ -170,7 +170,6 @@ private:
 
 	UPROPERTY()
 	UHapticFeedbackEffect_Base* HapticEffect;
-	
 
 	// ----------------------------
 	// ’è”

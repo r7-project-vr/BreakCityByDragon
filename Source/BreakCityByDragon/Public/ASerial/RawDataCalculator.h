@@ -4,13 +4,6 @@
 
 #include "CoreMinimal.h"
 
-UENUM(BlueprintType)
-enum class ESenserType : uint8
-{
-	Axis_9_Sensor,	// 18
-	Axis_6_Sensor	// 12
-};
-
 // 分割用の保存用構造体
 struct DivisionRawData {
 
@@ -33,7 +26,7 @@ public:
 	RawDataCalculator();
 	~RawDataCalculator();
 
-	void SetReciveData(const uint8_t* data, ESenserType type);
+	void SetReciveData(const uint8_t* data);
 
 	/// <summary>
 	/// 変換後のデータ受け取り
@@ -62,5 +55,5 @@ private :
 	/// 生データからdouble型に変換用
 	/// </summary>
 	/// <param name="data"></param>
-	double I_uintTodouble(uint8_t data);
+	double I_uintToDouble(uint8_t data);
 }; 

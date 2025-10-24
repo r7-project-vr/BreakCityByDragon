@@ -23,6 +23,10 @@ BasicVQFParams::BasicVQFParams()
 {
 
 }
+SerialData::SerialData() {
+
+    // pass
+}
 
 SerialData::SerialData(vqf_real_t gyrTs, vqf_real_t accTs, vqf_real_t magTs)
 {

@@ -13,6 +13,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "FireBall/FireBall_ver1.h"
 #include "FireBall/FireBall_ver2.h"
+#include "ASerial/DeviceDataInterface.h"
 // VR
 #include "Engine/Engine.h"
 #include "IXRTrackingSystem.h"
@@ -231,15 +232,10 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (FireChargeCnt < 0) {
+	// 魔法チャージの更新処理
+	if (FireChargeCnt < 0) { FireChargeCnt = 0; }
 
-		FireChargeCnt = 0;
-	}
-
-	if (FireChargeCnt > 0) {
-
-		FireChargeCnt -= DeltaTime;
-	}
+	if (FireChargeCnt > 0) { FireChargeCnt -= DeltaTime; }
 
 	// VRのカメラ
 	{
@@ -256,7 +252,9 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 
 	// デバイスから角度を取得する
 	FRotator tr[3];
-	ASerialReceiverActor->GetDeviceRotate(tr, 3);
+	FRotator r;
+	IDeviceDataInterface* IDeviceData = ASerialReceiverActor;
+	IDeviceData->GetDeviceData(SenserType::Senser3, r);
 
 	if (tails && tails->TailInstance)
 	{
@@ -273,7 +271,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			tails->SetDeviceRotate(tr, 3);
 
 			// 尻尾に応じて動かす
-			MovePlayer(DeltaTime, tr[1]);
+			MovePlayer(DeltaTime, r);
 		}
 	}	
 }
@@ -406,17 +404,6 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 			GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
 
 			FireChargeCnt = 0;
-
-
-		//	// 振動の処理
-		//	UHapticFeedbackEffect_Base* MyHapticEffect =
-		//		LoadObject<UHapticFeedbackEffect_Base>(nullptr, TEXT("/Game/HapticFeedbackEffect/Fire_Efect_B.Fire_Efect_B"));
-
-		//	if (MyHapticEffect)
-		//	{
-		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
-		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
-		//	}
 		}
 	}
 }
@@ -497,7 +484,7 @@ void AVRDragon_ver2::CheckVec(FVector& v_) {
 
 void AVRDragon_ver2::MovePlayer(float DeltaTime, FRotator DeviceRotate) {
 
-	//if (!IsSetFirstRotation)return;
+	if (!IsSetFirstRotation)return;
 
 	// 尻尾に合わせて動かす
 	{

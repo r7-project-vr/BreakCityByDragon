@@ -7,6 +7,8 @@
 #include "Containers/Queue.h"
 #include "ASerial/DeviceRotation.h"
 #include "ASerial/RawDataCalculator.h"
+#include "ASerial/SerialData.h"
+#include "ASerial/DeviceDataInterface.h"
 #include "ASerialReceiverActor.generated.h"
 
 class UASerialLibControllerWin;
@@ -16,8 +18,16 @@ class FDeviceComandTask;
 
 #define UE_DEBUG_LOG false;
 
+// センサーのデータを保存する構造体
+struct KeepRawData {
+
+	double gyr[3];
+	double acc[3];
+	double mag[3];
+};
+
 UCLASS()
-class BREAKCITYBYDRAGON_API AASerialReceiverActor : public AActor
+class BREAKCITYBYDRAGON_API AASerialReceiverActor : public AActor,public IDeviceDataInterface
 {
 	GENERATED_BODY()
 	
@@ -32,8 +42,12 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:	
-	// Called every frame
+
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void GetDeviceData(SenserType type, FQuat& quat)override;
+
+	virtual void GetDeviceData(SenserType type, FRotator& rot)override;
 
 	FRotator GetRotation(int SencerNum);
 
@@ -52,8 +66,10 @@ private:
 
 	WindowsSerial* SerialInterface;
 	class FDeviceComandTask* DCT;
-	FRotator DeviceRotate[3];
-	bool IsDeviceConnected;
+
+	FQuat		DeviceQuat[3];
+	FRotator	DeviceRotate[3];
+	bool		IsDeviceConnected;
 
 	DeviceRotation* DR;
 	HANDLE handle;
@@ -62,6 +78,11 @@ private:
 	float DeviceCnt = 0;
 
 	int index;
+
+	SerialData sd[3];
+	KeepRawData SenserData[3];
+
+	// const変数
 
 	const float MaxDeviceCnt = 1.0f / 60.f;
 	const float MaxCalibrationTime = 2.0f;
