@@ -197,3 +197,4 @@ private:
 		UPROPERTY(BluePrintReadWrite)
 		float addpow = 0;
 };
+

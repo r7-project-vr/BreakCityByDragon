@@ -3,6 +3,7 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
+
 public class BreakCityByDragonEditorTarget : TargetRules
 {
 	public BreakCityByDragonEditorTarget(TargetInfo Target) : base(Target)

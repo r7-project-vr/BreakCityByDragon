@@ -295,17 +295,20 @@ void AVRDragon_ver2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
-		// ControlBallとIA_ControlのTriggeredをBindする
+		// ESC
+		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ESCtoStart);
+
+		// ControlPlayerとControlMoveのTriggeredをBindする
 		EnhancedInputComponent->BindAction(ControlMove, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ControlPlayer);
 
-		// ControlBallとIA_ControlのTriggeredをBindする
+#if WITH_EDITOR // エディターのみのコード
+		
+		// GoFireとControlFireのTriggeredをBindする
 		EnhancedInputComponent->BindAction(ControlFire, ETriggerEvent::Triggered, this, &AVRDragon_ver2::GoFire);
 
 		// LookとIA_LookのTriggeredをBindする
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::Look);
-
-		// ESC
-		EnhancedInputComponent->BindAction(ESCAction, ETriggerEvent::Triggered, this, &AVRDragon_ver2::ESCtoStart);
+#endif
 	}
 }
 
@@ -398,20 +401,20 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 
 	if (const bool B = Value.Get<bool>()) {
 
-		//FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
+		FireChargeCnt += GetWorld()->DeltaTimeSeconds * 2;
 
-		//if (FireChargeCnt >= 3.f)
-		//{
-		//	FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
-		//	FVector pos =
-		//		Camera->GetComponentToWorld().GetLocation() + Camera->GetForwardVector() * 30.f;
+		if (FireChargeCnt >= 3.f)
+		{
+			FRotator look = Camera->GetComponentToWorld().GetRotation().Rotator();
+			FVector pos =
+				Camera->GetComponentToWorld().GetLocation() + Camera->GetForwardVector() * 30.f;
 
-		//	FActorSpawnParameters SpawnParams;
-		//	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		//	GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
+			GetWorld()->SpawnActor<AActor>(BlueprintFireBall, pos, look); // スポーン処理 
 
-		//	FireChargeCnt = 0;
+			FireChargeCnt = 0;
 
 
 		//	// 振動の処理
@@ -423,7 +426,7 @@ void AVRDragon_ver2::GoFire(const FInputActionValue& Value) {
 		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Right);
 		//		PlayControllerHaptic(GetWorld()->GetFirstPlayerController(), MyHapticEffect, EControllerHand::Left);
 		//	}
-		//}
+		}
 	}
 }
 

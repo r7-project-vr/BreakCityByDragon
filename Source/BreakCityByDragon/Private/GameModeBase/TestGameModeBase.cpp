@@ -19,6 +19,7 @@ ATestGameModeBase::ATestGameModeBase() :
 }
 
 void ATestGameModeBase::BeginPlay() {
+
 	if (UGameInstance* GI = GetGameInstance()) {
 
 		if (GI) {

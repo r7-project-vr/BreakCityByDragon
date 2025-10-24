@@ -57,3 +57,4 @@ private:
     /** ŠJ‚¯‚½i‚à‚¤•Â‚ß‚È‚¢j */
     bool bOpened = false;
 };
+

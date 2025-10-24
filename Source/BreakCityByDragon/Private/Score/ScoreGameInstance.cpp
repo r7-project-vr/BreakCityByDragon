@@ -31,6 +31,6 @@ int UScoreGameInstance::GetScoreInformaiton() {
 
 void UScoreGameInstance::DeleteScoreInformaiton(){
 
-	if(scoreInfo)
-	delete scoreInfo;
+	if (scoreInfo)
+		scoreInfo = nullptr;
 };

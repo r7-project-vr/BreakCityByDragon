@@ -1,4 +1,4 @@
-﻿#include "TitleDoorOpen.h" 
+#include "TitleDoorOpen.h" 
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,7 +20,6 @@ ATitleDoorOpen::ATitleDoorOpen()
     RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
     RootComponent = RootComp;
 
-    
     DoorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorMesh"));
     DoorMesh->SetupAttachment(RootComponent);
 

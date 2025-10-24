@@ -2,7 +2,6 @@
 
 using UnrealBuildTool;
 using UnrealBuildTool.Rules;
-
 public class BreakCityByDragon : ModuleRules
 {
     public BreakCityByDragon(ReadOnlyTargetRules Target) : base(Target)

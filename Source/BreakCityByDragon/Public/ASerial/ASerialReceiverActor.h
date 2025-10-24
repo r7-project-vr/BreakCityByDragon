@@ -1,5 +1,4 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,6 +6,7 @@
 #include "ASerialLibControllerWin.h"
 #include "Containers/Queue.h"
 #include "ASerial/DeviceRotation.h"
+#include "ASerial/RawDataCalculator.h"
 #include "ASerialReceiverActor.generated.h"
 
 class UASerialLibControllerWin;
