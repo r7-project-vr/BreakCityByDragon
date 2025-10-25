@@ -68,8 +68,14 @@ private:
 	class FDeviceComandTask* DCT;
 
 	FQuat		DeviceQuat[3];
+	FQuat		InitQuat[3]{
+		FQuat(10000,0,0,0),
+		FQuat(10000,0,0,0),
+		FQuat(10000,0,0,0),
+	};
 	FRotator	DeviceRotate[3];
 	bool		IsDeviceConnected;
+	bool        bInitQuatSet = false;
 
 	DeviceRotation* DR;
 	HANDLE handle;
@@ -81,6 +87,15 @@ private:
 
 	SerialData sd[3];
 	KeepRawData SenserData[3];
+
+	double GyrBias[3][3] = { 
+		{ 0, 0, 0 },
+		{ 0, 0, 0 },
+		{ 0, 0, 0 }
+	};
+	bool IsBiasCalculated = false;
+	int BiasCount = 0;
+	const int BiasSampleCount = 200; // ñÒ2ïbï™Åi120HzÇ»ÇÁ
 
 	// constïœêî
 

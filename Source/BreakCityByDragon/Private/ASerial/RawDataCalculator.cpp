@@ -3,6 +3,10 @@
 
 #include "ASerial/RawDataCalculator.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 // -------------------------------------------
 // public
 // -------------------------------------------
@@ -23,16 +27,10 @@ RawDataCalculator::~RawDataCalculator()
 
 void RawDataCalculator::SetReciveData(const uint8_t* data) {
 
-	// データを分割
-	DivisionRawData divisionRawData;
-	divisionRawData = DivisionData(data);
-
-	// データを変換して格納
 	for (int i = 0; i < 3; i++) {
-
-		acc[i] = I_uintToDouble(divisionRawData.acc[i]);
-		gyr[i] = I_uintToDouble(divisionRawData.gyr[i]);
-		mag[i] = I_uintToDouble(divisionRawData.mag[i]);
+		acc[i] = ((int16_t)(data[i * 2] << 8 | data[i * 2 + 1])) / 100.0;      
+		gyr[i] = ((int16_t)(data[6 + i * 2] << 8 | data[6 + i * 2 + 1])) / 100.0;
+		mag[i] = ((int16_t)(data[12 + i * 2] << 8 | data[12 + i * 2 + 1])) / 100.0; 
 	}
 }
 
@@ -42,19 +40,19 @@ bool RawDataCalculator::GetReciveData(double* data) {
 
 	for (int i = 0; i < 3; i++) {
 
-		data[index] = acc[i] / 100;
+		data[index] = acc[i];
 		index++;
 	}
 
 	for (int i = 0; i < 3; i++) {
 
-		data[index] = gyr[i] / 100;
+		data[index] = gyr[i];
 		index++;
 	}
 
 	for (int i = 0; i < 3; i++) {
 
-		data[index] = mag[i] / 100;
+		data[index] = mag[i];
 		index++;
 	}
 	

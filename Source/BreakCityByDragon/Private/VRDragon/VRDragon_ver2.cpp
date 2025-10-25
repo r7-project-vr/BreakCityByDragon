@@ -13,7 +13,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "FireBall/FireBall_ver1.h"
 #include "FireBall/FireBall_ver2.h"
-#include "ASerial/DeviceDataInterface.h"
 // VR
 #include "Engine/Engine.h"
 #include "IXRTrackingSystem.h"
@@ -252,9 +251,11 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 
 	// デバイスから角度を取得する
 	FRotator tr[3];
-	FRotator r;
 	IDeviceDataInterface* IDeviceData = ASerialReceiverActor;
-	IDeviceData->GetDeviceData(SenserType::Senser3, r);
+	for (int i = 0;i < 3;i++) {
+
+		IDeviceData->GetDeviceData(SenserType(i), tr[i]);
+	}
 
 	if (tails && tails->TailInstance)
 	{
@@ -262,6 +263,12 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 		if (!IsSetFirstRotation) {
 
 			IsSetFirstRotation = tails->ResetRotation(tr, 3);
+
+			preTailVec = {
+				tr[2].Roll,
+				tr[2].Pitch,
+				0
+			};
 			return;
 		}
 
@@ -271,7 +278,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			tails->SetDeviceRotate(tr, 3);
 
 			// 尻尾に応じて動かす
-			MovePlayer(DeltaTime, r);
+			MovePlayer(DeltaTime, tr[1]);
 		}
 	}	
 }

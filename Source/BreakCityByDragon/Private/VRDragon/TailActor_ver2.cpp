@@ -171,7 +171,7 @@ void ATailActor_ver2::UpdateTailRotation() {
         FRotator NewRotation = DeviceRotate[n] - FirstRotate[n];
 
         // Ä’²®
-        SetRotation(NewRotation);
+        //SetRotation(NewRotation);
 
         TailInstance->TailBoneRotation_Senser[n] = NewRotation;
 
@@ -184,7 +184,7 @@ void ATailActor_ver2::SetRotation(FRotator& r) {
 
     // Yaw
 
-    r.Yaw = 0;
+    //r.Yaw = 0;
 
     // Pitch 
 
@@ -256,34 +256,13 @@ void ATailActor_ver2::CheckTailBonesValid()
 
 bool ATailActor_ver2::ResetRotation(FRotator* r, int i_) {
 
-    bool set = false;
 
     for (int n = 0; n < i_; n++) {
 
         FirstRotate[n] = r[n];
-        FString s = FirstRotate[n].ToString();
-        UE_LOG(LogTemp, Log, TEXT("FirstRotate%d : %s "), n, *s);
     }
 
-    int index = 0;
-
-    while (1) {
-
-        if (index >= 3) {
-
-            set = true;
-            break;
-        }
-
-        if (FirstRotate[index].Yaw == 10000) {
-
-            break;
-        }
-
-        index++;
-    }
-
-    return set;
+    return true;
 }
 
 void ATailActor_ver2::SetDeviceRotate(FRotator* r, int size) {

@@ -15,43 +15,6 @@ private:
 
 	UASerialLibControllerWin* Device;
 
-	FRotator I_uintToint(uint8_t* g_) {
-
-		FRotator rotaion = FRotator::ZeroRotator;
-
-		for (int i = 0; i < 3; i++) {
-
-			int32_t num = 0;
-
-			for (int n = 0; n < 4; n++) {
-
-				num += g_[i * 4 + n] << (8 * (3 - n));
-			}
-
-			float f = 0.f;
-
-			switch (i)
-			{
-			case 0:
-				f = num / 1000.f;
-				rotaion.Roll = f;
-				break;
-			case 1:
-				f = num / 1000.f;
-				rotaion.Pitch = f;
-				break;
-			case 2:
-				 f = num / 1000.f;
-				rotaion.Yaw = f;
-				break;
-			default:
-				break;
-			}
-		}
-		
-		return rotaion;
-	}
-
 	void SetKeepRawData(double* data, KeepRawData& KRD) {
 
 		int index = 0;
@@ -80,23 +43,6 @@ public:
 	FDeviceComandTask(UASerialLibControllerWin* d_) {
 
 		Device = d_;
-	}
-	
-	void GetSerialCalibration() {
-
-		Device->WriteData(0x20);
-		ASerialDataStruct::ASerialData ReceiveData;
-
-		int Result = Device->ReadData(&ReceiveData);
-
-#ifdef UE_DEBUG_LOG
-
-		// ログ
-		uint16_t Error = Device->GetLastErrorCode();
-		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
-		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
-		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), ReceiveData.data[0]);
-#endif 	
 	}
 
 	void GetSeneserRotation(int senserNum, KeepRawData& KRD) {
@@ -132,14 +78,12 @@ public:
 
 			RawDataCalculator rawData;
 
-			if (index == 0) {
-				rawData.SetReciveData(ReceiveData.data);
+			rawData.SetReciveData(ReceiveData.data);
 
-				double d[9] = { 0,0,0,0,0,0,0,0,0 };
-				rawData.GetReciveData(d);
+			double d[9] = { 0,0,0,0,0,0,0,0,0 };
+			rawData.GetReciveData(d);
 
-				SetKeepRawData(d, KRD);
-			}
+			SetKeepRawData(d, KRD);
 		}
 
 		return;
@@ -158,13 +102,7 @@ AASerialReceiverActor::AASerialReceiverActor():
 		DeviceQuat[i] = FQuat(0, 0, 0, 0);
 
 		SenserData[i] = { 0,0,0 };
-		sd[i] = SerialData(0, 0, 0);
-	}
-
-	// 構造体のデータの初期化
-	for (int i = 0;i < 3;i++) {
-
-		
+		sd[i] = SerialData(1.0 / 120.0, 1 / 120.0, 1 / 120.0);
 	}
 	
 	handle = 0;
@@ -200,7 +138,11 @@ void AASerialReceiverActor::BeginPlay()
 
 	DCT = new FDeviceComandTask(SerialController);
 
-	DCT->GetSerialCalibration();
+	for (int i = 0; i < 3; i++) {
+
+		sd[i].setTauAcc(0.1); 
+		sd[i].setTauMag(0.1);
+	}
 }
 
 void AASerialReceiverActor::Tick(float DeltaTime)
@@ -208,24 +150,30 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	DeviceCnt += DeltaTime;
+	int i = index % 3;
 
 	// 接続できてなかったら処理なし
 	if (!IsDeviceConnected) return;
 
-	// キャリブレーション中は角度の処理をしない
-	if (IsCalibration == true) {
+	// キャリブレーション中
+	if (IsBiasCalculated != true) {
 
-		if (DeviceCnt >= MaxCalibrationTime) {
+		DCT->GetSeneserRotation(i + 1, SenserData[i]);
 
-			DeviceCnt = 0;
-			IsCalibration = false;
+		GyrBias[i][0] += SenserData[i].gyr[0];
+		GyrBias[i][1] += SenserData[i].gyr[1];
+		GyrBias[i][2] += SenserData[i].gyr[2];
+		BiasCount++;
 
-			// メモリのクリア
-			PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
+		if (BiasCount >= BiasSampleCount)
+		{
+			GyrBias[i][0] /= BiasSampleCount;
+			GyrBias[i][1] /= BiasSampleCount;
+			GyrBias[i][2] /= BiasSampleCount;
+			IsBiasCalculated = true;
 
-			UE_LOG(LogTemp, Log, TEXT("Calibration End"));
+			UE_LOG(LogTemp, Log, TEXT("Calculated end"));
 		}
-
 		return;
 	}
 
@@ -234,19 +182,43 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	
 		DeviceCnt = 0;
 
-		int i = index % 3;
-
 		// データの処理
-		DCT -> GetSeneserRotation(i + 1, SenserData[i]);
-		sd[i].update(SenserData[i].gyr, SenserData[i].acc, SenserData[i].mag);
+		DCT->GetSeneserRotation(i + 1, SenserData[i]);
 
-		double q[4];
-		sd[i].getQuat9D(q);
-		DeviceQuat[i] = FQuat(q[0], q[1], q[2], q[3]);
+		// キャリブレーションに合わせて調整
+		constexpr double DEG_TO_RAD = 3.141592653589793 / 180.0;
+		double correctedGyr[3] = {
+			(SenserData[i].gyr[0] - GyrBias[i][0]) * DEG_TO_RAD,
+			(SenserData[i].gyr[1] - GyrBias[i][1]) * DEG_TO_RAD,
+			(SenserData[i].gyr[2] - GyrBias[i][2]) * DEG_TO_RAD
+		};
 
-		index++;
-		if (index >= 3) index = 0;
+		sd[i].update(correctedGyr, SenserData[i].acc, SenserData[i].mag);
+
+		if (index == 0) {
+
+			double q[4];
+			sd[i].getQuat9D(q);
+			DeviceQuat[i] = FQuat(q[0], q[1], q[2], q[3]);
+		}
+		else {
+
+			double q[4];
+			sd[i].getQuat6D(q);
+			DeviceQuat[i] = FQuat(q[0], q[1], q[2], q[3]);
+		}
+
+		if (!bInitQuatSet && index == 2) // 3デバイス取得完了時
+		{
+			for (int j = 0; j < 3; j++)
+				InitQuat[j] = DeviceQuat[j];
+
+			bInitQuatSet = true;
+		}
 	}
+
+	index++;
+	if (index >= 3) index = 0;
 }
 
 void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason) 
@@ -304,7 +276,9 @@ void AASerialReceiverActor::GetDeviceData(SenserType type, FQuat& quat) {
 void AASerialReceiverActor::GetDeviceData(SenserType type, FRotator& rot) {
 
 	if (SerialController == nullptr) { return; }
+	if (!bInitQuatSet) { return; }
 
-	FRotator r = DeviceQuat[int(type)].Rotator();
+	FRotator r = (DeviceQuat[int(type)] * InitQuat[int(type)].Inverse()).Rotator();
+	
 	rot = r;
 }
