@@ -171,7 +171,7 @@ void ATailActor_ver2::UpdateTailRotation() {
         FRotator NewRotation = DeviceRotate[n] - FirstRotate[n];
 
         // Ä’²®
-        //SetRotation(NewRotation);
+        SetRotation(NewRotation);
 
         TailInstance->TailBoneRotation_Senser[n] = NewRotation;
 
@@ -184,38 +184,38 @@ void ATailActor_ver2::SetRotation(FRotator& r) {
 
     // Yaw
 
-    //r.Yaw = 0;
+    r.Yaw = 0;
 
     // Pitch 
 
-    if (0 < r.Pitch && r.Pitch < 90) {
-    
-        r.Pitch *= PitchProduct;
-    }
-    else if (r.Pitch > 270) {
+    //if (0 < r.Pitch && r.Pitch < 90) {
+    //
+    //    r.Pitch *= PitchProduct;
+    //}
+    //else if (r.Pitch > 270) {
 
-        float f = 360.f - r.Pitch;
+    //    float f = 360.f - r.Pitch;
 
-        f *= PitchProduct;
+    //    f *= PitchProduct;
 
-        r.Pitch = 360.f - f;
-    }
+    //    r.Pitch = 360.f - f;
+    //}
 
 
-    // Roll 
+    //// Roll 
 
-    if (0 < r.Roll && r.Roll < 90) {
+    //if (0 < r.Roll && r.Roll < 90) {
 
-        r.Roll *= RollProduct;
-    }
-    else if (r.Roll > 270) {
+    //    r.Roll *= RollProduct;
+    //}
+    //else if (r.Roll > 270) {
 
-        float f = 360.f - r.Roll;
+    //    float f = 360.f - r.Roll;
 
-        f *= RollProduct;
+    //    f *= RollProduct;
 
-        r.Roll = 360.f - f;
-    }
+    //    r.Roll = 360.f - f;
+    //}
 }
 
 void ATailActor_ver2::CheckTailBonesValid()

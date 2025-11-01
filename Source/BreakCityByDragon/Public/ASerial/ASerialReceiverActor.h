@@ -95,10 +95,10 @@ private:
 	};
 	bool IsBiasCalculated = false;
 	int BiasCount = 0;
-	const int BiasSampleCount = 200; // –ñ2•b•ªi120Hz‚È‚ç
-
+	
 	// const•Ï”
 
 	const float MaxDeviceCnt = 1.0f / 60.f;
 	const float MaxCalibrationTime = 2.0f;
+	const int BiasSampleCount = 200; // –ñ2•b•ªi120Hz‚È‚ç
 };

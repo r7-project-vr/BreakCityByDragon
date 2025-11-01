@@ -265,8 +265,8 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			IsSetFirstRotation = tails->ResetRotation(tr, 3);
 
 			preTailVec = {
-				tr[2].Roll,
-				tr[2].Pitch,
+				tr[0].Roll,
+				tr[0].Pitch,
 				0
 			};
 			return;
@@ -278,7 +278,7 @@ void AVRDragon_ver2::Tick(float DeltaTime)
 			tails->SetDeviceRotate(tr, 3);
 
 			// K”ö‚É‰‚¶‚Ä“®‚©‚·
-			MovePlayer(DeltaTime, tr[1]);
+			MovePlayer(DeltaTime, tr[0]);
 		}
 	}	
 }
