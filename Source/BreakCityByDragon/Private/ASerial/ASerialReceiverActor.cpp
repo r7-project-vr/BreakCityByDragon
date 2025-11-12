@@ -102,7 +102,8 @@ AASerialReceiverActor::AASerialReceiverActor():
 		DeviceQuat[i] = FQuat(0, 0, 0, 0);
 
 		SenserData[i] = { 0,0,0 };
-		sd[i] = SerialData(1.0 / 120.0, 1 / 120.0, 1 / 120.0);
+		double nomarize = 1.0 / 30.0;
+		sd[i] = SerialData(nomarize, nomarize, nomarize);
 	}
 	
 	handle = 0;
@@ -138,10 +139,13 @@ void AASerialReceiverActor::BeginPlay()
 
 	DCT = new FDeviceComandTask(SerialController);
 
+	sd[0].setTauAcc(0.3);
+	sd[0].setTauMag(0.5);
+
 	for (int i = 0; i < 3; i++) {
 
 		sd[i].setTauAcc(0.1); 
-		sd[i].setTauMag(0.1);
+		sd[i].setTauMag(0.5);
 	}
 }
 
@@ -167,9 +171,9 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 		if (BiasCount >= BiasSampleCount)
 		{
-			GyrBias[i][0] /= BiasSampleCount;
-			GyrBias[i][1] /= BiasSampleCount;
-			GyrBias[i][2] /= BiasSampleCount;
+			GyrBias[i][0] /= BiasSampleCount / 3;
+			GyrBias[i][1] /= BiasSampleCount / 3;
+			GyrBias[i][2] /= BiasSampleCount / 3;
 			IsBiasCalculated = true;
 
 			UE_LOG(LogTemp, Log, TEXT("Calculated end"));
