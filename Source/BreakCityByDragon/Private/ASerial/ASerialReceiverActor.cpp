@@ -91,8 +91,10 @@ public:
 };
 
 // Sets default values
-AASerialReceiverActor::AASerialReceiverActor():
-	index(0)
+AASerialReceiverActor::AASerialReceiverActor() :
+	index(0),
+	DCT(nullptr),
+	SerialFunc(nullptr)
 {
  	PrimaryActorTick.bCanEverTick = true;
 
@@ -138,6 +140,7 @@ void AASerialReceiverActor::BeginPlay()
 	PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
 	DCT = new FDeviceComandTask(SerialController);
+	SerialFunc = new ASerialFunc(SerialController);
 
 	sd[0].setTauAcc(0.3);
 	sd[0].setTauMag(0.5);
@@ -154,10 +157,33 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	DeviceCnt += DeltaTime;
-	int i = index % 3;
 
 	// 接続できてなかったら処理なし
 	if (!IsDeviceConnected) return;
+
+	// 通信処理
+	{
+		I_ASerialFunc* f = nullptr;
+
+		SerialFunc->GetFunc(*f);
+
+		if (f != nullptr)
+		{
+			f->SerialFunc();
+
+			ASerialDataStruct::ASerialData ReceiveData;
+			int result = f->SerialRead(ReceiveData);
+
+			if (result == 0)
+			{
+				// 角度の処理
+			}
+		}
+
+		delete f;
+	}
+
+	int i = index % 3;
 
 	// キャリブレーション中
 	if (IsBiasCalculated != true) {

@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "ASerialLibControllerWin.h"
 #include "Containers/Queue.h"
+#include "ASerial/ASerialFunc.h"
 #include "ASerial/DeviceRotation.h"
 #include "ASerial/RawDataCalculator.h"
 #include "ASerial/SerialData.h"
@@ -50,6 +51,9 @@ public:
 	virtual void GetDeviceData(SenserType type, FRotator& rot)override;
 
 	FRotator GetRotation(int SencerNum);
+
+	// 通信関係の関数を管理するクラス
+	ASerialFunc* SerialFunc;
 
 	// 角度を取得する
 	void GetDeviceRotate(FRotator* r, int size);
