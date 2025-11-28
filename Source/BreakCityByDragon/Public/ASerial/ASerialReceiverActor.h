@@ -15,7 +15,6 @@
 class UASerialLibControllerWin;
 class FRunnableThread;
 class WindowsSerial;
-class FDeviceComandTask;
 
 #define UE_DEBUG_LOG false;
 
@@ -69,7 +68,6 @@ private:
 	TObjectPtr<UASerialLibControllerWin> SerialController;
 
 	WindowsSerial* SerialInterface;
-	class FDeviceComandTask* DCT;
 
 	FQuat		DeviceQuat[3];
 	FQuat		InitQuat[3]{

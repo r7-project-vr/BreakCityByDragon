@@ -11,91 +11,9 @@
 #include "ASerial/ASerialFunc/RotationData.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-class FDeviceComandTask {
-
-private:
-
-	UASerialLibControllerWin* Device;
-
-	void SetKeepRawData(double* data, KeepRawData& KRD) {
-
-		int index = 0;
-
-		for (int i = 0; i < 3; i++) {
-
-			KRD.acc[i] = data[index];
-			index++;
-		}
-
-		for (int i = 0; i < 3; i++) {
-
-			KRD.gyr[i] = data[index];
-			index++;
-		}
-
-		for (int i = 0; i < 3; i++) {
-
-			KRD.mag[i] = data[index];
-			index++;
-		}
-	}
-
-public:
-
-	FDeviceComandTask(UASerialLibControllerWin* d_) {
-
-		Device = d_;
-	}
-
-	void GetSeneserRotation(int senserNum, KeepRawData& KRD) {
-
-		if (senserNum < 1 || senserNum > 4) { 
-
-			UE_LOG(LogTemp, Error, TEXT("index is Non"))
-			return;
-		}
-
-		uint8_t index[3] = {
-			0x20,
-			0x21,
-			0x22
-		};
-
-		Device->WriteData(index[senserNum - 1]);
-		ASerialDataStruct::ASerialData ReceiveData;
-
-		int Result = Device->ReadData(&ReceiveData);
-
-#ifdef UE_DEBUG_LOG
-
-		// ログ
-		uint16_t Error = Device->GetLastErrorCode();
-		UE_LOG(LogTemp, Log, TEXT("Error  : %X"), Error);
-		UE_LOG(LogTemp, Log, TEXT("Contact  : %d"), Result);
-		UE_LOG(LogTemp, Log, TEXT("Result  ; %x"), sizeof(ReceiveData.data));
-
-#endif // UE_DEBUG_LOG
-
-		if (Result == 0) {
-
-			RawDataCalculator rawData;
-
-			rawData.SetReciveData(ReceiveData.data);
-
-			double d[9] = { 0,0,0,0,0,0,0,0,0 };
-			rawData.GetReciveData(d);
-
-			SetKeepRawData(d, KRD);
-		}
-
-		return;
-	}
-};
-
 // Sets default values
 AASerialReceiverActor::AASerialReceiverActor() :
 	senserNumver(0),
-	DCT(nullptr),
 	SerialFunc(nullptr)
 {
  	PrimaryActorTick.bCanEverTick = true;
@@ -106,7 +24,7 @@ AASerialReceiverActor::AASerialReceiverActor() :
 		DeviceQuat[i] = FQuat(0, 0, 0, 0);
 
 		SenserData[i] = { 0,0,0 };
-		double nomarize = 1.0 / 60.0;
+		double nomarize = 1.0 / 20.0;
 		sd[i] = SerialData(nomarize, nomarize, nomarize);
 	}
 	
@@ -141,13 +59,12 @@ void AASerialReceiverActor::BeginPlay()
 	// メモリのクリア
 	PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
-	DCT = new FDeviceComandTask(SerialController);
 	SerialFunc = new ASerialFunc(SerialController);
 
 	for (int i = 0; i < 3; i++) {
 
-		sd[i].setTauAcc(0.1); 
-		sd[i].setTauMag(0.2);
+		sd[i].setTauAcc(5.0); 
+		sd[i].setTauMag(10.0);
 	}
 }
 
@@ -164,7 +81,7 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	{
 		TSharedPtr<I_ASerialFunc> f = SerialFunc->GetFunc();
 
-		if (f != nullptr)
+		if (f.IsValid())
 		{
 			f->SerialFunc();
 
@@ -193,7 +110,7 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 	if (DeviceCnt >= MaxDeviceCnt) 
 	{
 		TSharedPtr<I_ASerialFunc> funk = MakeShared<RotationData>(SerialController, senserNumver + 1);
-		SerialFunc->AddFunc(funk);
+		SerialFunc->PrioritizeAddFunc(funk);// 回転取得コマンドは優先に回す
 
 		DeviceCnt = 0;
 	}
@@ -215,12 +132,6 @@ void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		delete SerialInterface;
 		SerialInterface = nullptr;
-	}
-
-	if (DCT) {
-
-		delete DCT;
-		DCT = nullptr;
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -265,9 +176,9 @@ bool AASerialReceiverActor::CalibrationDevice(int i, ASerialDataStruct::ASerialD
 
 	if (BiasCount >= BiasSampleCount)
 	{
-		GyrBias[i][0] /= BiasSampleCount / 3;
-		GyrBias[i][1] /= BiasSampleCount / 3;
-		GyrBias[i][2] /= BiasSampleCount / 3;
+		GyrBias[i][0] /= BiasSampleCount;
+		GyrBias[i][1] /= BiasSampleCount;
+		GyrBias[i][2] /= BiasSampleCount;
 
 		UE_LOG(LogTemp, Log, TEXT("Calculated end"));
 
@@ -293,13 +204,13 @@ void AASerialReceiverActor::GetSenserRotaition(int index, ASerialDataStruct::ASe
 
 		double q[4];
 		sd[index].getQuat9D(q);
-		DeviceQuat[index] = FQuat(q[0], q[1], q[2], q[3]);
+		DeviceQuat[index] = FQuat(q[1], q[2], q[3], q[0]);
 	}
 	else {
 
 		double q[4];
 		sd[index].getQuat6D(q);
-		DeviceQuat[index] = FQuat(q[0], q[1], q[2], q[3]);
+		DeviceQuat[index] = FQuat(q[1], q[2], q[3], q[0]);
 	}
 
 	if (!bInitQuatSet && index == 2) // 3デバイス取得完了時
