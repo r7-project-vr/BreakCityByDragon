@@ -16,18 +16,17 @@ ASerialFunc::~ASerialFunc()
 	// pass
 }
 
-void ASerialFunc::GetFunc(I_ASerialFunc& name) 
+TSharedPtr<I_ASerialFunc> ASerialFunc::GetFunc()
 {
-	if (funcPool[0] == nullptr) { return; }
-
-	// ‘Î‰‚µ‚½ŠÖ”‚ğŒÄ‚Ño‚·
-	name = *funcPool[0];
+	TSharedPtr<I_ASerialFunc> f = funcPool[0];
 
 	DeleteFunc();
 	SwapFunc();
+
+	return f;
 }
 
-void ASerialFunc::PrioritizeAddFunc(I_ASerialFunc* name) 
+void ASerialFunc::PrioritizeAddFunc(TSharedPtr<I_ASerialFunc> name)
 {
 	// ‚«‚ê‚¢‚É•À‚Ñ‘Ö‚¦‚é
 	SwapFunc();
@@ -38,9 +37,8 @@ void ASerialFunc::PrioritizeAddFunc(I_ASerialFunc* name)
 	funcPool[0] = name;
 }
 
-void ASerialFunc::AddFunc(I_ASerialFunc* name) 
+void ASerialFunc::AddFunc(TSharedPtr<I_ASerialFunc> name)
 {
-
 	int i = 0;
 
 	// ”z—ñ‚ÌÅ‰‚©‚çQÆ‚µ‚Ä‚ ‚¢‚Ä‚éêŠ‚ÉŠÖ”‚ğ•Û‘¶‚·‚é

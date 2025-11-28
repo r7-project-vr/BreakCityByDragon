@@ -8,7 +8,7 @@
 /**
  * 
  */
-class BREAKCITYBYDRAGON_API RotationData : I_ASerialFunc
+class BREAKCITYBYDRAGON_API RotationData : public I_ASerialFunc
 {
 private :
 

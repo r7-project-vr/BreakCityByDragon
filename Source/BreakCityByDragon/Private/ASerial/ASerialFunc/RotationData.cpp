@@ -17,6 +17,7 @@ void RotationData::SerialFunc()
 			return;
 	}
 
+	// センサーに対応したコマンド
 	uint8_t index[3] = {
 		0x20,
 		0x21,

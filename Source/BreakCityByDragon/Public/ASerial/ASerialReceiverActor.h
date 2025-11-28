@@ -87,7 +87,7 @@ private:
 	bool IsCalibration = true;
 	float DeviceCnt = 0;
 
-	int index;
+	int senserNumver;
 
 	SerialData sd[3];
 	KeepRawData SenserData[3];
@@ -100,6 +100,14 @@ private:
 	bool IsBiasCalculated = false;
 	int BiasCount = 0;
 	
+	// ƒƒ\ƒbƒh
+
+	bool CalibrationDevice(int index,ASerialDataStruct::ASerialData& ReceiveData);
+
+	void GetSenserRotaition(int index, ASerialDataStruct::ASerialData& ReceiveData);
+
+	void SetKeepRawData(double* data, KeepRawData& KRD);
+
 	// const•Ï”
 
 	const float MaxDeviceCnt = 1.0f / 60.f;

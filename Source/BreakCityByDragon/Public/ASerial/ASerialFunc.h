@@ -30,13 +30,13 @@ public:
 	~ASerialFunc();
 
 	// [0]の関数を呼び出して削除し、配列をずらす
-	void GetFunc(I_ASerialFunc& name);
+	TSharedPtr<I_ASerialFunc> GetFunc();
 
 	// [0]の配列にねじ込む
-	void PrioritizeAddFunc(I_ASerialFunc* name);
+	void PrioritizeAddFunc(TSharedPtr<I_ASerialFunc> name);
 
 	// 一番後ろの配列に関数を追記する
-	void AddFunc(I_ASerialFunc* name);
+	void AddFunc(TSharedPtr<I_ASerialFunc> name);
 
 private :
 
@@ -44,7 +44,7 @@ private :
 
 	UASerialLibControllerWin* Device; // デバイスのポインタ
 
-	I_ASerialFunc* funcPool[MAX_FuncIndex];// 関数管理用
+	TSharedPtr<I_ASerialFunc> funcPool[MAX_FuncIndex];// 関数管理用
 
 	// メソッド
 	
@@ -62,11 +62,9 @@ private :
 			{
 				if (funcPool[i - 1] != nullptr) { continue; }
 
-				I_ASerialFunc* pre = funcPool[i - 1];
+				TSharedPtr<I_ASerialFunc> pre = funcPool[i - 1];
 				funcPool[i - 1] = funcPool[i];
 				funcPool[i] = pre;
-
-				delete pre;
 			}
 		}
 	}
@@ -82,7 +80,5 @@ private :
 		}
 
 		funcPool[0] = nullptr;
-
-		delete preFunc;
 	}
 };

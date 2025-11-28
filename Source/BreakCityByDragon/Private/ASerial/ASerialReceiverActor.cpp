@@ -7,6 +7,8 @@
 #include "HAL/RunnableThread.h"
 #include "ASerialCore/ASerialPacket.h"
 #include "ASerial/RawDataCalculator.h"
+// 仮
+#include "ASerial/ASerialFunc/RotationData.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 class FDeviceComandTask {
@@ -92,7 +94,7 @@ public:
 
 // Sets default values
 AASerialReceiverActor::AASerialReceiverActor() :
-	index(0),
+	senserNumver(0),
 	DCT(nullptr),
 	SerialFunc(nullptr)
 {
@@ -104,7 +106,7 @@ AASerialReceiverActor::AASerialReceiverActor() :
 		DeviceQuat[i] = FQuat(0, 0, 0, 0);
 
 		SenserData[i] = { 0,0,0 };
-		double nomarize = 1.0 / 30.0;
+		double nomarize = 1.0 / 60.0;
 		sd[i] = SerialData(nomarize, nomarize, nomarize);
 	}
 	
@@ -142,13 +144,10 @@ void AASerialReceiverActor::BeginPlay()
 	DCT = new FDeviceComandTask(SerialController);
 	SerialFunc = new ASerialFunc(SerialController);
 
-	sd[0].setTauAcc(0.3);
-	sd[0].setTauMag(0.5);
-
 	for (int i = 0; i < 3; i++) {
 
 		sd[i].setTauAcc(0.1); 
-		sd[i].setTauMag(0.5);
+		sd[i].setTauMag(0.2);
 	}
 }
 
@@ -163,9 +162,7 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 
 	// 通信処理
 	{
-		I_ASerialFunc* f = nullptr;
-
-		SerialFunc->GetFunc(*f);
+		TSharedPtr<I_ASerialFunc> f = SerialFunc->GetFunc();
 
 		if (f != nullptr)
 		{
@@ -174,81 +171,37 @@ void AASerialReceiverActor::Tick(float DeltaTime)
 			ASerialDataStruct::ASerialData ReceiveData;
 			int result = f->SerialRead(ReceiveData);
 
+			// 角度の処理
 			if (result == 0)
 			{
-				// 角度の処理
+				// キャリブレーション中の処理
+				if (!IsBiasCalculated)
+					IsBiasCalculated = CalibrationDevice(senserNumver, ReceiveData);
+
+				// キャリブレーション後の処理
+				if (IsBiasCalculated)
+				{
+					GetSenserRotaition(senserNumver, ReceiveData);
+				}
 			}
 		}
-
-		delete f;
 	}
 
-	int i = index % 3;
+#if true
 
-	// キャリブレーション中
-	if (IsBiasCalculated != true) {
+	// 仮の処理
+	if (DeviceCnt >= MaxDeviceCnt) 
+	{
+		TSharedPtr<I_ASerialFunc> funk = MakeShared<RotationData>(SerialController, senserNumver + 1);
+		SerialFunc->AddFunc(funk);
 
-		DCT->GetSeneserRotation(i + 1, SenserData[i]);
-
-		GyrBias[i][0] += SenserData[i].gyr[0];
-		GyrBias[i][1] += SenserData[i].gyr[1];
-		GyrBias[i][2] += SenserData[i].gyr[2];
-		BiasCount++;
-
-		if (BiasCount >= BiasSampleCount)
-		{
-			GyrBias[i][0] /= BiasSampleCount / 3;
-			GyrBias[i][1] /= BiasSampleCount / 3;
-			GyrBias[i][2] /= BiasSampleCount / 3;
-			IsBiasCalculated = true;
-
-			UE_LOG(LogTemp, Log, TEXT("Calculated end"));
-		}
-		return;
-	}
-
-	// 角度を取得する
-	if (DeviceCnt >= MaxDeviceCnt) {
-	
 		DeviceCnt = 0;
-
-		// データの処理
-		DCT->GetSeneserRotation(i + 1, SenserData[i]);
-
-		// キャリブレーションに合わせて調整
-		constexpr double DEG_TO_RAD = 3.141592653589793 / 180.0;
-		double correctedGyr[3] = {
-			(SenserData[i].gyr[0] - GyrBias[i][0]) * DEG_TO_RAD,
-			(SenserData[i].gyr[1] - GyrBias[i][1]) * DEG_TO_RAD,
-			(SenserData[i].gyr[2] - GyrBias[i][2]) * DEG_TO_RAD
-		};
-
-		sd[i].update(correctedGyr, SenserData[i].acc, SenserData[i].mag);
-
-		if (index == 0) {
-
-			double q[4];
-			sd[i].getQuat9D(q);
-			DeviceQuat[i] = FQuat(q[0], q[1], q[2], q[3]);
-		}
-		else {
-
-			double q[4];
-			sd[i].getQuat6D(q);
-			DeviceQuat[i] = FQuat(q[0], q[1], q[2], q[3]);
-		}
-
-		if (!bInitQuatSet && index == 2) // 3デバイス取得完了時
-		{
-			for (int j = 0; j < 3; j++)
-				InitQuat[j] = DeviceQuat[j];
-
-			bInitQuatSet = true;
-		}
 	}
+	
+#endif
 
-	index++;
-	if (index >= 3) index = 0;
+	senserNumver++;
+	if (senserNumver >= 3) senserNumver = 0;
 }
 
 void AASerialReceiverActor::EndPlay(const EEndPlayReason::Type EndPlayReason) 
@@ -292,6 +245,93 @@ void AASerialReceiverActor::GetDeviceRotate(FRotator* r, int size) {
 
 	for (int n = 0; n < RotateSize; n++)
 		r[n] = DeviceRotate[n];
+}
+
+bool AASerialReceiverActor::CalibrationDevice(int i, ASerialDataStruct::ASerialData& ReceiveData)
+{
+	RawDataCalculator rawData;
+
+	rawData.SetReciveData(ReceiveData.data);
+
+	double d[9] = { 0,0,0,0,0,0,0,0,0 };
+	rawData.GetReciveData(d);
+
+	SetKeepRawData(d, SenserData[i]);
+
+	GyrBias[i][0] += SenserData[i].gyr[0];
+	GyrBias[i][1] += SenserData[i].gyr[1];
+	GyrBias[i][2] += SenserData[i].gyr[2];
+	BiasCount++;
+
+	if (BiasCount >= BiasSampleCount)
+	{
+		GyrBias[i][0] /= BiasSampleCount / 3;
+		GyrBias[i][1] /= BiasSampleCount / 3;
+		GyrBias[i][2] /= BiasSampleCount / 3;
+
+		UE_LOG(LogTemp, Log, TEXT("Calculated end"));
+
+		return true;
+	}
+
+	return false;
+}
+
+void AASerialReceiverActor::GetSenserRotaition(int index, ASerialDataStruct::ASerialData& ReceiveData)
+{
+	// キャリブレーションに合わせて調整
+	constexpr double DEG_TO_RAD = 3.141592653589793 / 180.0;
+	double correctedGyr[3] = {
+		(SenserData[index].gyr[0] - GyrBias[index][0]) * DEG_TO_RAD,
+		(SenserData[index].gyr[1] - GyrBias[index][1]) * DEG_TO_RAD,
+		(SenserData[index].gyr[2] - GyrBias[index][2]) * DEG_TO_RAD
+	};
+
+	sd[index].update(correctedGyr, SenserData[index].acc, SenserData[index].mag);
+
+	if (index == 0) {
+
+		double q[4];
+		sd[index].getQuat9D(q);
+		DeviceQuat[index] = FQuat(q[0], q[1], q[2], q[3]);
+	}
+	else {
+
+		double q[4];
+		sd[index].getQuat6D(q);
+		DeviceQuat[index] = FQuat(q[0], q[1], q[2], q[3]);
+	}
+
+	if (!bInitQuatSet && index == 2) // 3デバイス取得完了時
+	{
+		for (int j = 0; j < 3; j++)
+			InitQuat[j] = DeviceQuat[j];
+
+		bInitQuatSet = true;
+	}
+}
+
+void AASerialReceiverActor::SetKeepRawData(double* data, KeepRawData& KRD) {
+
+	int index = 0;
+
+	for (int i = 0; i < 3; i++) {
+
+		KRD.acc[i] = data[index];
+		index++;
+	}
+
+	for (int i = 0; i < 3; i++) {
+
+		KRD.gyr[i] = data[index];
+		index++;
+	}
+
+	for (int i = 0; i < 3; i++) {
+
+		KRD.mag[i] = data[index];
+		index++;
+	}
 }
 
 // インターフェース
